@@ -1,0 +1,88 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orthosense/infrastructure/networking/auth_interceptor.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'dio_provider.g.dart';
+
+/// Returns appropriate base URL based on platform.
+/// Android emulator uses 10.0.2.2 to reach host localhost.
+String _getBaseUrl() {
+  if (kIsWeb) {
+    return 'http://localhost:8000';
+  }
+
+  if (Platform.isAndroid) {
+    return 'http://10.0.2.2:8000';
+  }
+
+  // iOS Simulator, macOS, Linux, Windows
+  return 'http://localhost:8000';
+}
+
+/// Provides configured [Dio] instance for API calls.
+/// Includes AuthInterceptor for automatic token injection.
+@Riverpod(keepAlive: true)
+Dio dio(Ref ref) {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: _getBaseUrl(),
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ),
+  );
+
+  // Add auth interceptor for automatic token handling
+  dio.interceptors.add(
+    AuthInterceptor(ref: ref),
+  );
+
+  if (kDebugMode) {
+    dio.interceptors.add(_DebugLoggingInterceptor());
+  }
+
+  return dio;
+}
+
+/// Simple debug interceptor for development.
+class _DebugLoggingInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    debugPrint('┌── DIO REQUEST ──────────────────────────────────');
+    debugPrint('│ ${options.method} ${options.uri}');
+    if (options.data != null) {
+      debugPrint('│ Body: ${options.data}');
+    }
+    debugPrint('└─────────────────────────────────────────────────');
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+    debugPrint('┌── DIO RESPONSE ─────────────────────────────────');
+    debugPrint('│ ${response.statusCode} ${response.requestOptions.uri}');
+    debugPrint('│ Data: ${response.data}');
+    debugPrint('└─────────────────────────────────────────────────');
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    debugPrint('┌── DIO ERROR ────────────────────────────────────');
+    debugPrint('│ ${err.type} ${err.requestOptions.uri}');
+    debugPrint('│ Message: ${err.message}');
+    if (err.response != null) {
+      debugPrint('│ Response: ${err.response?.data}');
+    }
+    debugPrint('└─────────────────────────────────────────────────');
+    handler.next(err);
+  }
+}

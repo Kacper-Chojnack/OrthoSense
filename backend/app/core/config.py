@@ -1,0 +1,55 @@
+"""Application configuration using pydantic-settings.
+
+Environment variables override defaults. Use .env file for local development.
+"""
+
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+    # API Configuration
+    api_v1_prefix: str = "/api/v1"
+    project_name: str = "OrthoSense API"
+    debug: bool = False
+
+    # Database - SQLite for local dev, Postgres for production
+    # Format: postgresql+asyncpg://user:pass@host:port/db
+    database_url: str = "sqlite+aiosqlite:///./orthosense.db"
+
+    # CORS - Flutter app origins
+    cors_origins: list[str] = ["*"]
+
+    # JWT Authentication
+    secret_key: str = "dev-secret-key-change-in-production-min-32-chars!"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+    verification_token_expire_hours: int = 24
+    password_reset_token_expire_hours: int = 1
+
+    # Frontend URL for email links
+    frontend_url: str = "http://localhost:8080"
+
+    @property
+    def is_sqlite(self) -> bool:
+        """Check if using SQLite (for conditional async driver selection)."""
+        return self.database_url.startswith("sqlite")
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Cached settings instance - loaded once per process."""
+    return Settings()
+
+
+settings = get_settings()
