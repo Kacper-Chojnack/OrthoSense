@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import analysis, auth, measurements
+from app.api.v1.endpoints import auth
 
 api_router = APIRouter()
 
@@ -12,14 +12,4 @@ api_router.include_router(
     tags=["auth"],
 )
 
-api_router.include_router(
-    measurements.router,
-    prefix="/measurements",
-    tags=["measurements"],
-)
 
-api_router.include_router(
-    analysis.router,
-    prefix="/analysis",
-    tags=["analysis"],
-)

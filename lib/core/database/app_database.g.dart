@@ -3,400 +3,163 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $MeasurementsTable extends Measurements
-    with TableInfo<$MeasurementsTable, MeasurementEntry> {
+class $SettingsTable extends Settings with TableInfo<$SettingsTable, Setting> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MeasurementsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  $SettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
   @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+      'key', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _typeMeta = const VerificationMeta('type');
-  @override
-  late final GeneratedColumn<String> type = GeneratedColumn<String>(
-      'type', aliasedName, false,
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  late final GeneratedColumnWithTypeConverter<SyncStatus, String> syncStatus =
-      GeneratedColumn<String>('sync_status', aliasedName, false,
-              type: DriftSqlType.string,
-              requiredDuringInsert: false,
-              defaultValue: Constant(SyncStatus.pending.name))
-          .withConverter<SyncStatus>($MeasurementsTable.$convertersyncStatus);
-  @override
-  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
-      jsonData = GeneratedColumn<String>('json_data', aliasedName, false,
-              type: DriftSqlType.string, requiredDuringInsert: true)
-          .withConverter<Map<String, dynamic>>(
-              $MeasurementsTable.$converterjsonData);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      defaultValue: currentDateAndTime);
-  static const VerificationMeta _updatedAtMeta =
-      const VerificationMeta('updatedAt');
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-      'updated_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _syncRetryCountMeta =
-      const VerificationMeta('syncRetryCount');
-  @override
-  late final GeneratedColumn<int> syncRetryCount = GeneratedColumn<int>(
-      'sync_retry_count', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        userId,
-        type,
-        syncStatus,
-        jsonData,
-        createdAt,
-        updatedAt,
-        syncRetryCount
-      ];
+  List<GeneratedColumn> get $columns => [key, value];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'measurements';
+  static const String $name = 'settings';
   @override
-  VerificationContext validateIntegrity(Insertable<MeasurementEntry> instance,
+  VerificationContext validateIntegrity(Insertable<Setting> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('type')) {
+    if (data.containsKey('key')) {
       context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+          _keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
     } else if (isInserting) {
-      context.missing(_typeMeta);
+      context.missing(_keyMeta);
     }
-    if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(_updatedAtMeta,
-          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
-    }
-    if (data.containsKey('sync_retry_count')) {
+    if (data.containsKey('value')) {
       context.handle(
-          _syncRetryCountMeta,
-          syncRetryCount.isAcceptableOrUnknown(
-              data['sync_retry_count']!, _syncRetryCountMeta));
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    } else if (isInserting) {
+      context.missing(_valueMeta);
     }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {key};
   @override
-  MeasurementEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Setting map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MeasurementEntry(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      type: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
-      syncStatus: $MeasurementsTable.$convertersyncStatus.fromSql(
-          attachedDatabase.typeMapping.read(
-              DriftSqlType.string, data['${effectivePrefix}sync_status'])!),
-      jsonData: $MeasurementsTable.$converterjsonData.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}json_data'])!),
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      updatedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
-      syncRetryCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sync_retry_count'])!,
+    return Setting(
+      key: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value'])!,
     );
   }
 
   @override
-  $MeasurementsTable createAlias(String alias) {
-    return $MeasurementsTable(attachedDatabase, alias);
+  $SettingsTable createAlias(String alias) {
+    return $SettingsTable(attachedDatabase, alias);
   }
-
-  static TypeConverter<SyncStatus, String> $convertersyncStatus =
-      const SyncStatusConverter();
-  static TypeConverter<Map<String, dynamic>, String> $converterjsonData =
-      const JsonMapConverter();
 }
 
-class MeasurementEntry extends DataClass
-    implements Insertable<MeasurementEntry> {
-  /// Primary key - UUID generated client-side.
-  final String id;
-
-  /// Hashed user identifier (SHA-256 + salt per AGENTS.md).
-  final String userId;
-
-  /// Measurement type (e.g., 'pose_analysis', 'rom_measurement').
-  final String type;
-
-  /// Outbox Pattern: tracks sync state with backend.
-  final SyncStatus syncStatus;
-
-  /// Flexible JSON payload for measurement data.
-  final Map<String, dynamic> jsonData;
-
-  /// Client-side creation timestamp.
-  final DateTime createdAt;
-
-  /// Last modification timestamp.
-  final DateTime? updatedAt;
-
-  /// Retry count for failed sync attempts.
-  final int syncRetryCount;
-  const MeasurementEntry(
-      {required this.id,
-      required this.userId,
-      required this.type,
-      required this.syncStatus,
-      required this.jsonData,
-      required this.createdAt,
-      this.updatedAt,
-      required this.syncRetryCount});
+class Setting extends DataClass implements Insertable<Setting> {
+  final String key;
+  final String value;
+  const Setting({required this.key, required this.value});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['user_id'] = Variable<String>(userId);
-    map['type'] = Variable<String>(type);
-    {
-      map['sync_status'] = Variable<String>(
-          $MeasurementsTable.$convertersyncStatus.toSql(syncStatus));
-    }
-    {
-      map['json_data'] = Variable<String>(
-          $MeasurementsTable.$converterjsonData.toSql(jsonData));
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    if (!nullToAbsent || updatedAt != null) {
-      map['updated_at'] = Variable<DateTime>(updatedAt);
-    }
-    map['sync_retry_count'] = Variable<int>(syncRetryCount);
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
     return map;
   }
 
-  MeasurementsCompanion toCompanion(bool nullToAbsent) {
-    return MeasurementsCompanion(
-      id: Value(id),
-      userId: Value(userId),
-      type: Value(type),
-      syncStatus: Value(syncStatus),
-      jsonData: Value(jsonData),
-      createdAt: Value(createdAt),
-      updatedAt: updatedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(updatedAt),
-      syncRetryCount: Value(syncRetryCount),
+  SettingsCompanion toCompanion(bool nullToAbsent) {
+    return SettingsCompanion(
+      key: Value(key),
+      value: Value(value),
     );
   }
 
-  factory MeasurementEntry.fromJson(Map<String, dynamic> json,
+  factory Setting.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MeasurementEntry(
-      id: serializer.fromJson<String>(json['id']),
-      userId: serializer.fromJson<String>(json['userId']),
-      type: serializer.fromJson<String>(json['type']),
-      syncStatus: serializer.fromJson<SyncStatus>(json['syncStatus']),
-      jsonData: serializer.fromJson<Map<String, dynamic>>(json['jsonData']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
-      syncRetryCount: serializer.fromJson<int>(json['syncRetryCount']),
+    return Setting(
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'userId': serializer.toJson<String>(userId),
-      'type': serializer.toJson<String>(type),
-      'syncStatus': serializer.toJson<SyncStatus>(syncStatus),
-      'jsonData': serializer.toJson<Map<String, dynamic>>(jsonData),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
-      'syncRetryCount': serializer.toJson<int>(syncRetryCount),
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
     };
   }
 
-  MeasurementEntry copyWith(
-          {String? id,
-          String? userId,
-          String? type,
-          SyncStatus? syncStatus,
-          Map<String, dynamic>? jsonData,
-          DateTime? createdAt,
-          Value<DateTime?> updatedAt = const Value.absent(),
-          int? syncRetryCount}) =>
-      MeasurementEntry(
-        id: id ?? this.id,
-        userId: userId ?? this.userId,
-        type: type ?? this.type,
-        syncStatus: syncStatus ?? this.syncStatus,
-        jsonData: jsonData ?? this.jsonData,
-        createdAt: createdAt ?? this.createdAt,
-        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
-        syncRetryCount: syncRetryCount ?? this.syncRetryCount,
+  Setting copyWith({String? key, String? value}) => Setting(
+        key: key ?? this.key,
+        value: value ?? this.value,
       );
-  MeasurementEntry copyWithCompanion(MeasurementsCompanion data) {
-    return MeasurementEntry(
-      id: data.id.present ? data.id.value : this.id,
-      userId: data.userId.present ? data.userId.value : this.userId,
-      type: data.type.present ? data.type.value : this.type,
-      syncStatus:
-          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
-      jsonData: data.jsonData.present ? data.jsonData.value : this.jsonData,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      syncRetryCount: data.syncRetryCount.present
-          ? data.syncRetryCount.value
-          : this.syncRetryCount,
+  Setting copyWithCompanion(SettingsCompanion data) {
+    return Setting(
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('MeasurementEntry(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('type: $type, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('jsonData: $jsonData, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('syncRetryCount: $syncRetryCount')
+    return (StringBuffer('Setting(')
+          ..write('key: $key, ')
+          ..write('value: $value')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, type, syncStatus, jsonData,
-      createdAt, updatedAt, syncRetryCount);
+  int get hashCode => Object.hash(key, value);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MeasurementEntry &&
-          other.id == this.id &&
-          other.userId == this.userId &&
-          other.type == this.type &&
-          other.syncStatus == this.syncStatus &&
-          other.jsonData == this.jsonData &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt &&
-          other.syncRetryCount == this.syncRetryCount);
+      (other is Setting && other.key == this.key && other.value == this.value);
 }
 
-class MeasurementsCompanion extends UpdateCompanion<MeasurementEntry> {
-  final Value<String> id;
-  final Value<String> userId;
-  final Value<String> type;
-  final Value<SyncStatus> syncStatus;
-  final Value<Map<String, dynamic>> jsonData;
-  final Value<DateTime> createdAt;
-  final Value<DateTime?> updatedAt;
-  final Value<int> syncRetryCount;
+class SettingsCompanion extends UpdateCompanion<Setting> {
+  final Value<String> key;
+  final Value<String> value;
   final Value<int> rowid;
-  const MeasurementsCompanion({
-    this.id = const Value.absent(),
-    this.userId = const Value.absent(),
-    this.type = const Value.absent(),
-    this.syncStatus = const Value.absent(),
-    this.jsonData = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.syncRetryCount = const Value.absent(),
+  const SettingsCompanion({
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  MeasurementsCompanion.insert({
-    required String id,
-    required String userId,
-    required String type,
-    this.syncStatus = const Value.absent(),
-    required Map<String, dynamic> jsonData,
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.syncRetryCount = const Value.absent(),
+  SettingsCompanion.insert({
+    required String key,
+    required String value,
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        userId = Value(userId),
-        type = Value(type),
-        jsonData = Value(jsonData);
-  static Insertable<MeasurementEntry> custom({
-    Expression<String>? id,
-    Expression<String>? userId,
-    Expression<String>? type,
-    Expression<String>? syncStatus,
-    Expression<String>? jsonData,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
-    Expression<int>? syncRetryCount,
+  })  : key = Value(key),
+        value = Value(value);
+  static Insertable<Setting> custom({
+    Expression<String>? key,
+    Expression<String>? value,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (userId != null) 'user_id': userId,
-      if (type != null) 'type': type,
-      if (syncStatus != null) 'sync_status': syncStatus,
-      if (jsonData != null) 'json_data': jsonData,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
-      if (syncRetryCount != null) 'sync_retry_count': syncRetryCount,
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  MeasurementsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? userId,
-      Value<String>? type,
-      Value<SyncStatus>? syncStatus,
-      Value<Map<String, dynamic>>? jsonData,
-      Value<DateTime>? createdAt,
-      Value<DateTime?>? updatedAt,
-      Value<int>? syncRetryCount,
-      Value<int>? rowid}) {
-    return MeasurementsCompanion(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      type: type ?? this.type,
-      syncStatus: syncStatus ?? this.syncStatus,
-      jsonData: jsonData ?? this.jsonData,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      syncRetryCount: syncRetryCount ?? this.syncRetryCount,
+  SettingsCompanion copyWith(
+      {Value<String>? key, Value<String>? value, Value<int>? rowid}) {
+    return SettingsCompanion(
+      key: key ?? this.key,
+      value: value ?? this.value,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -404,31 +167,11 @@ class MeasurementsCompanion extends UpdateCompanion<MeasurementEntry> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
     }
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (type.present) {
-      map['type'] = Variable<String>(type.value);
-    }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<String>(
-          $MeasurementsTable.$convertersyncStatus.toSql(syncStatus.value));
-    }
-    if (jsonData.present) {
-      map['json_data'] = Variable<String>(
-          $MeasurementsTable.$converterjsonData.toSql(jsonData.value));
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
-    if (syncRetryCount.present) {
-      map['sync_retry_count'] = Variable<int>(syncRetryCount.value);
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -438,15 +181,9 @@ class MeasurementsCompanion extends UpdateCompanion<MeasurementEntry> {
 
   @override
   String toString() {
-    return (StringBuffer('MeasurementsCompanion(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('type: $type, ')
-          ..write('syncStatus: $syncStatus, ')
-          ..write('jsonData: $jsonData, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('syncRetryCount: $syncRetryCount, ')
+    return (StringBuffer('SettingsCompanion(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -456,218 +193,113 @@ class MeasurementsCompanion extends UpdateCompanion<MeasurementEntry> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
-  late final $MeasurementsTable measurements = $MeasurementsTable(this);
-  late final MeasurementsDao measurementsDao =
-      MeasurementsDao(this as AppDatabase);
+  late final $SettingsTable settings = $SettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [measurements];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [settings];
 }
 
-typedef $$MeasurementsTableCreateCompanionBuilder = MeasurementsCompanion
-    Function({
-  required String id,
-  required String userId,
-  required String type,
-  Value<SyncStatus> syncStatus,
-  required Map<String, dynamic> jsonData,
-  Value<DateTime> createdAt,
-  Value<DateTime?> updatedAt,
-  Value<int> syncRetryCount,
+typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
+  required String key,
+  required String value,
   Value<int> rowid,
 });
-typedef $$MeasurementsTableUpdateCompanionBuilder = MeasurementsCompanion
-    Function({
-  Value<String> id,
-  Value<String> userId,
-  Value<String> type,
-  Value<SyncStatus> syncStatus,
-  Value<Map<String, dynamic>> jsonData,
-  Value<DateTime> createdAt,
-  Value<DateTime?> updatedAt,
-  Value<int> syncRetryCount,
+typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
+  Value<String> key,
+  Value<String> value,
   Value<int> rowid,
 });
 
-class $$MeasurementsTableFilterComposer
-    extends Composer<_$AppDatabase, $MeasurementsTable> {
-  $$MeasurementsTableFilterComposer({
+class $$SettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $SettingsTable> {
+  $$SettingsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get userId => $composableBuilder(
-      column: $table.userId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<SyncStatus, SyncStatus, String>
-      get syncStatus => $composableBuilder(
-          column: $table.syncStatus,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnWithTypeConverterFilters<Map<String, dynamic>, Map<String, dynamic>,
-          String>
-      get jsonData => $composableBuilder(
-          column: $table.jsonData,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get syncRetryCount => $composableBuilder(
-      column: $table.syncRetryCount,
-      builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
 }
 
-class $$MeasurementsTableOrderingComposer
-    extends Composer<_$AppDatabase, $MeasurementsTable> {
-  $$MeasurementsTableOrderingComposer({
+class $$SettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SettingsTable> {
+  $$SettingsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get key => $composableBuilder(
+      column: $table.key, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-      column: $table.userId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get syncStatus => $composableBuilder(
-      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get jsonData => $composableBuilder(
-      column: $table.jsonData, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
-      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get syncRetryCount => $composableBuilder(
-      column: $table.syncRetryCount,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
 }
 
-class $$MeasurementsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $MeasurementsTable> {
-  $$MeasurementsTableAnnotationComposer({
+class $$SettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SettingsTable> {
+  $$SettingsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
 
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
-
-  GeneratedColumn<String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<SyncStatus, String> get syncStatus =>
-      $composableBuilder(
-          column: $table.syncStatus, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<Map<String, dynamic>, String> get jsonData =>
-      $composableBuilder(column: $table.jsonData, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  GeneratedColumn<int> get syncRetryCount => $composableBuilder(
-      column: $table.syncRetryCount, builder: (column) => column);
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
 }
 
-class $$MeasurementsTableTableManager extends RootTableManager<
+class $$SettingsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $MeasurementsTable,
-    MeasurementEntry,
-    $$MeasurementsTableFilterComposer,
-    $$MeasurementsTableOrderingComposer,
-    $$MeasurementsTableAnnotationComposer,
-    $$MeasurementsTableCreateCompanionBuilder,
-    $$MeasurementsTableUpdateCompanionBuilder,
-    (
-      MeasurementEntry,
-      BaseReferences<_$AppDatabase, $MeasurementsTable, MeasurementEntry>
-    ),
-    MeasurementEntry,
+    $SettingsTable,
+    Setting,
+    $$SettingsTableFilterComposer,
+    $$SettingsTableOrderingComposer,
+    $$SettingsTableAnnotationComposer,
+    $$SettingsTableCreateCompanionBuilder,
+    $$SettingsTableUpdateCompanionBuilder,
+    (Setting, BaseReferences<_$AppDatabase, $SettingsTable, Setting>),
+    Setting,
     PrefetchHooks Function()> {
-  $$MeasurementsTableTableManager(_$AppDatabase db, $MeasurementsTable table)
+  $$SettingsTableTableManager(_$AppDatabase db, $SettingsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$MeasurementsTableFilterComposer($db: db, $table: table),
+              $$SettingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$MeasurementsTableOrderingComposer($db: db, $table: table),
+              $$SettingsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$MeasurementsTableAnnotationComposer($db: db, $table: table),
+              $$SettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> userId = const Value.absent(),
-            Value<String> type = const Value.absent(),
-            Value<SyncStatus> syncStatus = const Value.absent(),
-            Value<Map<String, dynamic>> jsonData = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime?> updatedAt = const Value.absent(),
-            Value<int> syncRetryCount = const Value.absent(),
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              MeasurementsCompanion(
-            id: id,
-            userId: userId,
-            type: type,
-            syncStatus: syncStatus,
-            jsonData: jsonData,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            syncRetryCount: syncRetryCount,
+              SettingsCompanion(
+            key: key,
+            value: value,
             rowid: rowid,
           ),
           createCompanionCallback: ({
-            required String id,
-            required String userId,
-            required String type,
-            Value<SyncStatus> syncStatus = const Value.absent(),
-            required Map<String, dynamic> jsonData,
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime?> updatedAt = const Value.absent(),
-            Value<int> syncRetryCount = const Value.absent(),
+            required String key,
+            required String value,
             Value<int> rowid = const Value.absent(),
           }) =>
-              MeasurementsCompanion.insert(
-            id: id,
-            userId: userId,
-            type: type,
-            syncStatus: syncStatus,
-            jsonData: jsonData,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            syncRetryCount: syncRetryCount,
+              SettingsCompanion.insert(
+            key: key,
+            value: value,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -677,25 +309,22 @@ class $$MeasurementsTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$MeasurementsTableProcessedTableManager = ProcessedTableManager<
+typedef $$SettingsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $MeasurementsTable,
-    MeasurementEntry,
-    $$MeasurementsTableFilterComposer,
-    $$MeasurementsTableOrderingComposer,
-    $$MeasurementsTableAnnotationComposer,
-    $$MeasurementsTableCreateCompanionBuilder,
-    $$MeasurementsTableUpdateCompanionBuilder,
-    (
-      MeasurementEntry,
-      BaseReferences<_$AppDatabase, $MeasurementsTable, MeasurementEntry>
-    ),
-    MeasurementEntry,
+    $SettingsTable,
+    Setting,
+    $$SettingsTableFilterComposer,
+    $$SettingsTableOrderingComposer,
+    $$SettingsTableAnnotationComposer,
+    $$SettingsTableCreateCompanionBuilder,
+    $$SettingsTableUpdateCompanionBuilder,
+    (Setting, BaseReferences<_$AppDatabase, $SettingsTable, Setting>),
+    Setting,
     PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
-  $$MeasurementsTableTableManager get measurements =>
-      $$MeasurementsTableTableManager(_db, _db.measurements);
+  $$SettingsTableTableManager get settings =>
+      $$SettingsTableTableManager(_db, _db.settings);
 }

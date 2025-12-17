@@ -20,15 +20,9 @@ async def send_verification_email(email: str, token: str) -> None:
     logger.info(
         "verification_email_mock",
         email=email,
+        link=verification_url,
         action="COPY THIS LINK TO VERIFY EMAIL",
     )
-    # Print prominently for easy testing
-    print("\n" + "=" * 60)
-    print("📧 VERIFICATION EMAIL (Mock)")
-    print("=" * 60)
-    print(f"To: {email}")
-    print(f"Link: {verification_url}")
-    print("=" * 60 + "\n")
 
 
 async def send_password_reset_email(email: str, token: str) -> None:
@@ -41,15 +35,9 @@ async def send_password_reset_email(email: str, token: str) -> None:
     logger.info(
         "password_reset_email_mock",
         email=email,
+        link=reset_url,
         action="COPY THIS LINK TO RESET PASSWORD",
     )
-    # Print prominently for easy testing
-    print("\n" + "=" * 60)
-    print("🔐 PASSWORD RESET EMAIL (Mock)")
-    print("=" * 60)
-    print(f"To: {email}")
-    print(f"Link: {reset_url}")
-    print("=" * 60 + "\n")
 
 
 async def send_welcome_email(email: str) -> None:
@@ -60,10 +48,5 @@ async def send_welcome_email(email: str) -> None:
     logger.info(
         "welcome_email_mock",
         email=email,
+        message="Welcome to OrthoSense!",
     )
-    print("\n" + "=" * 60)
-    print("🎉 WELCOME EMAIL (Mock)")
-    print("=" * 60)
-    print(f"To: {email}")
-    print("Welcome to OrthoSense!")
-    print("=" * 60 + "\n")

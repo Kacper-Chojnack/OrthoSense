@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/infrastructure/networking/auth_interceptor.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -20,7 +19,8 @@ String _getBaseUrl() {
   }
 
   // iOS Simulator, macOS, Linux, Windows
-  return 'http://localhost:8000';
+  // Using local IP for physical device debugging
+  return 'http://192.168.0.17:8000';
 }
 
 /// Provides configured [Dio] instance for API calls.

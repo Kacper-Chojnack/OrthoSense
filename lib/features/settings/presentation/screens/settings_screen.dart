@@ -41,7 +41,7 @@ class SettingsScreen extends ConsumerWidget {
                 Icon(
                   Icons.health_and_safety,
                   size: 48,
-                  color: colorScheme.primary.withOpacity(0.5),
+                  color: colorScheme.primary.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -136,7 +136,7 @@ class _AppearanceSection extends ConsumerWidget {
                 selected: {themeMode},
                 onSelectionChanged: (Set<ThemeMode> selection) {
                   ref
-                      .read(themeModeNotifierProvider.notifier)
+                      .read(themeModeProvider.notifier)
                       .setThemeMode(selection.first);
                 },
               ),
@@ -167,7 +167,7 @@ class _AccountSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final authState = ref.watch(authNotifierProvider);
+    final authState = ref.watch(authProvider);
     final isLoading = authState is AuthStateLoading;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -185,12 +185,6 @@ class _AccountSection extends ConsumerWidget {
                 ),
               ),
               title: Text(user.email),
-              subtitle: Text(
-                user.isVerified ? 'Verified account' : 'Unverified',
-                style: TextStyle(
-                  color: user.isVerified ? Colors.green : colorScheme.error,
-                ),
-              ),
             ),
             const Divider(height: 1),
           ],
@@ -246,7 +240,7 @@ class _AccountSection extends ConsumerWidget {
     );
 
     if (confirmed ?? false) {
-      await ref.read(authNotifierProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logout();
       if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }

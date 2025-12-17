@@ -51,5 +51,10 @@
 	<!-- Microphone Permission (for future video recording) -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OrthoSense may use the microphone for audio feedback during exercises.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

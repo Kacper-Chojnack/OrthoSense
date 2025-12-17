@@ -96,15 +96,3 @@ def auth_headers(test_user: User) -> dict[str, str]:
     """Generate authorization headers for test user."""
     token = create_access_token(test_user.id)
     return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def measurement_data() -> dict:
-    """Sample measurement data matching Flutter model."""
-    return {
-        "id": str(uuid4()),
-        "user_id": "test_user_001",
-        "type": "rom_measurement",
-        "json_data": {"flexion": 90, "extension": 0, "side": "left"},
-        "created_at": "2024-01-15T10:30:00Z",
-    }

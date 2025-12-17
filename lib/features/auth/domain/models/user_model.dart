@@ -5,7 +5,7 @@ part 'user_model.g.dart';
 
 /// User model from backend.
 @freezed
-class UserModel with _$UserModel {
+abstract class UserModel with _$UserModel {
   const factory UserModel({
     required String id,
     required String email,

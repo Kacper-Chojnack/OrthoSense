@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/settings/presentation/screens/settings_screen.dart';
 
@@ -30,18 +31,22 @@ class ProfileScreen extends ConsumerWidget {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // User Avatar
+                // User Avatar with Edit Button
                 Center(
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Text(
-                      user.email.substring(0, 1).toUpperCase(),
-                      style:
-                          Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                    ),
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Text(
+                          user.email.substring(0, 1).toUpperCase(),
+                          style:
+                              Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -65,20 +70,11 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         _ProfileInfoRow(
-                          icon: Icons.verified_outlined,
-                          label: 'Status',
-                          value: user.isVerified ? 'Verified' : 'Unverified',
-                          valueColor: user.isVerified
-                              ? Colors.green
-                              : colorScheme.error,
-                        ),
-                        const SizedBox(height: 12),
-                        _ProfileInfoRow(
-                          icon: Icons.fingerprint,
-                          label: 'User ID',
-                          value: user.id.length > 8
-                              ? '${user.id.substring(0, 8)}...'
-                              : user.id,
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Member Since',
+                          value: user.createdAt != null
+                              ? DateFormat.yMMMMd().format(user.createdAt!)
+                              : 'Unknown',
                         ),
                       ],
                     ),
@@ -86,22 +82,10 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Quick Settings Card
+                // Quick Actions Card
                 Card(
                   child: Column(
                     children: [
-                      ListTile(
-                        leading: const Icon(Icons.settings_outlined),
-                        title: const Text('Settings'),
-                        subtitle: const Text('Theme, account, and more'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const SettingsScreen(),
-                          ),
-                        ),
-                      ),
-                      const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.notifications_outlined),
                         title: const Text('Notifications'),
@@ -148,13 +132,11 @@ class _ProfileInfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    this.valueColor,
   });
 
   final IconData icon;
   final String label;
   final String value;
-  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -178,9 +160,7 @@ class _ProfileInfoRow extends StatelessWidget {
               ),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: valueColor,
-                    ),
+                style: Theme.of(context).textTheme.bodyMedium,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

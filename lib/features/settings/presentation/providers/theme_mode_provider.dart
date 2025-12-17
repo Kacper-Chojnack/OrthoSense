@@ -9,13 +9,13 @@ part 'theme_mode_provider.g.dart';
 class ThemeModeNotifier extends _$ThemeModeNotifier {
   @override
   Future<ThemeMode> build() async {
-    final repository = await ref.watch(settingsRepositoryProvider.future);
+    final repository = ref.watch(settingsRepositoryProvider);
     return repository.loadThemeMode();
   }
 
   /// Update theme mode and persist.
   Future<void> setThemeMode(ThemeMode mode) async {
-    final repository = await ref.read(settingsRepositoryProvider.future);
+    final repository = ref.read(settingsRepositoryProvider);
     await repository.saveThemeMode(mode);
     state = AsyncData(mode);
   }
@@ -24,7 +24,10 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 /// Synchronous theme mode for MaterialApp.
 /// Returns system as default while loading.
 @riverpod
-ThemeMode currentThemeMode(CurrentThemeModeRef ref) {
-  final asyncValue = ref.watch(themeModeNotifierProvider);
-  return asyncValue.valueOrNull ?? ThemeMode.system;
+ThemeMode currentThemeMode(Ref ref) {
+  final asyncValue = ref.watch(themeModeProvider);
+  return asyncValue.maybeWhen(
+    data: (mode) => mode,
+    orElse: () => ThemeMode.system,
+  );
 }

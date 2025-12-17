@@ -2,22 +2,17 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:orthosense/core/database/converters.dart';
-import 'package:orthosense/core/database/daos/measurements_dao.dart';
-import 'package:orthosense/core/database/sync_status.dart';
-import 'package:orthosense/core/database/tables/measurements_table.dart';
+import 'package:orthosense/core/database/tables/settings_table.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 export 'package:orthosense/core/database/converters.dart';
-export 'package:orthosense/core/database/sync_status.dart';
 
 part 'app_database.g.dart';
 
 /// Central Drift database - Single Source of Truth for OrthoSense.
 @DriftDatabase(
-  tables: [Measurements],
-  daos: [MeasurementsDao],
+  tables: [Settings],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());

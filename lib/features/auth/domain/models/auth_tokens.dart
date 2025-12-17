@@ -5,7 +5,7 @@ part 'auth_tokens.g.dart';
 
 /// Token response from login endpoint.
 @freezed
-class AuthTokens with _$AuthTokens {
+abstract class AuthTokens with _$AuthTokens {
   const factory AuthTokens({
     @JsonKey(name: 'access_token') required String accessToken,
     @JsonKey(name: 'token_type') @Default('bearer') String tokenType,

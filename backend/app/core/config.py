@@ -30,7 +30,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["*"]
 
     # JWT Authentication
-    secret_key: str = "dev-secret-key-change-in-production-min-32-chars!"
+    # SONARQUBE FIX: Removed hardcoded default secret to prevent security hotspots.
+    # Value must be provided via .env file or environment variable.
+    secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7

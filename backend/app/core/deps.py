@@ -31,8 +31,8 @@ async def get_current_user(
 
     try:
         user = await session.get(User, UUID(user_id))
-    except ValueError:
-        raise credentials_exception
+    except ValueError as err:
+        raise credentials_exception from err
 
     if user is None:
         raise credentials_exception

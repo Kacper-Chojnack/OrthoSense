@@ -1,15 +1,7 @@
 """SQLModel database models."""
 
-from app.models.measurement import (
-    Measurement,
-    MeasurementCreate,
-    MeasurementRead,
-    SyncResponse,
-)
+from app.models.user import User
 
 __all__ = [
-    "Measurement",
-    "MeasurementCreate",
-    "MeasurementRead",
-    "SyncResponse",
+    "User",
 ]
