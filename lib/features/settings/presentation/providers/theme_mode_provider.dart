@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/settings/data/settings_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -25,7 +26,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 /// Returns system as default while loading.
 @riverpod
 ThemeMode currentThemeMode(Ref ref) {
-  final asyncValue = ref.watch(themeModeProvider);
+  final asyncValue = ref.watch(themeModeNotifierProvider);
   return asyncValue.maybeWhen(
     data: (mode) => mode,
     orElse: () => ThemeMode.system,

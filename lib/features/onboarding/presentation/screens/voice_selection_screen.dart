@@ -64,8 +64,6 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
                   itemCount: voices.length,
                   itemBuilder: (context, index) {
                     final voice = voices[index];
-                    final isSelected = _selectedVoice == voice ||
-                        (_selectedVoice == null && index == 0); // Default to first
 
                     // Ensure we have a selection
                     if (_selectedVoice == null && index == 0) {

@@ -142,7 +142,7 @@ class _AppearanceSection extends ConsumerWidget {
                 selected: {themeMode},
                 onSelectionChanged: (Set<ThemeMode> selection) {
                   ref
-                      .read(themeModeProvider.notifier)
+                      .read(themeModeNotifierProvider.notifier)
                       .setThemeMode(selection.first);
                 },
               ),
@@ -173,7 +173,7 @@ class _AccountSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(authNotifierProvider);
     final isLoading = authState is AuthStateLoading;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -246,7 +246,7 @@ class _AccountSection extends ConsumerWidget {
     );
 
     if (confirmed ?? false) {
-      await ref.read(authProvider.notifier).logout();
+      await ref.read(authNotifierProvider.notifier).logout();
       if (context.mounted) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
@@ -334,7 +334,7 @@ class _VoiceSection extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(
+            MaterialPageRoute<void>(
               builder: (context) =>
                   const VoiceSelectionScreen(isSettingsMode: true),
             ),

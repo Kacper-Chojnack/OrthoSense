@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:orthosense/core/providers/tts_provider.dart';
 
@@ -9,7 +10,9 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
   final tts = ref.read(ttsServiceProvider);
   final voices = await tts.getVoices();
   
-  final allVoices = voices.map((e) => Map<String, String>.from(e as Map)).toList();
+  final allVoices = voices
+      .map((dynamic e) => Map<String, String>.from(e as Map))
+      .toList();
 
   // Define high-quality voice identifiers
   // Expanded list to ensure we get enough options on standard devices
@@ -38,19 +41,19 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
     'en-gb-x-fis', // Female
   ];
 
-  return allVoices.where((voice) {
+  return allVoices.where((Map<String, String> voice) {
     final name = voice['name'] ?? '';
     final locale = voice['locale'] ?? '';
     
     // Basic English filter
-    if (!locale.toLowerCase().startsWith('en')) return false;
+    if (locale.toLowerCase().startsWith('en') == false) return false;
 
     if (Platform.isIOS) {
       // Check if name contains any of the best identifiers
-      return iosBestVoices.any((best) => name.contains(best));
+      return iosBestVoices.any((String best) => name.contains(best));
     } else if (Platform.isAndroid) {
       // Check if name contains any of the best identifiers
-      return androidBestVoices.any((best) => name.contains(best));
+      return androidBestVoices.any((String best) => name.contains(best));
     }
     
     return true; // Fallback for other platforms

@@ -31,7 +31,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authProvider.notifier).register(
+    await ref.read(authNotifierProvider.notifier).register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -39,11 +39,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(authNotifierProvider);
     final isLoading = authState is AuthStateLoading;
 
     // Show error message if registration failed
-    ref.listen<AuthState>(authProvider, (previous, next) {
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next is AuthStateUnauthenticated && next.message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

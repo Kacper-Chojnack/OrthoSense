@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authProvider.notifier).login(
+    await ref.read(authNotifierProvider.notifier).login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -45,7 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     final success =
-        await ref.read(authProvider.notifier).forgotPassword(email);
+        await ref.read(authNotifierProvider.notifier).forgotPassword(email);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -68,11 +68,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(authNotifierProvider);
     final isLoading = authState is AuthStateLoading;
 
     // Show error message if login failed
-    ref.listen<AuthState>(authProvider, (previous, next) {
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       final message = switch (next) {
         AuthStateUnauthenticated(:final message) => message,
         AuthStateError(:final message) => message,
