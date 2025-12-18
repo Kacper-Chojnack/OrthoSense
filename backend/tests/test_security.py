@@ -381,7 +381,13 @@ class TestTokenSecurity:
         parts = token.split(".")
         # This is the payload part (base64 encoded)
         # Any modification should invalidate signature
-        modified_payload = base64.urlsafe_b64encode(b'{"sub":"hacked","type":"access","exp":9999999999}').decode().rstrip("=")
+        modified_payload = (
+            base64.urlsafe_b64encode(
+                b'{"sub":"hacked","type":"access","exp":9999999999}'
+            )
+            .decode()
+            .rstrip("=")
+        )
         modified_token = f"{parts[0]}.{modified_payload}.{parts[2]}"
 
         assert decode_token(modified_token) is None
