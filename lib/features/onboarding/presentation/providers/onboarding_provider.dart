@@ -44,11 +44,11 @@ class OnboardingController extends _$OnboardingController {
   Future<void> completeVoiceSelection(Map<String, String> voice) async {
     final prefs = ref.read(preferencesServiceProvider);
     final tts = ref.read(ttsServiceProvider);
-    
+
     await tts.setVoice(voice);
     await prefs.setVoiceSelected(true);
     await prefs.setSelectedVoiceKey(voice['name'] ?? '');
-    
+
     state = state.copyWith(voiceSelected: true);
   }
 }

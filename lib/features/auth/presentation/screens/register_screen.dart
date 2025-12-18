@@ -31,7 +31,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authNotifierProvider.notifier).register(
+    await ref
+        .read(authNotifierProvider.notifier)
+        .register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -74,15 +76,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text(
                     'Join OrthoSense',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Create an account to start your rehabilitation journey',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -156,9 +158,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: Text(
                       'Password must be at least 8 characters',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),

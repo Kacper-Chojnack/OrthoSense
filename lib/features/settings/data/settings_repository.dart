@@ -23,7 +23,7 @@ class SettingsRepository {
     final query = _db.select(_db.settings)
       ..where((tbl) => tbl.key.equals(SettingsKeys.themeMode));
     final record = await query.getSingleOrNull();
-    
+
     final value = record?.value;
     return switch (value) {
       'light' => ThemeMode.light,
@@ -47,18 +47,22 @@ class SettingsRepository {
       ThemeMode.dark => 'dark',
       ThemeMode.system => 'system',
     };
-    
-    await _db.into(_db.settings).insertOnConflictUpdate(
-      SettingsCompanion.insert(
-        key: SettingsKeys.themeMode,
-        value: value,
-      ),
-    );
+
+    await _db
+        .into(_db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion.insert(
+            key: SettingsKeys.themeMode,
+            value: value,
+          ),
+        );
   }
 
   /// Save profile image path.
   Future<void> saveProfileImagePath(String path) async {
-    await _db.into(_db.settings).insertOnConflictUpdate(
+    await _db
+        .into(_db.settings)
+        .insertOnConflictUpdate(
           SettingsCompanion.insert(
             key: SettingsKeys.profileImagePath,
             value: path,

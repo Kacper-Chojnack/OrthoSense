@@ -9,7 +9,7 @@ part 'voice_list_provider.g.dart';
 Future<List<Map<String, String>>> voiceList(Ref ref) async {
   final tts = ref.read(ttsServiceProvider);
   final voices = await tts.getVoices();
-  
+
   final allVoices = voices
       .map((dynamic e) => Map<String, String>.from(e as Map))
       .toList();
@@ -44,7 +44,7 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
   return allVoices.where((Map<String, String> voice) {
     final name = voice['name'] ?? '';
     final locale = voice['locale'] ?? '';
-    
+
     // Basic English filter
     if (locale.toLowerCase().startsWith('en') == false) return false;
 
@@ -55,7 +55,7 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
       // Check if name contains any of the best identifiers
       return androidBestVoices.any((String best) => name.contains(best));
     }
-    
+
     return true; // Fallback for other platforms
   }).toList();
 }

@@ -29,7 +29,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authNotifierProvider.notifier).login(
+    await ref
+        .read(authNotifierProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -44,8 +46,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    final success =
-        await ref.read(authNotifierProvider.notifier).forgotPassword(email);
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .forgotPassword(email);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,19 +115,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 16),
                     Text(
                       'OrthoSense',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in to continue',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 48),

@@ -20,17 +20,17 @@ class AuthWrapper extends ConsumerWidget {
 
     return switch (authState) {
       AuthStateInitial() || AuthStateLoading() => const Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading...'),
-              ],
-            ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading...'),
+            ],
           ),
         ),
+      ),
       AuthStateAuthenticated() => child,
       AuthStateUnauthenticated() || AuthStateError() => const LoginScreen(),
     };

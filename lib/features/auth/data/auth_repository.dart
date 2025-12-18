@@ -12,8 +12,8 @@ class AuthRepository {
   AuthRepository({
     required Dio dio,
     required TokenStorage tokenStorage,
-  })  : _dio = dio,
-        _tokenStorage = tokenStorage;
+  }) : _dio = dio,
+       _tokenStorage = tokenStorage;
 
   final Dio _dio;
   final TokenStorage _tokenStorage;

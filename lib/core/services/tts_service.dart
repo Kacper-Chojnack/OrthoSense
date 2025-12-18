@@ -12,13 +12,14 @@ class TtsService {
     if (Platform.isIOS) {
       await _flutterTts.setSharedInstance(true);
       await _flutterTts.setIosAudioCategory(
-          IosTextToSpeechAudioCategory.playback,
-          [
-            IosTextToSpeechAudioCategoryOptions.defaultToSpeaker,
-            IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-            IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-          ],
-          IosTextToSpeechAudioMode.defaultMode);
+        IosTextToSpeechAudioCategory.playback,
+        [
+          IosTextToSpeechAudioCategoryOptions.defaultToSpeaker,
+          IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+          IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+        ],
+        IosTextToSpeechAudioMode.defaultMode,
+      );
     }
     await _flutterTts.awaitSpeakCompletion(true);
   }
@@ -43,6 +44,6 @@ class TtsService {
   Future<void> stop() async {
     await _flutterTts.stop();
   }
-  
+
   FlutterTts get instance => _flutterTts;
 }

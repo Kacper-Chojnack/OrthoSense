@@ -25,17 +25,17 @@ class DisclaimerScreen extends ConsumerWidget {
               Text(
                 'Important Disclaimer',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
                 'OrthoSense is NOT a medical device.',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),

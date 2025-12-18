@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-
 /// Converts JSON Map to/from database TEXT.
 class JsonMapConverter extends TypeConverter<Map<String, dynamic>, String> {
   const JsonMapConverter();

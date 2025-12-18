@@ -125,7 +125,7 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
       await ref
           .read(onboardingControllerProvider.notifier)
           .completeVoiceSelection(_selectedVoice!);
-      
+
       if (widget.isSettingsMode && mounted) {
         Navigator.of(context).pop();
       }

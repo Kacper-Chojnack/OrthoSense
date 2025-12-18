@@ -67,7 +67,10 @@ class _DebugLoggingInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
     debugPrint('┌── DIO RESPONSE ─────────────────────────────────');
     debugPrint('│ ${response.statusCode} ${response.requestOptions.uri}');
     debugPrint('│ Data: ${response.data}');

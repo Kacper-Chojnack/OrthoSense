@@ -24,7 +24,7 @@ class ProfileImageNotifier extends _$ProfileImageNotifier {
     final savedImage = await imageFile.copy(p.join(appDir.path, fileName));
 
     final repository = ref.read(settingsRepositoryProvider);
-    
+
     // Delete old image if exists to save space
     final oldPath = state.value;
     if (oldPath != null) {

@@ -53,14 +53,14 @@ class SettingsScreen extends ConsumerWidget {
                 Text(
                   'OrthoSense',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 Text(
                   'Digital Telerehabilitation',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.outline,
-                      ),
+                    color: colorScheme.outline,
+                  ),
                 ),
               ],
             ),
@@ -84,9 +84,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -151,8 +151,8 @@ class _AppearanceSection extends ConsumerWidget {
             Text(
               _getThemeDescription(themeMode),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -269,8 +269,8 @@ class _AboutSection extends StatelessWidget {
             trailing: Text(
               '1.0.0',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           const Divider(height: 1),
@@ -344,4 +344,3 @@ class _VoiceSection extends StatelessWidget {
     );
   }
 }
-

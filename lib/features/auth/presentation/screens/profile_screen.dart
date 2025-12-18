@@ -14,7 +14,7 @@ class ProfileScreen extends ConsumerWidget {
 
   Future<void> _pickImage(BuildContext context, WidgetRef ref) async {
     final picker = ImagePicker();
-    
+
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
@@ -196,8 +196,8 @@ class ProfileScreen extends ConsumerWidget {
                   child: Text(
                     'OrthoSense v1.0.0',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -234,8 +234,8 @@ class _ProfileInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               Text(
                 value,
