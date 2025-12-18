@@ -16,10 +16,10 @@ class DisclaimerScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              const Icon(
-                Icons.medical_information_outlined,
-                size: 64,
-                color: Colors.blue,
+              Image.asset(
+                'assets/images/logo.png',
+                height: 100,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(height: 32),
               Text(

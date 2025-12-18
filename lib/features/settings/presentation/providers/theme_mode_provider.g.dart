@@ -6,43 +6,104 @@ part of 'theme_mode_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentThemeModeHash() => r'cc2a2ee41de7a3a0fb907963d699d6fafc88e85a';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+/// Manages theme mode state with persistence.
 
-/// Synchronous theme mode for MaterialApp.
-/// Returns system as default while loading.
-///
-/// Copied from [currentThemeMode].
-@ProviderFor(currentThemeMode)
-final currentThemeModeProvider = AutoDisposeProvider<ThemeMode>.internal(
-  currentThemeMode,
-  name: r'currentThemeModeProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$currentThemeModeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(ThemeModeNotifier)
+const themeModeProvider = ThemeModeNotifierProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrentThemeModeRef = AutoDisposeProviderRef<ThemeMode>;
+/// Manages theme mode state with persistence.
+final class ThemeModeNotifierProvider
+    extends $AsyncNotifierProvider<ThemeModeNotifier, ThemeMode> {
+  /// Manages theme mode state with persistence.
+  const ThemeModeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeModeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themeModeNotifierHash();
+
+  @$internal
+  @override
+  ThemeModeNotifier create() => ThemeModeNotifier();
+}
+
 String _$themeModeNotifierHash() => r'42f30771468e57154cc4d1348e06a71690c0fa3b';
 
 /// Manages theme mode state with persistence.
-///
-/// Copied from [ThemeModeNotifier].
-@ProviderFor(ThemeModeNotifier)
-final themeModeNotifierProvider =
-    AsyncNotifierProvider<ThemeModeNotifier, ThemeMode>.internal(
-      ThemeModeNotifier.new,
-      name: r'themeModeNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$themeModeNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
 
-typedef _$ThemeModeNotifier = AsyncNotifier<ThemeMode>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$ThemeModeNotifier extends $AsyncNotifier<ThemeMode> {
+  FutureOr<ThemeMode> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<AsyncValue<ThemeMode>, ThemeMode>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<ThemeMode>, ThemeMode>,
+              AsyncValue<ThemeMode>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
+/// Synchronous theme mode for MaterialApp.
+/// Returns system as default while loading.
+
+@ProviderFor(currentThemeMode)
+const currentThemeModeProvider = CurrentThemeModeProvider._();
+
+/// Synchronous theme mode for MaterialApp.
+/// Returns system as default while loading.
+
+final class CurrentThemeModeProvider
+    extends $FunctionalProvider<ThemeMode, ThemeMode, ThemeMode>
+    with $Provider<ThemeMode> {
+  /// Synchronous theme mode for MaterialApp.
+  /// Returns system as default while loading.
+  const CurrentThemeModeProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentThemeModeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentThemeModeHash();
+
+  @$internal
+  @override
+  $ProviderElement<ThemeMode> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ThemeMode create(Ref ref) {
+    return currentThemeMode(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ThemeMode value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ThemeMode>(value),
+    );
+  }
+}
+
+String _$currentThemeModeHash() => r'c9ecfb6d62e260717dcf4ae6c999c38916f4c25a';

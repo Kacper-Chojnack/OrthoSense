@@ -1,7 +1,110 @@
 """SQLModel database models."""
 
-from app.models.user import User
+from app.models.exercise import (
+    BodyPart,
+    Exercise,
+    ExerciseCategory,
+    ExerciseCreate,
+    ExerciseRead,
+    ExerciseUpdate,
+)
+from app.models.protocol import (
+    Protocol,
+    ProtocolCreate,
+    ProtocolExercise,
+    ProtocolExerciseCreate,
+    ProtocolExerciseRead,
+    ProtocolExerciseUpdate,
+    ProtocolRead,
+    ProtocolReadWithExercises,
+    ProtocolStatus,
+    ProtocolUpdate,
+)
+from app.models.session import (
+    Session,
+    SessionComplete,
+    SessionCreate,
+    SessionExerciseResult,
+    SessionExerciseResultCreate,
+    SessionExerciseResultRead,
+    SessionRead,
+    SessionReadWithResults,
+    SessionStart,
+    SessionStatus,
+    SessionSummary,
+)
+from app.models.treatment_plan import (
+    PatientStats,
+    PlanStatus,
+    TreatmentPlan,
+    TreatmentPlanCreate,
+    TreatmentPlanRead,
+    TreatmentPlanReadWithDetails,
+    TreatmentPlanUpdate,
+)
+from app.models.user import (
+    EmailVerification,
+    ForgotPassword,
+    PasswordReset,
+    Token,
+    TokenPayload,
+    User,
+    UserCreate,
+    UserLogin,
+    UserRead,
+    UserRole,
+    UserUpdate,
+)
 
 __all__ = [
+    # User
     "User",
+    "UserCreate",
+    "UserLogin",
+    "UserRead",
+    "UserRole",
+    "UserUpdate",
+    "Token",
+    "TokenPayload",
+    "PasswordReset",
+    "EmailVerification",
+    "ForgotPassword",
+    # Exercise
+    "Exercise",
+    "ExerciseCreate",
+    "ExerciseRead",
+    "ExerciseUpdate",
+    "ExerciseCategory",
+    "BodyPart",
+    # Protocol
+    "Protocol",
+    "ProtocolCreate",
+    "ProtocolRead",
+    "ProtocolReadWithExercises",
+    "ProtocolUpdate",
+    "ProtocolStatus",
+    "ProtocolExercise",
+    "ProtocolExerciseCreate",
+    "ProtocolExerciseRead",
+    "ProtocolExerciseUpdate",
+    # Treatment Plan
+    "TreatmentPlan",
+    "TreatmentPlanCreate",
+    "TreatmentPlanRead",
+    "TreatmentPlanReadWithDetails",
+    "TreatmentPlanUpdate",
+    "PlanStatus",
+    "PatientStats",
+    # Session
+    "Session",
+    "SessionCreate",
+    "SessionStart",
+    "SessionComplete",
+    "SessionRead",
+    "SessionReadWithResults",
+    "SessionStatus",
+    "SessionExerciseResult",
+    "SessionExerciseResultCreate",
+    "SessionExerciseResultRead",
+    "SessionSummary",
 ]

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:orthosense/core/database/tables/exercise_results_table.dart';
+import 'package:orthosense/core/database/tables/sessions_table.dart';
 import 'package:orthosense/core/database/tables/settings_table.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -11,8 +13,9 @@ export 'package:orthosense/core/database/converters.dart';
 part 'app_database.g.dart';
 
 /// Central Drift database - Single Source of Truth for OrthoSense.
+/// Offline-First: UI observes Streams from Drift, never reads directly from API.
 @DriftDatabase(
-  tables: [Settings],
+  tables: [Settings, Sessions, ExerciseResults],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -21,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -30,7 +33,11 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (m, from, to) async {
-        // Future migrations handled here
+        // Migration from v1 to v2: add sessions and exercise results tables
+        if (from < 2) {
+          await m.createTable(sessions);
+          await m.createTable(exerciseResults);
+        }
       },
     );
   }

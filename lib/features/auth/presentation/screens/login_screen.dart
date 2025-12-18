@@ -30,7 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     final success = await ref
-        .read(authNotifierProvider.notifier)
+        .read(authProvider.notifier)
         .forgotPassword(email);
 
     if (mounted) {
@@ -71,11 +71,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
+    final authState = ref.watch(authProvider);
     final isLoading = authState is AuthStateLoading;
 
     // Show error message if login failed
-    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+    ref.listen<AuthState>(authProvider, (previous, next) {
       final message = switch (next) {
         AuthStateUnauthenticated(:final message) => message,
         AuthStateError(:final message) => message,
@@ -107,9 +107,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Logo / App Name
-                    Icon(
-                      Icons.health_and_safety,
-                      size: 80,
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 100,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 16),

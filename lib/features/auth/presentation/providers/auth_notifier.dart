@@ -203,14 +203,14 @@ class AuthNotifier extends _$AuthNotifier {
 /// Helper provider to check if user is authenticated.
 @riverpod
 bool isAuthenticated(Ref ref) {
-  final authState = ref.watch(authNotifierProvider);
+  final authState = ref.watch(authProvider);
   return authState is AuthStateAuthenticated;
 }
 
 /// Helper provider to get current user.
 @riverpod
 UserModel? currentUser(Ref ref) {
-  final authState = ref.watch(authNotifierProvider);
+  final authState = ref.watch(authProvider);
   return switch (authState) {
     AuthStateAuthenticated(:final user) => user,
     _ => null,
@@ -220,7 +220,7 @@ UserModel? currentUser(Ref ref) {
 /// Helper provider to get current access token.
 @riverpod
 String? accessToken(Ref ref) {
-  final authState = ref.watch(authNotifierProvider);
+  final authState = ref.watch(authProvider);
   return switch (authState) {
     AuthStateAuthenticated(:final accessToken) => accessToken,
     _ => null,

@@ -6,23 +6,46 @@ part of 'voice_list_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$voiceListHash() => r'4da46e9c00f1073742b82613ab13ac52e6801c39';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [voiceList].
 @ProviderFor(voiceList)
-final voiceListProvider =
-    AutoDisposeFutureProvider<List<Map<String, String>>>.internal(
-      voiceList,
-      name: r'voiceListProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$voiceListHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+const voiceListProvider = VoiceListProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef VoiceListRef = AutoDisposeFutureProviderRef<List<Map<String, String>>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class VoiceListProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Map<String, String>>>,
+          List<Map<String, String>>,
+          FutureOr<List<Map<String, String>>>
+        >
+    with
+        $FutureModifier<List<Map<String, String>>>,
+        $FutureProvider<List<Map<String, String>>> {
+  const VoiceListProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'voiceListProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$voiceListHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Map<String, String>>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Map<String, String>>> create(Ref ref) {
+    return voiceList(ref);
+  }
+}
+
+String _$voiceListHash() => r'4da46e9c00f1073742b82613ab13ac52e6801c39';

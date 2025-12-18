@@ -26,7 +26,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 /// Returns system as default while loading.
 @riverpod
 ThemeMode currentThemeMode(Ref ref) {
-  final asyncValue = ref.watch(themeModeNotifierProvider);
+  final asyncValue = ref.watch(themeModeProvider);
   return asyncValue.maybeWhen(
     data: (mode) => mode,
     orElse: () => ThemeMode.system,

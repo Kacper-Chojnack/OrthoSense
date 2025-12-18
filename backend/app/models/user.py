@@ -1,10 +1,11 @@
 """User model for authentication and authorization."""
 
 from datetime import UTC, datetime
+from enum import Enum
 from uuid import UUID, uuid4
 
 from pydantic import EmailStr
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 def utc_now() -> datetime:
@@ -12,10 +13,20 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+class UserRole(str, Enum):
+    """User roles for authorization."""
+
+    PATIENT = "patient"
+    THERAPIST = "therapist"
+    ADMIN = "admin"
+
+
 class UserBase(SQLModel):
     """Shared user fields."""
 
     email: EmailStr = Field(unique=True, index=True)
+    full_name: str = Field(default="", max_length=255)
+    role: UserRole = Field(default=UserRole.PATIENT)
     is_active: bool = Field(default=True)
     is_verified: bool = Field(default=False)
 
@@ -30,12 +41,32 @@ class User(UserBase, table=True):
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime | None = Field(default=None)
 
+    # Relationships
+    treatment_plans_as_patient: list["TreatmentPlan"] = Relationship(
+        back_populates="patient",
+        sa_relationship_kwargs={"foreign_keys": "TreatmentPlan.patient_id"},
+    )
+    treatment_plans_as_therapist: list["TreatmentPlan"] = Relationship(
+        back_populates="therapist",
+        sa_relationship_kwargs={"foreign_keys": "TreatmentPlan.therapist_id"},
+    )
+    protocols_created: list["Protocol"] = Relationship(back_populates="created_by_user")
+    sessions: list["Session"] = Relationship(back_populates="patient")
+
+
+# Forward references for relationships
+from app.models.protocol import Protocol  # noqa: E402
+from app.models.session import Session  # noqa: E402
+from app.models.treatment_plan import TreatmentPlan  # noqa: E402
+
 
 class UserCreate(SQLModel):
     """Schema for user registration."""
 
     email: EmailStr
     password: str = Field(min_length=8)
+    full_name: str = ""
+    role: UserRole = UserRole.PATIENT
 
 
 class UserLogin(SQLModel):
@@ -50,6 +81,8 @@ class UserRead(SQLModel):
 
     id: UUID
     email: EmailStr
+    full_name: str
+    role: UserRole
     is_active: bool
     is_verified: bool
     created_at: datetime
@@ -59,6 +92,7 @@ class UserUpdate(SQLModel):
     """Schema for updating user profile."""
 
     email: EmailStr | None = None
+    full_name: str | None = None
 
 
 class Token(SQLModel):
