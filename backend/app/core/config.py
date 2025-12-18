@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # API Configuration
     api_v1_prefix: str = "/api/v1"
-    project_name: str = "OrthoSense API"
+    project_name: str = "OrthoSense"
     debug: bool = False
 
     # Database - SQLite for local dev, Postgres for production
