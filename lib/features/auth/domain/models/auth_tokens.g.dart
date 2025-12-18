@@ -7,9 +7,9 @@ part of 'auth_tokens.dart';
 // **************************************************************************
 
 _AuthTokens _$AuthTokensFromJson(Map<String, dynamic> json) => _AuthTokens(
-      accessToken: json['access_token'] as String,
-      tokenType: json['token_type'] as String? ?? 'bearer',
-    );
+  accessToken: json['access_token'] as String,
+  tokenType: json['token_type'] as String? ?? 'bearer',
+);
 
 Map<String, dynamic> _$AuthTokensToJson(_AuthTokens instance) =>
     <String, dynamic>{

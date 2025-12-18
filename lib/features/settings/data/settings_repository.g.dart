@@ -15,21 +15,25 @@ const settingsRepositoryProvider = SettingsRepositoryProvider._();
 
 /// Provides SettingsRepository instance.
 
-final class SettingsRepositoryProvider extends $FunctionalProvider<
-    SettingsRepository,
-    SettingsRepository,
-    SettingsRepository> with $Provider<SettingsRepository> {
+final class SettingsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          SettingsRepository,
+          SettingsRepository,
+          SettingsRepository
+        >
+    with $Provider<SettingsRepository> {
   /// Provides SettingsRepository instance.
   const SettingsRepositoryProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'settingsRepositoryProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'settingsRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$settingsRepositoryHash();
@@ -37,8 +41,8 @@ final class SettingsRepositoryProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<SettingsRepository> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   SettingsRepository create(Ref ref) {
@@ -55,4 +59,4 @@ final class SettingsRepositoryProvider extends $FunctionalProvider<
 }
 
 String _$settingsRepositoryHash() =>
-    r'9514eb9f6d5c1044093cb1025c3b7684f4fa7f2e';
+    r'e31ef047767d19f0f35e396bb632aeaa345c272c';

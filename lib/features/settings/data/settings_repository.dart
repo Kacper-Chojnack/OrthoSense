@@ -8,6 +8,7 @@ part 'settings_repository.g.dart';
 /// Keys for Settings storage.
 abstract class SettingsKeys {
   static const String themeMode = 'theme_mode';
+  static const String profileImagePath = 'profile_image_path';
 }
 
 /// Repository for persisting app settings using Drift.
@@ -30,6 +31,14 @@ class SettingsRepository {
     };
   }
 
+  /// Load saved profile image path.
+  Future<String?> loadProfileImagePath() async {
+    final query = _db.select(_db.settings)
+      ..where((tbl) => tbl.key.equals(SettingsKeys.profileImagePath));
+    final record = await query.getSingleOrNull();
+    return record?.value;
+  }
+
   /// Save theme mode preference.
   Future<void> saveThemeMode(ThemeMode mode) async {
     final value = switch (mode) {
@@ -44,6 +53,16 @@ class SettingsRepository {
         value: value,
       ),
     );
+  }
+
+  /// Save profile image path.
+  Future<void> saveProfileImagePath(String path) async {
+    await _db.into(_db.settings).insertOnConflictUpdate(
+          SettingsCompanion.insert(
+            key: SettingsKeys.profileImagePath,
+            value: path,
+          ),
+        );
   }
 }
 

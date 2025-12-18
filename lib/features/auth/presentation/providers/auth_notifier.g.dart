@@ -18,15 +18,15 @@ final class AuthNotifierProvider
     extends $NotifierProvider<AuthNotifier, AuthState> {
   /// Auth state notifier managing authentication flow.
   const AuthNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'authProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$authNotifierHash();
@@ -55,8 +55,14 @@ abstract class _$AuthNotifier extends $Notifier<AuthState> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<AuthState, AuthState>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AuthState, AuthState>, AuthState, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AuthState, AuthState>,
+              AuthState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -69,18 +75,19 @@ const isAuthenticatedProvider = IsAuthenticatedProvider._();
 /// Helper provider to check if user is authenticated.
 
 final class IsAuthenticatedProvider
-    extends $FunctionalProvider<bool, bool, bool> with $Provider<bool> {
+    extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
   /// Helper provider to check if user is authenticated.
   const IsAuthenticatedProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'isAuthenticatedProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'isAuthenticatedProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$isAuthenticatedHash();
@@ -104,7 +111,7 @@ final class IsAuthenticatedProvider
   }
 }
 
-String _$isAuthenticatedHash() => r'85528828e1d411d8da7e5322b8ad8f5a3c35e3b5';
+String _$isAuthenticatedHash() => r'42727b1e667f21d4c5aefbf0701a307692248be4';
 
 /// Helper provider to get current user.
 
@@ -118,15 +125,15 @@ final class CurrentUserProvider
     with $Provider<UserModel?> {
   /// Helper provider to get current user.
   const CurrentUserProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'currentUserProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentUserProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$currentUserHash();
@@ -150,7 +157,7 @@ final class CurrentUserProvider
   }
 }
 
-String _$currentUserHash() => r'831b51bbc14444278548f1c56ce4f3700fc4d46e';
+String _$currentUserHash() => r'fb7c3637efa2522d39216bd2a83f0098d8eced20';
 
 /// Helper provider to get current access token.
 
@@ -164,15 +171,15 @@ final class AccessTokenProvider
     with $Provider<String?> {
   /// Helper provider to get current access token.
   const AccessTokenProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'accessTokenProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'accessTokenProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$accessTokenHash();
@@ -196,4 +203,4 @@ final class AccessTokenProvider
   }
 }
 
-String _$accessTokenHash() => r'46370725e540969d1169ee7ec72ba8c50ddefa3e';
+String _$accessTokenHash() => r'5216e25b0789979333bda3eab69ebfb969a6be61';

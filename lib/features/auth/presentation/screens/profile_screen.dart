@@ -1,16 +1,61 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:orthosense/features/settings/presentation/providers/profile_image_provider.dart';
 import 'package:orthosense/features/settings/presentation/screens/settings_screen.dart';
 
 /// Profile screen showing user info and settings navigation.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  Future<void> _pickImage(BuildContext context, WidgetRef ref) async {
+    final picker = ImagePicker();
+    
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    final pickedFile = await picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+
+    if (pickedFile != null) {
+      await ref
+          .read(profileImageNotifierProvider.notifier)
+          .setImage(File(pickedFile.path));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final profileImagePath = ref.watch(profileImageNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -35,15 +80,49 @@ class ProfileScreen extends ConsumerWidget {
                 Center(
                   child: Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: colorScheme.primaryContainer,
-                        child: Text(
-                          user.email.substring(0, 1).toUpperCase(),
-                          style:
-                              Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
+                      GestureDetector(
+                        onTap: () => _pickImage(context, ref),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: colorScheme.primaryContainer,
+                          backgroundImage: profileImagePath.value != null
+                              ? FileImage(File(profileImagePath.value!))
+                              : null,
+                          child: profileImagePath.value == null
+                              ? Text(
+                                  user.email.substring(0, 1).toUpperCase(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineLarge
+                                      ?.copyWith(
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.surface,
+                              width: 2,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt, size: 20),
+                            color: colorScheme.onPrimary,
+                            onPressed: () => _pickImage(context, ref),
+                            constraints: const BoxConstraints(
+                              minWidth: 36,
+                              minHeight: 36,
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
                       ),
                     ],

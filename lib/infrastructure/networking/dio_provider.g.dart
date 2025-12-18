@@ -22,15 +22,15 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   /// Provides configured [Dio] instance for API calls.
   /// Includes AuthInterceptor for automatic token injection.
   const DioProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'dioProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dioProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$dioHash();

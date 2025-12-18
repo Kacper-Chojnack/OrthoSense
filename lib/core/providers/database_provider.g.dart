@@ -23,15 +23,15 @@ final class AppDatabaseProvider
   /// Provides singleton [AppDatabase] instance.
   /// Database is NOT autoDispose - lives for app lifecycle.
   const AppDatabaseProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'appDatabaseProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appDatabaseProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$appDatabaseHash();
@@ -55,4 +55,4 @@ final class AppDatabaseProvider
   }
 }
 
-String _$appDatabaseHash() => r'96b544ff7ce456f0fc1edbdafdf332306a9affed';
+String _$appDatabaseHash() => r'59cce38d45eeaba199eddd097d8e149d66f9f3e1';

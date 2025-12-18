@@ -47,7 +47,9 @@
 	<true/>
 	<!-- Camera Permission -->
 	<key>NSCameraUsageDescription</key>
-	<string>OrthoSense needs camera access to analyze your movements during rehabilitation exercises.</string>
+	<string>OrthoSense needs camera access to analyze your movements during rehabilitation exercises and to take a profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>OrthoSense needs access to your photo library to select a profile picture.</string>
 	<!-- Microphone Permission (for future video recording) -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OrthoSense may use the microphone for audio feedback during exercises.</string>

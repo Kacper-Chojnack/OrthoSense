@@ -18,15 +18,15 @@ final class ThemeModeNotifierProvider
     extends $AsyncNotifierProvider<ThemeModeNotifier, ThemeMode> {
   /// Manages theme mode state with persistence.
   const ThemeModeNotifierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'themeModeProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeModeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$themeModeNotifierHash();
@@ -47,11 +47,14 @@ abstract class _$ThemeModeNotifier extends $AsyncNotifier<ThemeMode> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<AsyncValue<ThemeMode>, ThemeMode>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<ThemeMode>, ThemeMode>,
-        AsyncValue<ThemeMode>,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<ThemeMode>, ThemeMode>,
+              AsyncValue<ThemeMode>,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -71,15 +74,15 @@ final class CurrentThemeModeProvider
   /// Synchronous theme mode for MaterialApp.
   /// Returns system as default while loading.
   const CurrentThemeModeProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'currentThemeModeProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentThemeModeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$currentThemeModeHash();
@@ -103,4 +106,4 @@ final class CurrentThemeModeProvider
   }
 }
 
-String _$currentThemeModeHash() => r'9193a19dd6885119ae9cd49abe2c6b9958016ffa';
+String _$currentThemeModeHash() => r'c9ecfb6d62e260717dcf4ae6c999c38916f4c25a';

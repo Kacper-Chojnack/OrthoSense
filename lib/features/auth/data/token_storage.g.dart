@@ -12,20 +12,24 @@ part of 'token_storage.dart';
 @ProviderFor(flutterSecureStorage)
 const flutterSecureStorageProvider = FlutterSecureStorageProvider._();
 
-final class FlutterSecureStorageProvider extends $FunctionalProvider<
-    FlutterSecureStorage,
-    FlutterSecureStorage,
-    FlutterSecureStorage> with $Provider<FlutterSecureStorage> {
+final class FlutterSecureStorageProvider
+    extends
+        $FunctionalProvider<
+          FlutterSecureStorage,
+          FlutterSecureStorage,
+          FlutterSecureStorage
+        >
+    with $Provider<FlutterSecureStorage> {
   const FlutterSecureStorageProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'flutterSecureStorageProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'flutterSecureStorageProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$flutterSecureStorageHash();
@@ -33,8 +37,8 @@ final class FlutterSecureStorageProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<FlutterSecureStorage> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   FlutterSecureStorage create(Ref ref) {
@@ -51,7 +55,7 @@ final class FlutterSecureStorageProvider extends $FunctionalProvider<
 }
 
 String _$flutterSecureStorageHash() =>
-    r'652bb25a66699938e1f2cab58111c3834c2f5bc5';
+    r'9ad4ea82233a4e1d019d420166ed4c5d3e82a551';
 
 /// Secure token storage provider.
 
@@ -65,15 +69,15 @@ final class TokenStorageProvider
     with $Provider<TokenStorage> {
   /// Secure token storage provider.
   const TokenStorageProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'tokenStorageProvider',
-          isAutoDispose: false,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tokenStorageProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$tokenStorageHash();

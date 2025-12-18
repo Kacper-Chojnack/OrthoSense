@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/auth/domain/models/models.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:orthosense/features/onboarding/presentation/screens/voice_selection_screen.dart';
 import 'package:orthosense/features/settings/presentation/providers/theme_mode_provider.dart';
 
 /// Settings screen with appearance, account, and about sections.
@@ -22,6 +23,11 @@ class SettingsScreen extends ConsumerWidget {
           // Appearance Section
           const _SectionHeader(title: 'Appearance'),
           _AppearanceSection(),
+          const SizedBox(height: 16),
+
+          // Voice Assistant Section
+          const _SectionHeader(title: 'Voice Assistant'),
+          const _VoiceSection(),
           const SizedBox(height: 16),
 
           // Account Section
@@ -313,3 +319,29 @@ class _AboutSection extends StatelessWidget {
     );
   }
 }
+
+class _VoiceSection extends StatelessWidget {
+  const _VoiceSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListTile(
+        leading: const Icon(Icons.record_voice_over),
+        title: const Text('Assistant Voice'),
+        subtitle: const Text('Change the voice of your exercise assistant'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  const VoiceSelectionScreen(isSettingsMode: true),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
