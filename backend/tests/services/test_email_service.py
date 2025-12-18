@@ -7,7 +7,7 @@ Tests cover:
 - URL generation
 """
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
