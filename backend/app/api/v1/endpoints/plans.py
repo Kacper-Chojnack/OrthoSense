@@ -51,7 +51,9 @@ async def list_plans(
     if status_filter:
         statement = statement.where(TreatmentPlan.status == status_filter)
 
-    statement = statement.offset(skip).limit(limit).order_by(TreatmentPlan.created_at.desc())
+    statement = (
+        statement.offset(skip).limit(limit).order_by(TreatmentPlan.created_at.desc())
+    )
     result = await session.execute(statement)
     return list(result.scalars().all())
 
@@ -106,7 +108,9 @@ async def get_plan(
     completed_result = await session.execute(completed_stmt)
     completed_sessions = completed_result.scalar() or 0
 
-    compliance = (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+    compliance = (
+        (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+    )
 
     return TreatmentPlanReadWithDetails(
         id=plan.id,

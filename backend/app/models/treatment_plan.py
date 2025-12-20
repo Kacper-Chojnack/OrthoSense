@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
+from sqlalchemy import JSON
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -32,7 +33,7 @@ class TreatmentPlanBase(SQLModel):
     status: PlanStatus = Field(default=PlanStatus.PENDING)
     frequency_per_week: int = Field(default=3, ge=1, le=14)
     # Custom adjustments (overrides protocol defaults)
-    custom_parameters: dict = Field(default_factory=dict)
+    custom_parameters: dict = Field(default_factory=dict, sa_type=JSON)
 
 
 class TreatmentPlan(TreatmentPlanBase, table=True):
@@ -43,7 +44,9 @@ class TreatmentPlan(TreatmentPlanBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     patient_id: UUID = Field(foreign_key="users.id", index=True)
     therapist_id: UUID = Field(foreign_key="users.id", index=True)
-    protocol_id: UUID | None = Field(default=None, foreign_key="protocols.id", index=True)
+    protocol_id: UUID | None = Field(
+        default=None, foreign_key="protocols.id", index=True
+    )
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime | None = Field(default=None)
 

@@ -66,7 +66,9 @@ class Exercise(ExerciseBase, table=True):
     updated_at: datetime | None = Field(default=None)
 
     # Relationships
-    protocol_exercises: list["ProtocolExercise"] = Relationship(back_populates="exercise")
+    protocol_exercises: list["ProtocolExercise"] = Relationship(
+        back_populates="exercise"
+    )
 
 
 # Forward reference

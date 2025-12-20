@@ -382,8 +382,7 @@ async def export_user_data(
 
     # Get treatment plans
     plans_stmt = select(TreatmentPlan).where(
-        (TreatmentPlan.patient_id == user_id)
-        | (TreatmentPlan.therapist_id == user_id)
+        (TreatmentPlan.patient_id == user_id) | (TreatmentPlan.therapist_id == user_id)
     )
     plans_result = await session.execute(plans_stmt)
     plans_data = [

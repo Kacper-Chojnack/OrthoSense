@@ -59,7 +59,9 @@ def _calculate_streak(completed_sessions: list[Session]) -> int:
         return 0
 
     first_session = completed_sessions[0]
-    current_date = first_session.completed_at.date() if first_session.completed_at else None
+    current_date = (
+        first_session.completed_at.date() if first_session.completed_at else None
+    )
     if not current_date:
         return 0
 
@@ -181,7 +183,9 @@ async def get_patient_plans(
         completed_result = await session.execute(completed_stmt)
         completed_sessions = completed_result.scalar() or 0
 
-        compliance = (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        compliance = (
+            (completed_sessions / total_sessions * 100) if total_sessions > 0 else 0
+        )
 
         enriched = TreatmentPlanReadWithDetails(
             id=plan.id,
@@ -219,7 +223,9 @@ async def get_patient_stats(
     all_sessions = await _fetch_plan_sessions(session, plan.id)
 
     total_sessions = len(all_sessions)
-    completed_sessions = sum(1 for s in all_sessions if s.status == SessionStatus.COMPLETED)
+    completed_sessions = sum(
+        1 for s in all_sessions if s.status == SessionStatus.COMPLETED
+    )
     completed_sorted = _get_sorted_completed_sessions(all_sessions)
 
     return PatientStats(
@@ -302,14 +308,18 @@ async def get_patient_sessions(
     if status_filter:
         statement = statement.where(Session.status == status_filter)
 
-    statement = statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+    statement = (
+        statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+    )
     result = await session.execute(statement)
     sessions = result.scalars().all()
 
     summaries = []
     for s in sessions:
         # Count exercises (would need protocol exercises count for total)
-        exercises_completed = len([r for r in s.exercise_results if r.score is not None])
+        exercises_completed = len(
+            [r for r in s.exercise_results if r.score is not None]
+        )
         total_exercises = len(s.exercise_results) if s.exercise_results else 0
 
         summaries.append(

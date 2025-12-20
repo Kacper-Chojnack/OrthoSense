@@ -59,7 +59,9 @@ async def list_sessions(
     if status_filter:
         statement = statement.where(Session.status == status_filter)
 
-    statement = statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+    statement = (
+        statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+    )
     result = await session.execute(statement)
     return list(result.scalars().all())
 
