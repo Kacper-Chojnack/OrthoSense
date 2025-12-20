@@ -46,8 +46,9 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     if (pickedFile != null) {
+      // ignore: avoid_manual_providers_as_generated_provider_dependency
       await ref
-          .read(profileImageNotifierProvider.notifier)
+          .read(profileImageProvider.notifier)
           .setImage(File(pickedFile.path));
     }
   }
@@ -55,7 +56,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final profileImagePath = ref.watch(profileImageNotifierProvider);
+    final profileImagePath = ref.watch(profileImageProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(

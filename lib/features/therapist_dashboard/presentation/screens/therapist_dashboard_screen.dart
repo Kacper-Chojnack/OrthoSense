@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:orthosense/features/auth/presentation/providers/auth_provider.dart';
+import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/therapist_dashboard/presentation/screens/patients_screen.dart';
 import 'package:orthosense/features/therapist_dashboard/presentation/screens/protocols_screen.dart';
 

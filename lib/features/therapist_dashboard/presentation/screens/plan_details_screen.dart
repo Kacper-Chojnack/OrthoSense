@@ -18,15 +18,15 @@ class PlanDetailsScreen extends ConsumerWidget {
         actions: [
           planAsync.when(
             data: (plan) => PopupMenuButton<String>(
-              onSelected: (value) {
+              onSelected: (value) async {
                 if (value == 'edit') {
                   // TODO: Navigate to edit plan
                 } else if (value == 'activate') {
-                  ref.read(plansNotifierProvider.notifier).activatePlan(planId);
+                  await ref.read(plansProvider.notifier).activatePlan(planId);
                 } else if (value == 'pause') {
-                  ref.read(plansNotifierProvider.notifier).pausePlan(planId);
+                  await ref.read(plansProvider.notifier).pausePlan(planId);
                 } else if (value == 'complete') {
-                  ref.read(plansNotifierProvider.notifier).completePlan(planId);
+                  await ref.read(plansProvider.notifier).completePlan(planId);
                 }
               },
               itemBuilder: (context) => [

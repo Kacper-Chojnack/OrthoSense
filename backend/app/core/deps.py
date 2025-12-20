@@ -51,7 +51,8 @@ def get_current_active_user(
         )
     return current_user
 
- def get_current_verified_user(
+
+def get_current_verified_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> User:
     """Ensure the current user is verified."""
@@ -62,7 +63,8 @@ def get_current_active_user(
         )
     return current_user
 
- def get_current_therapist(
+
+def get_current_therapist(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> User:
     """Ensure the current user is a therapist."""
@@ -73,7 +75,8 @@ def get_current_active_user(
         )
     return current_user
 
- def get_current_admin(
+
+def get_current_admin(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> User:
     """Ensure the current user is an admin."""

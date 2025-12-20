@@ -8,7 +8,7 @@ class PatientsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final patientsAsync = ref.watch(patientsListProvider());
+    final patientsAsync = ref.watch(patientsListProvider);
 
     return Scaffold(
       appBar: AppBar(

@@ -81,18 +81,16 @@ async def get_plan(
         )
 
     # Check access
-    if current_user.role == UserRole.PATIENT:
-        if plan.patient_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied",
-            )
-    elif current_user.role == UserRole.THERAPIST:
-        if plan.therapist_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied",
-            )
+    if current_user.role == UserRole.PATIENT and plan.patient_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
+    if current_user.role == UserRole.THERAPIST and plan.therapist_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied",
+        )
 
     # Calculate stats
     sessions_stmt = select(func.count(Session.id)).where(
