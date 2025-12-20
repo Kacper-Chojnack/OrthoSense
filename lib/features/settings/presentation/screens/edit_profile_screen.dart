@@ -161,8 +161,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                      ).hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -246,14 +247,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -277,7 +278,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       newEmail = _emailController.text;
     }
 
-    await ref.read(accountOperationProvider.notifier).updateProfile(
+    await ref
+        .read(accountOperationProvider.notifier)
+        .updateProfile(
           fullName: newName,
           email: newEmail,
         );

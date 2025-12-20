@@ -43,12 +43,17 @@ class TherapistRepository {
       queryParameters: status != null ? {'status_filter': status.name} : null,
     );
     return response.data!
-        .map((json) => TreatmentPlanDetails.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => TreatmentPlanDetails.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
   /// Get patient statistics for monitoring.
-  Future<PatientStats> getPatientStats(String patientId, {String? planId}) async {
+  Future<PatientStats> getPatientStats(
+    String patientId, {
+    String? planId,
+  }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/v1/patients/$patientId/stats',
       queryParameters: planId != null ? {'plan_id': planId} : null,
@@ -191,7 +196,9 @@ class TherapistRepository {
       queryParameters: status != null ? {'status_filter': status.name} : null,
     );
     return response.data!
-        .map((json) => TreatmentPlanModel.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => TreatmentPlanModel.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -222,7 +229,8 @@ class TherapistRepository {
         if (protocolId != null) 'protocol_id': protocolId,
         'notes': notes,
         'start_date': startDate.toIso8601String().split('T')[0],
-        if (endDate != null) 'end_date': endDate.toIso8601String().split('T')[0],
+        if (endDate != null)
+          'end_date': endDate.toIso8601String().split('T')[0],
         'frequency_per_week': frequencyPerWeek,
         'custom_parameters': customParameters,
       },
@@ -245,7 +253,8 @@ class TherapistRepository {
       data: {
         if (name != null) 'name': name,
         if (notes != null) 'notes': notes,
-        if (endDate != null) 'end_date': endDate.toIso8601String().split('T')[0],
+        if (endDate != null)
+          'end_date': endDate.toIso8601String().split('T')[0],
         if (status != null) 'status': status.name,
         if (frequencyPerWeek != null) 'frequency_per_week': frequencyPerWeek,
         if (customParameters != null) 'custom_parameters': customParameters,

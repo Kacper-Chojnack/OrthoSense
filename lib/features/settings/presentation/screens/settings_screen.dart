@@ -184,7 +184,8 @@ class _AccountSection extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final authState = ref.watch(authProvider);
     final accountOpState = ref.watch(accountOperationProvider);
-    final isLoading = authState is AuthStateLoading ||
+    final isLoading =
+        authState is AuthStateLoading ||
         accountOpState is AccountOperationLoading;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -263,9 +264,7 @@ class _AccountSection extends ConsumerWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.chevron_right),
-            onTap: isLoading
-                ? null
-                : () => _handleDownloadData(context, ref),
+            onTap: isLoading ? null : () => _handleDownloadData(context, ref),
           ),
           const Divider(height: 1),
           // Sign Out
@@ -306,9 +305,7 @@ class _AccountSection extends ConsumerWidget {
               Icons.chevron_right,
               color: Colors.red,
             ),
-            onTap: isLoading
-                ? null
-                : () => _handleDeleteAccount(context, ref),
+            onTap: isLoading ? null : () => _handleDeleteAccount(context, ref),
           ),
         ],
       ),
@@ -380,8 +377,7 @@ class _AccountSection extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleDeleteAccount(
-      BuildContext context, WidgetRef ref) async {
+  Future<void> _handleDeleteAccount(BuildContext context, WidgetRef ref) async {
     // First confirmation
     final firstConfirm = await showDialog<bool>(
       context: context,
@@ -447,8 +443,7 @@ class _AccountSection extends ConsumerWidget {
           ListenableBuilder(
             listenable: textController,
             builder: (context, _) {
-              final isValid =
-                  textController.text.toUpperCase() == 'DELETE';
+              final isValid = textController.text.toUpperCase() == 'DELETE';
               return FilledButton(
                 onPressed: isValid
                     ? () => Navigator.of(context).pop(true)
@@ -596,8 +591,9 @@ class _NotificationSectionState extends ConsumerState<_NotificationSection> {
     try {
       if (value) {
         // Request permissions when enabling
-        final granted =
-            await ref.read(notificationServiceProvider).requestPermissions();
+        final granted = await ref
+            .read(notificationServiceProvider)
+            .requestPermissions();
 
         if (!granted) {
           if (mounted) {

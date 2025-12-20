@@ -120,15 +120,15 @@ class _WelcomeHeader extends StatelessWidget {
         Text(
           'Welcome back,',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         Text(
           displayName,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ],
     );
@@ -157,15 +157,15 @@ class _SectionHeader extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             if (subtitle != null)
               Text(
                 subtitle!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
           ],
         ),
@@ -252,21 +252,21 @@ class _StatCard extends StatelessWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
             Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                fontWeight: FontWeight.w500,
+              ),
             ),
             Text(
               trend,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -330,13 +330,15 @@ class _TrendChart extends StatelessWidget {
             // Day labels
             Row(
               children: days
-                  .map((day) => Expanded(
-                        child: Text(
-                          day,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ))
+                  .map(
+                    (day) => Expanded(
+                      child: Text(
+                        day,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 12),
@@ -353,9 +355,9 @@ class _TrendChart extends StatelessWidget {
                 Text(
                   '+15° improvement this week',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),

@@ -7,7 +7,10 @@ part 'plans_provider.g.dart';
 
 /// Provider for list of treatment plans.
 @riverpod
-Future<List<TreatmentPlanModel>> plansList(Ref ref, {PlanStatus? status}) async {
+Future<List<TreatmentPlanModel>> plansList(
+  Ref ref, {
+  PlanStatus? status,
+}) async {
   final repo = ref.watch(therapistRepositoryProvider);
   return repo.getPlans(status: status);
 }

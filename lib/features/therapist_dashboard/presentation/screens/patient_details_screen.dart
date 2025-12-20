@@ -107,8 +107,9 @@ class PatientDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Chip(
                   label: Text(patient.isActive ? 'Active' : 'Inactive'),
-                  backgroundColor:
-                      patient.isActive ? Colors.green[100] : Colors.grey[300],
+                  backgroundColor: patient.isActive
+                      ? Colors.green[100]
+                      : Colors.grey[300],
                 ),
               ],
             ),

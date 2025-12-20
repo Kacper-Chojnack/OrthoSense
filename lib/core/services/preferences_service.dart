@@ -3,7 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class PreferencesService {
   static const String keyDisclaimerAccepted = 'disclaimer_accepted';
   static const String keyPrivacyPolicyAccepted = 'privacy_policy_accepted';
-  static const String keyBiometricConsentAccepted = 'biometric_consent_accepted';
+  static const String keyBiometricConsentAccepted =
+      'biometric_consent_accepted';
   static const String keyVoiceSelected = 'voice_selected';
   static const String keySelectedVoiceMap = 'selected_voice_map';
   static const String keyNotificationsEnabled = 'notifications_enabled';

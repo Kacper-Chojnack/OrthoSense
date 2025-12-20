@@ -30,9 +30,11 @@ class PatientsScreen extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   leading: CircleAvatar(
-                    child: Text(patient.fullName.isNotEmpty
-                        ? patient.fullName[0].toUpperCase()
-                        : '?'),
+                    child: Text(
+                      patient.fullName.isNotEmpty
+                          ? patient.fullName[0].toUpperCase()
+                          : '?',
+                    ),
                   ),
                   title: Text(patient.fullName),
                   subtitle: Text(patient.email),

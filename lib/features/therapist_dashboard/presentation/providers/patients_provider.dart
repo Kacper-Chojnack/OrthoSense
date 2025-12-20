@@ -21,14 +21,21 @@ Future<PatientModel> patient(Ref ref, String patientId) async {
 
 /// Provider for patient's treatment plans.
 @riverpod
-Future<List<TreatmentPlanDetails>> patientPlans(Ref ref, String patientId) async {
+Future<List<TreatmentPlanDetails>> patientPlans(
+  Ref ref,
+  String patientId,
+) async {
   final repo = ref.watch(therapistRepositoryProvider);
   return repo.getPatientPlans(patientId);
 }
 
 /// Provider for patient statistics.
 @riverpod
-Future<PatientStats> patientStats(Ref ref, String patientId, {String? planId}) async {
+Future<PatientStats> patientStats(
+  Ref ref,
+  String patientId, {
+  String? planId,
+}) async {
   final repo = ref.watch(therapistRepositoryProvider);
   return repo.getPatientStats(patientId, planId: planId);
 }

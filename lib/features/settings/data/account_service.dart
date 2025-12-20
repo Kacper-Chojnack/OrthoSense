@@ -18,8 +18,8 @@ class AccountService {
   AccountService({
     required Dio dio,
     required TokenStorage tokenStorage,
-  })  : _dio = dio,
-        _tokenStorage = tokenStorage;
+  }) : _dio = dio,
+       _tokenStorage = tokenStorage;
 
   final Dio _dio;
   final TokenStorage _tokenStorage;
@@ -136,7 +136,9 @@ class AccountOperationNotifier extends _$AccountOperationNotifier {
   Future<void> updateProfile({String? fullName, String? email}) async {
     state = const AccountOperationLoading();
     try {
-      await ref.read(accountServiceProvider).updateProfile(
+      await ref
+          .read(accountServiceProvider)
+          .updateProfile(
             fullName: fullName,
             email: email,
           );

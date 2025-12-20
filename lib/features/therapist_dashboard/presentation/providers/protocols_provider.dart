@@ -7,7 +7,10 @@ part 'protocols_provider.g.dart';
 
 /// Provider for list of protocols.
 @riverpod
-Future<List<ProtocolModel>> protocolsList(Ref ref, {bool onlyMine = false}) async {
+Future<List<ProtocolModel>> protocolsList(
+  Ref ref, {
+  bool onlyMine = false,
+}) async {
   final repo = ref.watch(therapistRepositoryProvider);
   return repo.getProtocols(onlyMine: onlyMine);
 }

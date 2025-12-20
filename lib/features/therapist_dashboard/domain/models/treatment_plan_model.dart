@@ -31,7 +31,9 @@ abstract class TreatmentPlanModel with _$TreatmentPlanModel {
     @JsonKey(name: 'end_date') DateTime? endDate,
     @Default(PlanStatus.pending) PlanStatus status,
     @JsonKey(name: 'frequency_per_week') @Default(3) int frequencyPerWeek,
-    @JsonKey(name: 'custom_parameters') @Default({}) Map<String, dynamic> customParameters,
+    @JsonKey(name: 'custom_parameters')
+    @Default({})
+    Map<String, dynamic> customParameters,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _TreatmentPlanModel;
 
@@ -53,7 +55,9 @@ abstract class TreatmentPlanDetails with _$TreatmentPlanDetails {
     @JsonKey(name: 'end_date') DateTime? endDate,
     @Default(PlanStatus.pending) PlanStatus status,
     @JsonKey(name: 'frequency_per_week') @Default(3) int frequencyPerWeek,
-    @JsonKey(name: 'custom_parameters') @Default({}) Map<String, dynamic> customParameters,
+    @JsonKey(name: 'custom_parameters')
+    @Default({})
+    Map<String, dynamic> customParameters,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'patient_name') @Default('') String patientName,
     @JsonKey(name: 'protocol_name') String? protocolName,

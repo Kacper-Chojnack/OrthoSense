@@ -155,7 +155,8 @@ class _BiometricConsentScreenState
                           'on my device and video never leaves my phone.',
                       onChanged: (value) {
                         setState(
-                            () => _understandsLocalProcessing = value ?? false);
+                          () => _understandsLocalProcessing = value ?? false,
+                        );
                       },
                     ),
                     const SizedBox(height: 12),
@@ -168,7 +169,8 @@ class _BiometricConsentScreenState
                           'anonymized movement metrics for tracking my rehabilitation progress.',
                       onChanged: (value) {
                         setState(
-                            () => _consentsToMetricsStorage = value ?? false);
+                          () => _consentsToMetricsStorage = value ?? false,
+                        );
                       },
                     ),
                     const SizedBox(height: 12),
@@ -181,7 +183,8 @@ class _BiometricConsentScreenState
                           'stored, recorded, or transmitted.',
                       onChanged: (value) {
                         setState(
-                            () => _understandsNoVideoStorage = value ?? false);
+                          () => _understandsNoVideoStorage = value ?? false,
+                        );
                       },
                     ),
                     const SizedBox(height: 24),
@@ -265,15 +268,15 @@ class _BiometricConsentScreenState
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -311,15 +314,15 @@ class _BiometricConsentScreenState
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -340,8 +343,8 @@ class _BiometricConsentScreenState
             Text(
               'Data Flow',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -391,9 +394,9 @@ class _BiometricConsentScreenState
                   Text(
                     'Video NEVER uploaded',
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
