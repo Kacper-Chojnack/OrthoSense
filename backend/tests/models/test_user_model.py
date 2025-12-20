@@ -25,6 +25,7 @@ from app.models.user import (
     UserCreate,
     UserLogin,
     UserRead,
+    UserRole,
     UserUpdate,
 )
 
@@ -233,6 +234,8 @@ class TestUserReadSchema:
         user_read = UserRead(
             id=user_id,
             email="read@example.com",
+            full_name="Test User",
+            role=UserRole.PATIENT,
             is_active=True,
             is_verified=True,
             created_at=created,
@@ -249,6 +252,8 @@ class TestUserReadSchema:
         user_read = UserRead(
             id=uuid4(),
             email="test@example.com",
+            full_name="Test User",
+            role=UserRole.PATIENT,
             is_active=True,
             is_verified=False,
             created_at=datetime.now(UTC),
