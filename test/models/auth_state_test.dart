@@ -36,12 +36,12 @@ void main() {
 
     group('authenticated', () {
       test('creates authenticated state with user and token', () {
-        final user = UserModel(
+        const user = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final state = AuthState.authenticated(
+        const state = AuthState.authenticated(
           user: user,
           accessToken: 'jwt-token',
         );
@@ -50,28 +50,28 @@ void main() {
       });
 
       test('provides access to user and token', () {
-        final user = UserModel(
+        const user = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final state = AuthState.authenticated(
+        const state = AuthState.authenticated(
           user: user,
           accessToken: 'jwt-token',
         );
 
-        final authenticated = state as AuthStateAuthenticated;
+        const authenticated = state as AuthStateAuthenticated;
         expect(authenticated.user.email, equals('test@example.com'));
         expect(authenticated.accessToken, equals('jwt-token'));
       });
 
       test('map extracts user correctly', () {
-        final user = UserModel(
+        const user = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final state = AuthState.authenticated(
+        const state = AuthState.authenticated(
           user: user,
           accessToken: 'jwt-token',
         );
@@ -119,18 +119,18 @@ void main() {
 
     group('maybeWhen', () {
       test('executes correct callback for authenticated', () {
-        final user = UserModel(
+        const user = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final state = AuthState.authenticated(
+        const state = AuthState.authenticated(
           user: user,
           accessToken: 'jwt-token',
         );
 
         final isAuthenticated = state.maybeWhen(
-          authenticated: (_, __) => true,
+          authenticated: (_, _) => true,
           orElse: () => false,
         );
 
@@ -141,7 +141,7 @@ void main() {
         const state = AuthState.loading();
 
         final isAuthenticated = state.maybeWhen(
-          authenticated: (_, __) => true,
+          authenticated: (_, _) => true,
           orElse: () => false,
         );
 
@@ -154,7 +154,7 @@ void main() {
         final states = [
           const AuthState.initial(),
           const AuthState.loading(),
-          AuthState.authenticated(
+          const AuthState.authenticated(
             user: UserModel(id: '1', email: 'a@b.com'),
             accessToken: 'token',
           ),
@@ -166,7 +166,7 @@ void main() {
           final result = state.when(
             initial: () => 'initial',
             loading: () => 'loading',
-            authenticated: (_, __) => 'authenticated',
+            authenticated: (_, _) => 'authenticated',
             unauthenticated: (_) => 'unauthenticated',
             error: (_) => 'error',
           );
@@ -192,13 +192,13 @@ void main() {
       });
 
       test('authenticated states with same data are equal', () {
-        final user = UserModel(id: 'user-1', email: 'test@example.com');
+        const user = UserModel(id: 'user-1', email: 'test@example.com');
 
-        final state1 = AuthState.authenticated(
+        const state1 = AuthState.authenticated(
           user: user,
           accessToken: 'token',
         );
-        final state2 = AuthState.authenticated(
+        const state2 = AuthState.authenticated(
           user: user,
           accessToken: 'token',
         );
@@ -207,13 +207,13 @@ void main() {
       });
 
       test('authenticated states with different tokens are not equal', () {
-        final user = UserModel(id: 'user-1', email: 'test@example.com');
+        const user = UserModel(id: 'user-1', email: 'test@example.com');
 
-        final state1 = AuthState.authenticated(
+        const state1 = AuthState.authenticated(
           user: user,
           accessToken: 'token-1',
         );
-        final state2 = AuthState.authenticated(
+        const state2 = AuthState.authenticated(
           user: user,
           accessToken: 'token-2',
         );

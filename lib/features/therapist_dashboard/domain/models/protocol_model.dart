@@ -19,6 +19,7 @@ abstract class ProtocolModel with _$ProtocolModel {
   const factory ProtocolModel({
     required String id,
     required String name,
+    @JsonKey(name: 'created_by') required String createdBy,
     @Default('') String description,
     @Default('') String condition,
     @Default('') String phase,
@@ -26,7 +27,6 @@ abstract class ProtocolModel with _$ProtocolModel {
     @JsonKey(name: 'frequency_per_week') @Default(3) int frequencyPerWeek,
     @Default(ProtocolStatus.draft) ProtocolStatus status,
     @JsonKey(name: 'is_template') @Default(true) bool isTemplate,
-    @JsonKey(name: 'created_by') required String createdBy,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _ProtocolModel;
 
@@ -40,6 +40,7 @@ abstract class ProtocolWithExercises with _$ProtocolWithExercises {
   const factory ProtocolWithExercises({
     required String id,
     required String name,
+    @JsonKey(name: 'created_by') required String createdBy,
     @Default('') String description,
     @Default('') String condition,
     @Default('') String phase,
@@ -47,7 +48,6 @@ abstract class ProtocolWithExercises with _$ProtocolWithExercises {
     @JsonKey(name: 'frequency_per_week') @Default(3) int frequencyPerWeek,
     @Default(ProtocolStatus.draft) ProtocolStatus status,
     @JsonKey(name: 'is_template') @Default(true) bool isTemplate,
-    @JsonKey(name: 'created_by') required String createdBy,
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @Default([]) List<ProtocolExerciseModel> exercises,
   }) = _ProtocolWithExercises;

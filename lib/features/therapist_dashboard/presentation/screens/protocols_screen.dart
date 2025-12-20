@@ -17,7 +17,7 @@ class ProtocolsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // TODO: Navigate to create protocol screen
+              // TODO(user): Navigate to create protocol screen
             },
           ),
         ],
@@ -45,7 +45,7 @@ class ProtocolsScreen extends ConsumerWidget {
                     backgroundColor: Colors.grey[200],
                   ),
                   onTap: () {
-                    // TODO: Navigate to protocol details
+                    // TODO(user): Navigate to protocol details
                   },
                 ),
               );

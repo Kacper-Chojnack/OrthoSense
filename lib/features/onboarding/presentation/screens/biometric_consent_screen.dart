@@ -35,7 +35,7 @@ class _BiometricConsentScreenState
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -82,7 +82,7 @@ class _BiometricConsentScreenState
                       title: 'How It Works',
                       description:
                           'OrthoSense uses your device camera to track your body '
-                          'movements during exercises. Here\'s what you need to know:',
+                          "movements during exercises. Here's what you need to know:",
                     ),
                     const SizedBox(height: 24),
 
@@ -231,7 +231,7 @@ class _BiometricConsentScreenState
                           : null,
                       icon: const Icon(Icons.check_circle),
                       label: const Padding(
-                        padding: EdgeInsets.all(12.0),
+                        padding: EdgeInsets.all(12),
                         child: Text('I Consent & Understand'),
                       ),
                     ),

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/infrastructure/networking/auth_interceptor.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

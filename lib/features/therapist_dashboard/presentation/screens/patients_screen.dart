@@ -41,7 +41,7 @@ class PatientsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (context) =>
                             PatientDetailsScreen(patientId: patient.id),
                       ),
@@ -57,7 +57,7 @@ class PatientsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Implement invite patient dialog
+          // TODO(user): Implement invite patient dialog
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Invite Patient feature coming soon')),
           );

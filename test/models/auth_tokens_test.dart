@@ -4,19 +4,19 @@ import 'package:orthosense/features/auth/domain/models/auth_tokens.dart';
 void main() {
   group('AuthTokens', () {
     test('creates tokens with required fields', () {
-      final tokens = AuthTokens(accessToken: 'test-jwt-token');
+      const tokens = AuthTokens(accessToken: 'test-jwt-token');
 
       expect(tokens.accessToken, equals('test-jwt-token'));
     });
 
     test('has correct default tokenType', () {
-      final tokens = AuthTokens(accessToken: 'test-token');
+      const tokens = AuthTokens(accessToken: 'test-token');
 
       expect(tokens.tokenType, equals('bearer'));
     });
 
     test('can override tokenType', () {
-      final tokens = AuthTokens(
+      const tokens = AuthTokens(
         accessToken: 'test-token',
         tokenType: 'custom',
       );
@@ -58,9 +58,8 @@ void main() {
       });
 
       test('toJson serializes correctly', () {
-        final tokens = AuthTokens(
+        const tokens = AuthTokens(
           accessToken: 'my-token',
-          tokenType: 'bearer',
         );
 
         final json = tokens.toJson();
@@ -72,15 +71,15 @@ void main() {
 
     group('equality', () {
       test('tokens with same data are equal', () {
-        final tokens1 = AuthTokens(accessToken: 'same-token');
-        final tokens2 = AuthTokens(accessToken: 'same-token');
+        const tokens1 = AuthTokens(accessToken: 'same-token');
+        const tokens2 = AuthTokens(accessToken: 'same-token');
 
         expect(tokens1, equals(tokens2));
       });
 
       test('tokens with different accessToken are not equal', () {
-        final tokens1 = AuthTokens(accessToken: 'token-1');
-        final tokens2 = AuthTokens(accessToken: 'token-2');
+        const tokens1 = AuthTokens(accessToken: 'token-1');
+        const tokens2 = AuthTokens(accessToken: 'token-2');
 
         expect(tokens1, isNot(equals(tokens2)));
       });
@@ -88,7 +87,7 @@ void main() {
 
     group('copyWith', () {
       test('creates copy with updated accessToken', () {
-        final original = AuthTokens(accessToken: 'original-token');
+        const original = AuthTokens(accessToken: 'original-token');
         final updated = original.copyWith(accessToken: 'new-token');
 
         expect(updated.accessToken, equals('new-token'));

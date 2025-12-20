@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/therapist_dashboard/data/therapist_repository.dart';
 import 'package:orthosense/features/therapist_dashboard/domain/models/models.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -31,9 +30,9 @@ class PlansNotifier extends _$PlansNotifier {
   Future<TreatmentPlanModel> createPlan({
     required String name,
     required String patientId,
+    required DateTime startDate,
     String? protocolId,
     String notes = '',
-    required DateTime startDate,
     DateTime? endDate,
     int frequencyPerWeek = 3,
     Map<String, dynamic> customParameters = const {},
@@ -71,29 +70,33 @@ class PlansNotifier extends _$PlansNotifier {
       frequencyPerWeek: frequencyPerWeek,
       customParameters: customParameters,
     );
-    ref.invalidate(plansListProvider);
-    ref.invalidate(planProvider(planId));
+    ref
+      ..invalidate(plansListProvider)
+      ..invalidate(planProvider(planId));
     return plan;
   }
 
   Future<void> activatePlan(String planId) async {
     final repo = ref.read(therapistRepositoryProvider);
     await repo.activatePlan(planId);
-    ref.invalidate(plansListProvider);
-    ref.invalidate(planProvider(planId));
+    ref
+      ..invalidate(plansListProvider)
+      ..invalidate(planProvider(planId));
   }
 
   Future<void> pausePlan(String planId) async {
     final repo = ref.read(therapistRepositoryProvider);
     await repo.pausePlan(planId);
-    ref.invalidate(plansListProvider);
-    ref.invalidate(planProvider(planId));
+    ref
+      ..invalidate(plansListProvider)
+      ..invalidate(planProvider(planId));
   }
 
   Future<void> completePlan(String planId) async {
     final repo = ref.read(therapistRepositoryProvider);
     await repo.completePlan(planId);
-    ref.invalidate(plansListProvider);
-    ref.invalidate(planProvider(planId));
+    ref
+      ..invalidate(plansListProvider)
+      ..invalidate(planProvider(planId));
   }
 }

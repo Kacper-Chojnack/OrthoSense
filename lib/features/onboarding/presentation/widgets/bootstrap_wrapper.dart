@@ -9,8 +9,9 @@ import 'package:orthosense/features/onboarding/presentation/screens/voice_select
 /// Wrapper that enforces onboarding flow completion before accessing the app.
 /// Order: Disclaimer → Privacy Policy → Biometric Consent → Voice Selection
 class BootstrapWrapper extends ConsumerWidget {
+  const BootstrapWrapper({required this.child, super.key});
+
   final Widget child;
-  const BootstrapWrapper({super.key, required this.child});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

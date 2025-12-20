@@ -4,7 +4,7 @@ import 'package:orthosense/features/therapist_dashboard/domain/models/models.dar
 import 'package:orthosense/features/therapist_dashboard/presentation/providers/plans_provider.dart';
 
 class PlanDetailsScreen extends ConsumerWidget {
-  const PlanDetailsScreen({super.key, required this.planId});
+  const PlanDetailsScreen({required this.planId, super.key});
 
   final String planId;
 
@@ -20,7 +20,7 @@ class PlanDetailsScreen extends ConsumerWidget {
             data: (plan) => PopupMenuButton<String>(
               onSelected: (value) async {
                 if (value == 'edit') {
-                  // TODO: Navigate to edit plan
+                  // TODO(user): Navigate to edit plan
                 } else if (value == 'activate') {
                   await ref.read(plansProvider.notifier).activatePlan(planId);
                 } else if (value == 'pause') {
@@ -49,7 +49,7 @@ class PlanDetailsScreen extends ConsumerWidget {
               ],
             ),
             loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
+            error: (_, _) => const SizedBox(),
           ),
         ],
       ),
@@ -68,7 +68,7 @@ class PlanDetailsScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              // TODO: Add sessions list for this plan
+              // TODO(user): Add sessions list for this plan
               const Center(child: Text('Session history coming soon')),
             ],
           ),
@@ -84,15 +84,14 @@ class PlanDetailsScreen extends ConsumerWidget {
     switch (plan.status) {
       case PlanStatus.active:
         statusColor = Colors.green;
-        break;
       case PlanStatus.pending:
         statusColor = Colors.orange;
-        break;
       case PlanStatus.completed:
         statusColor = Colors.blue;
-        break;
-      default:
+      case PlanStatus.paused:
         statusColor = Colors.grey;
+      case PlanStatus.cancelled:
+        statusColor = Colors.red;
     }
 
     return Card(

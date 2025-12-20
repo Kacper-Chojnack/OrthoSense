@@ -29,9 +29,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        _nameController.text = user.fullName ?? '';
+        _nameController.text = user.fullName;
         _emailController.text = user.email;
-        _originalName = user.fullName ?? '';
+        _originalName = user.fullName;
         _originalEmail = user.email;
       }
     });
@@ -186,12 +186,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           _buildInfoRow(
                             context,
                             'Role',
-                            user.role?.toString().split('.').last ?? 'Patient',
+                            user.role.toString().split('.').last,
                           ),
                           _buildInfoRow(
                             context,
                             'Email Verified',
-                            user.isVerified == true ? 'Yes' : 'No',
+                            user.isVerified ? 'Yes' : 'No',
                           ),
                           if (user.createdAt != null)
                             _buildInfoRow(

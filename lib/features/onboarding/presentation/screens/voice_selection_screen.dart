@@ -5,12 +5,12 @@ import 'package:orthosense/features/onboarding/presentation/providers/onboarding
 import 'package:orthosense/features/onboarding/presentation/providers/voice_list_provider.dart';
 
 class VoiceSelectionScreen extends ConsumerStatefulWidget {
-  final bool isSettingsMode;
-
   const VoiceSelectionScreen({
     super.key,
     this.isSettingsMode = false,
   });
+
+  final bool isSettingsMode;
 
   @override
   ConsumerState<VoiceSelectionScreen> createState() =>
@@ -52,7 +52,7 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: Text(
                   'Choose a voice for your exercise assistant.',
                   style: Theme.of(context).textTheme.bodyLarge,
@@ -92,15 +92,13 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 child: SizedBox(
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: _selectedVoice == null
                         ? null
-                        : () {
-                            _confirmSelection();
-                          },
+                        : _confirmSelection,
                     child: Text(widget.isSettingsMode ? 'Save' : 'Continue'),
                   ),
                 ),

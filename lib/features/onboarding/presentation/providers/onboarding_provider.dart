@@ -1,21 +1,21 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:orthosense/core/providers/preferences_provider.dart';
 import 'package:orthosense/core/providers/tts_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'onboarding_provider.g.dart';
 
 class OnboardingStatus {
-  final bool disclaimerAccepted;
-  final bool privacyPolicyAccepted;
-  final bool biometricConsentAccepted;
-  final bool voiceSelected;
-
   OnboardingStatus({
     required this.disclaimerAccepted,
     required this.privacyPolicyAccepted,
     required this.biometricConsentAccepted,
     required this.voiceSelected,
   });
+
+  final bool disclaimerAccepted;
+  final bool privacyPolicyAccepted;
+  final bool biometricConsentAccepted;
+  final bool voiceSelected;
 
   /// Returns true if all onboarding steps are completed.
   bool get isComplete =>
@@ -56,19 +56,19 @@ class OnboardingController extends _$OnboardingController {
 
   Future<void> acceptDisclaimer() async {
     final prefs = ref.read(preferencesServiceProvider);
-    await prefs.setDisclaimerAccepted(true);
+    await prefs.setDisclaimerAccepted(value: true);
     state = state.copyWith(disclaimerAccepted: true);
   }
 
   Future<void> acceptPrivacyPolicy() async {
     final prefs = ref.read(preferencesServiceProvider);
-    await prefs.setPrivacyPolicyAccepted(true);
+    await prefs.setPrivacyPolicyAccepted(value: true);
     state = state.copyWith(privacyPolicyAccepted: true);
   }
 
   Future<void> acceptBiometricConsent() async {
     final prefs = ref.read(preferencesServiceProvider);
-    await prefs.setBiometricConsentAccepted(true);
+    await prefs.setBiometricConsentAccepted(value: true);
     state = state.copyWith(biometricConsentAccepted: true);
   }
 
@@ -77,7 +77,7 @@ class OnboardingController extends _$OnboardingController {
     final tts = ref.read(ttsServiceProvider);
 
     await tts.setVoice(voice);
-    await prefs.setVoiceSelected(true);
+    await prefs.setVoiceSelected(value: true);
     await prefs.setSelectedVoiceKey(voice['name'] ?? '');
 
     state = state.copyWith(voiceSelected: true);
@@ -86,10 +86,10 @@ class OnboardingController extends _$OnboardingController {
   /// Resets all onboarding steps (for testing or re-onboarding).
   Future<void> resetOnboarding() async {
     final prefs = ref.read(preferencesServiceProvider);
-    await prefs.setDisclaimerAccepted(false);
-    await prefs.setPrivacyPolicyAccepted(false);
-    await prefs.setBiometricConsentAccepted(false);
-    await prefs.setVoiceSelected(false);
+    await prefs.setDisclaimerAccepted(value: false);
+    await prefs.setPrivacyPolicyAccepted(value: false);
+    await prefs.setBiometricConsentAccepted(value: false);
+    await prefs.setVoiceSelected(value: false);
     state = OnboardingStatus(
       disclaimerAccepted: false,
       privacyPolicyAccepted: false,

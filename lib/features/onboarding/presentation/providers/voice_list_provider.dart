@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import 'package:orthosense/core/providers/tts_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'voice_list_provider.g.dart';
 
@@ -46,14 +46,14 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
     final locale = voice['locale'] ?? '';
 
     // Basic English filter
-    if (locale.toLowerCase().startsWith('en') == false) return false;
+    if (!locale.toLowerCase().startsWith('en')) return false;
 
     if (Platform.isIOS) {
       // Check if name contains any of the best identifiers
-      return iosBestVoices.any((String best) => name.contains(best));
+      return iosBestVoices.any(name.contains);
     } else if (Platform.isAndroid) {
       // Check if name contains any of the best identifiers
-      return androidBestVoices.any((String best) => name.contains(best));
+      return androidBestVoices.any(name.contains);
     }
 
     return true; // Fallback for other platforms

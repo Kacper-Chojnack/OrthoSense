@@ -32,7 +32,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO: Refresh stats from database
+          // TODO(user): Refresh stats from database
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -57,7 +57,7 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Weekly Trend Chart Placeholder
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Range of Motion Trend',
                 subtitle: 'Last 7 days',
               ),
@@ -82,7 +82,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Start new session
+          // TODO(user): Start new session
         },
         icon: const Icon(Icons.play_arrow),
         label: const Text('Start Session'),
@@ -110,7 +110,7 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = user?.fullName.isNotEmpty == true
+    final displayName = (user?.fullName.isNotEmpty ?? false)
         ? user!.fullName
         : (user?.email.split('@').first ?? 'User');
 
@@ -169,7 +169,7 @@ class _SectionHeader extends StatelessWidget {
               ),
           ],
         ),
-        if (action != null) action!,
+        ?action,
       ],
     );
   }
@@ -298,7 +298,7 @@ class _TrendChart extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(mockData.length, (index) {
                   final value = mockData[index];
-                  final maxValue = 130;
+                  const maxValue = 130;
                   final height = (value / maxValue) * 100;
 
                   return Expanded(
@@ -346,7 +346,7 @@ class _TrendChart extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.trending_up,
                   color: Colors.green,
                   size: 20,
@@ -355,9 +355,9 @@ class _TrendChart extends StatelessWidget {
                 Text(
                   '+15° improvement this week',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w500,
-                  ),
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
               ],
             ),
@@ -374,7 +374,7 @@ class _RecentSessionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Mock data - will be replaced with Drift stream
-    return Column(
+    return const Column(
       children: [
         _RecentSessionTile(
           title: 'Knee Rehabilitation',
@@ -450,7 +450,7 @@ class _RecentSessionTile extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         onTap: () {
-          // TODO: Open session details
+          // TODO(user): Open session details
         },
       ),
     );

@@ -613,7 +613,7 @@ class _NotificationSectionState extends ConsumerState<_NotificationSection> {
         await ref.read(notificationServiceProvider).cancelAll();
       }
 
-      await ref.read(preferencesServiceProvider).setNotificationsEnabled(value);
+      await ref.read(preferencesServiceProvider).setNotificationsEnabled(value: value);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

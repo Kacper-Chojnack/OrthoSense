@@ -2,13 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orthosense/features/auth/data/token_storage.dart';
+import 'package:orthosense/infrastructure/networking/dio_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:share_plus/share_plus.dart';
-
-import 'package:orthosense/features/auth/data/token_storage.dart';
-import 'package:orthosense/infrastructure/networking/dio_provider.dart';
 
 part 'account_service.g.dart';
 
@@ -86,8 +84,8 @@ class AccountService {
     } finally {
       // Best-effort cleanup of the temporary export file
       try {
-        if (await file.exists()) {
-          await file.delete();
+        if (file.existsSync()) {
+          file.deleteSync();
         }
       } catch (_) {
         // Ignore cleanup errors

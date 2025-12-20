@@ -285,7 +285,7 @@ class AppTheme {
   static ThemeData get lightHighContrastTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
-      contrastLevel: 1.0,
+      contrastLevel: 1,
     );
 
     return ThemeData(
@@ -307,7 +307,7 @@ class AppTheme {
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Colors.black, width: 2),
+          side: const BorderSide(width: 2),
         ),
         elevation: 0,
       ),
@@ -324,11 +324,11 @@ class AppTheme {
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black, width: 2),
+          borderSide: const BorderSide(width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black, width: 2),
+          borderSide: const BorderSide(width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -359,7 +359,7 @@ class AppTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.dark,
-      contrastLevel: 1.0,
+      contrastLevel: 1,
     );
 
     return ThemeData(

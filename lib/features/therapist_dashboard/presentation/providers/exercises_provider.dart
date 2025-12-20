@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/therapist_dashboard/data/therapist_repository.dart';
 import 'package:orthosense/features/therapist_dashboard/domain/models/models.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

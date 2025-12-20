@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/therapist_dashboard/data/therapist_repository.dart';
 import 'package:orthosense/features/therapist_dashboard/domain/models/models.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -71,8 +70,9 @@ class ProtocolsNotifier extends _$ProtocolsNotifier {
       frequencyPerWeek: frequencyPerWeek,
       status: status,
     );
-    ref.invalidate(protocolsListProvider);
-    ref.invalidate(protocolProvider(protocolId));
+    ref
+      ..invalidate(protocolsListProvider)
+      ..invalidate(protocolProvider(protocolId));
     return protocol;
   }
 

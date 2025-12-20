@@ -46,7 +46,6 @@ class ProfileScreen extends ConsumerWidget {
     );
 
     if (pickedFile != null) {
-      // ignore: avoid_manual_providers_as_generated_provider_dependency
       await ref
           .read(profileImageProvider.notifier)
           .setImage(File(pickedFile.path));

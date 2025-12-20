@@ -44,8 +44,8 @@ abstract class SessionSummary with _$SessionSummary {
   const factory SessionSummary({
     @JsonKey(name: 'session_id') required String sessionId,
     @JsonKey(name: 'patient_id') required String patientId,
-    @JsonKey(name: 'patient_name') @Default('') String patientName,
     @JsonKey(name: 'scheduled_date') required DateTime scheduledDate,
+    @JsonKey(name: 'patient_name') @Default('') String patientName,
     @Default(SessionStatus.inProgress) SessionStatus status,
     @JsonKey(name: 'overall_score') double? overallScore,
     @JsonKey(name: 'exercises_completed') @Default(0) int exercisesCompleted,

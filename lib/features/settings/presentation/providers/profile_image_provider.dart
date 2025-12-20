@@ -29,8 +29,8 @@ class ProfileImageNotifier extends _$ProfileImageNotifier {
     final oldPath = state.value;
     if (oldPath != null) {
       final oldFile = File(oldPath);
-      if (await oldFile.exists()) {
-        await oldFile.delete();
+      if (oldFile.existsSync()) {
+        oldFile.deleteSync();
       }
     }
 

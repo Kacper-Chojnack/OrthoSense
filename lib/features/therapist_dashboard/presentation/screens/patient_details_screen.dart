@@ -5,7 +5,7 @@ import 'package:orthosense/features/therapist_dashboard/presentation/providers/p
 import 'package:orthosense/features/therapist_dashboard/presentation/screens/plan_details_screen.dart';
 
 class PatientDetailsScreen extends ConsumerWidget {
-  const PatientDetailsScreen({super.key, required this.patientId});
+  const PatientDetailsScreen({required this.patientId, super.key});
 
   final String patientId;
 
@@ -26,7 +26,7 @@ class PatientDetailsScreen extends ConsumerWidget {
           children: [
             // Patient Info
             patientAsync.when(
-              data: (patient) => _buildPatientHeader(patient),
+              data: _buildPatientHeader,
               loading: () => const LinearProgressIndicator(),
               error: (err, _) => Text('Error loading patient: $err'),
             ),
@@ -39,7 +39,7 @@ class PatientDetailsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             statsAsync.when(
-              data: (stats) => _buildStatsGrid(stats),
+              data: _buildStatsGrid,
               loading: () => const SizedBox(
                 height: 100,
                 child: Center(child: CircularProgressIndicator()),
@@ -58,7 +58,7 @@ class PatientDetailsScreen extends ConsumerWidget {
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Navigate to create plan screen
+                    // TODO(user): Navigate to create plan screen
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('New Plan'),
@@ -215,7 +215,7 @@ class PatientDetailsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (context) => PlanDetailsScreen(planId: plan.id),
                 ),
               );

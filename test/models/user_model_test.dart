@@ -4,7 +4,7 @@ import 'package:orthosense/features/auth/domain/models/user_model.dart';
 void main() {
   group('UserModel', () {
     test('creates user with required fields', () {
-      final user = UserModel(
+      const user = UserModel(
         id: 'user-123',
         email: 'test@example.com',
       );
@@ -14,7 +14,7 @@ void main() {
     });
 
     test('has correct default values', () {
-      final user = UserModel(
+      const user = UserModel(
         id: 'user-123',
         email: 'test@example.com',
       );
@@ -91,11 +91,9 @@ void main() {
       });
 
       test('toJson serializes correctly', () {
-        final user = UserModel(
+        const user = UserModel(
           id: 'user-123',
           email: 'test@example.com',
-          isActive: true,
-          isVerified: false,
         );
 
         final json = user.toJson();
@@ -123,12 +121,12 @@ void main() {
 
     group('equality', () {
       test('users with same data are equal', () {
-        final user1 = UserModel(
+        const user1 = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final user2 = UserModel(
+        const user2 = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
@@ -137,12 +135,12 @@ void main() {
       });
 
       test('users with different id are not equal', () {
-        final user1 = UserModel(
+        const user1 = UserModel(
           id: 'user-123',
           email: 'test@example.com',
         );
 
-        final user2 = UserModel(
+        const user2 = UserModel(
           id: 'user-456',
           email: 'test@example.com',
         );
@@ -151,12 +149,12 @@ void main() {
       });
 
       test('users with different email are not equal', () {
-        final user1 = UserModel(
+        const user1 = UserModel(
           id: 'user-123',
           email: 'test1@example.com',
         );
 
-        final user2 = UserModel(
+        const user2 = UserModel(
           id: 'user-123',
           email: 'test2@example.com',
         );
@@ -167,7 +165,7 @@ void main() {
 
     group('copyWith', () {
       test('creates copy with updated email', () {
-        final original = UserModel(
+        const original = UserModel(
           id: 'user-123',
           email: 'original@example.com',
         );
@@ -180,10 +178,9 @@ void main() {
       });
 
       test('creates copy with updated isVerified', () {
-        final original = UserModel(
+        const original = UserModel(
           id: 'user-123',
           email: 'test@example.com',
-          isVerified: false,
         );
 
         final updated = original.copyWith(isVerified: true);

@@ -63,19 +63,16 @@ class ActivityLogScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 FilterChip(
                   label: const Text('This Week'),
-                  selected: false,
                   onSelected: (_) {},
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
                   label: const Text('This Month'),
-                  selected: false,
                   onSelected: (_) {},
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
                   label: const Text('Pending Sync'),
-                  selected: false,
                   onSelected: (_) {},
                   avatar: Icon(
                     Icons.cloud_off,
@@ -117,7 +114,7 @@ class ActivityLogScreen extends ConsumerWidget {
         action: SnackBarAction(
           label: 'View',
           onPressed: () {
-            // TODO: Open generated file
+            // TODO(user): Open generated file
           },
         ),
       ),
@@ -378,7 +375,7 @@ class _SessionDetailsSheet extends StatelessWidget {
             child: ListView(
               controller: scrollController,
               padding: const EdgeInsets.all(16),
-              children: [
+              children: const [
                 _ExerciseResultTile(
                   name: 'Knee Flexion',
                   score: 92,

@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencesService {
+  PreferencesService(this._prefs);
+
   static const String keyDisclaimerAccepted = 'disclaimer_accepted';
   static const String keyPrivacyPolicyAccepted = 'privacy_policy_accepted';
   static const String keyBiometricConsentAccepted =
@@ -11,8 +13,6 @@ class PreferencesService {
 
   final SharedPreferences _prefs;
 
-  PreferencesService(this._prefs);
-
   static Future<PreferencesService> init() async {
     final prefs = await SharedPreferences.getInstance();
     return PreferencesService(prefs);
@@ -21,24 +21,24 @@ class PreferencesService {
   // Disclaimer
   bool get isDisclaimerAccepted =>
       _prefs.getBool(keyDisclaimerAccepted) ?? false;
-  Future<void> setDisclaimerAccepted(bool value) =>
+  Future<void> setDisclaimerAccepted({required bool value}) =>
       _prefs.setBool(keyDisclaimerAccepted, value);
 
   // Privacy Policy (GDPR)
   bool get isPrivacyPolicyAccepted =>
       _prefs.getBool(keyPrivacyPolicyAccepted) ?? false;
-  Future<void> setPrivacyPolicyAccepted(bool value) =>
+  Future<void> setPrivacyPolicyAccepted({required bool value}) =>
       _prefs.setBool(keyPrivacyPolicyAccepted, value);
 
   // Biometric Consent (Camera/Pose)
   bool get isBiometricConsentAccepted =>
       _prefs.getBool(keyBiometricConsentAccepted) ?? false;
-  Future<void> setBiometricConsentAccepted(bool value) =>
+  Future<void> setBiometricConsentAccepted({required bool value}) =>
       _prefs.setBool(keyBiometricConsentAccepted, value);
 
   // Voice Selection
   bool get isVoiceSelected => _prefs.getBool(keyVoiceSelected) ?? false;
-  Future<void> setVoiceSelected(bool value) =>
+  Future<void> setVoiceSelected({required bool value}) =>
       _prefs.setBool(keyVoiceSelected, value);
 
   String? get selectedVoiceKey => _prefs.getString(keySelectedVoiceMap);
@@ -48,7 +48,7 @@ class PreferencesService {
   // Notifications
   bool get areNotificationsEnabled =>
       _prefs.getBool(keyNotificationsEnabled) ?? true;
-  Future<void> setNotificationsEnabled(bool value) =>
+  Future<void> setNotificationsEnabled({required bool value}) =>
       _prefs.setBool(keyNotificationsEnabled, value);
 
   /// Clears all preferences (for account deletion or reset).

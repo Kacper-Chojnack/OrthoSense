@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/therapist_dashboard/domain/models/models.dart';
 import 'package:orthosense/infrastructure/networking/dio_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -72,8 +71,8 @@ class TherapistRepository {
     final response = await _dio.get<List<dynamic>>(
       '/api/v1/patients/$patientId/sessions',
       queryParameters: {
-        if (planId != null) 'plan_id': planId,
-        if (status != null) 'status_filter': status.name,
+        'plan_id': ?planId,
+        'status_filter': ?status?.name,
         'skip': skip,
         'limit': limit,
       },
@@ -94,8 +93,8 @@ class TherapistRepository {
     final response = await _dio.get<List<dynamic>>(
       '/api/v1/protocols',
       queryParameters: {
-        if (status != null) 'status_filter': status.name,
-        if (condition != null) 'condition': condition,
+        'status_filter': ?status?.name,
+        'condition': ?condition,
         'only_mine': onlyMine,
       },
     );
@@ -128,7 +127,7 @@ class TherapistRepository {
         'description': description,
         'condition': condition,
         'phase': phase,
-        if (durationWeeks != null) 'duration_weeks': durationWeeks,
+        'duration_weeks': ?durationWeeks,
         'frequency_per_week': frequencyPerWeek,
       },
     );
@@ -149,13 +148,13 @@ class TherapistRepository {
     final response = await _dio.patch<Map<String, dynamic>>(
       '/api/v1/protocols/$protocolId',
       data: {
-        if (name != null) 'name': name,
-        if (description != null) 'description': description,
-        if (condition != null) 'condition': condition,
-        if (phase != null) 'phase': phase,
-        if (durationWeeks != null) 'duration_weeks': durationWeeks,
-        if (frequencyPerWeek != null) 'frequency_per_week': frequencyPerWeek,
-        if (status != null) 'status': status.name,
+        'name': ?name,
+        'description': ?description,
+        'condition': ?condition,
+        'phase': ?phase,
+        'duration_weeks': ?durationWeeks,
+        'frequency_per_week': ?frequencyPerWeek,
+        'status': ?status?.name,
       },
     );
     return ProtocolModel.fromJson(response.data!);
@@ -178,8 +177,8 @@ class TherapistRepository {
         'exercise_id': exerciseId,
         'order': order,
         'sets': sets,
-        if (reps != null) 'reps': reps,
-        if (holdSeconds != null) 'hold_seconds': holdSeconds,
+        'reps': ?reps,
+        'hold_seconds': ?holdSeconds,
         'rest_seconds': restSeconds,
         'notes': notes,
       },
@@ -214,9 +213,9 @@ class TherapistRepository {
   Future<TreatmentPlanModel> createPlan({
     required String name,
     required String patientId,
+    required DateTime startDate,
     String? protocolId,
     String notes = '',
-    required DateTime startDate,
     DateTime? endDate,
     int frequencyPerWeek = 3,
     Map<String, dynamic> customParameters = const {},
@@ -226,11 +225,10 @@ class TherapistRepository {
       data: {
         'name': name,
         'patient_id': patientId,
-        if (protocolId != null) 'protocol_id': protocolId,
+        'protocol_id': ?protocolId,
         'notes': notes,
         'start_date': startDate.toIso8601String().split('T')[0],
-        if (endDate != null)
-          'end_date': endDate.toIso8601String().split('T')[0],
+        'end_date': ?endDate?.toIso8601String().split('T')[0],
         'frequency_per_week': frequencyPerWeek,
         'custom_parameters': customParameters,
       },
@@ -251,13 +249,12 @@ class TherapistRepository {
     final response = await _dio.patch<Map<String, dynamic>>(
       '/api/v1/plans/$planId',
       data: {
-        if (name != null) 'name': name,
-        if (notes != null) 'notes': notes,
-        if (endDate != null)
-          'end_date': endDate.toIso8601String().split('T')[0],
-        if (status != null) 'status': status.name,
-        if (frequencyPerWeek != null) 'frequency_per_week': frequencyPerWeek,
-        if (customParameters != null) 'custom_parameters': customParameters,
+        'name': ?name,
+        'notes': ?notes,
+        'end_date': ?endDate?.toIso8601String().split('T')[0],
+        'status': ?status?.name,
+        'frequency_per_week': ?frequencyPerWeek,
+        'custom_parameters': ?customParameters,
       },
     );
     return TreatmentPlanModel.fromJson(response.data!);
@@ -298,9 +295,9 @@ class TherapistRepository {
     final response = await _dio.get<List<dynamic>>(
       '/api/v1/exercises',
       queryParameters: {
-        if (category != null) 'category': category.name,
-        if (bodyPart != null) 'body_part': bodyPart.name,
-        if (difficulty != null) 'difficulty': difficulty,
+        'category': ?category?.name,
+        'body_part': ?bodyPart?.name,
+        'difficulty': ?difficulty,
       },
     );
     return response.data!
@@ -339,9 +336,9 @@ class TherapistRepository {
         'category': category.name,
         'body_part': bodyPart.name,
         'difficulty_level': difficultyLevel,
-        if (videoUrl != null) 'video_url': videoUrl,
-        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
-        if (durationSeconds != null) 'duration_seconds': durationSeconds,
+        'video_url': ?videoUrl,
+        'thumbnail_url': ?thumbnailUrl,
+        'duration_seconds': ?durationSeconds,
         'sensor_config': sensorConfig,
         'metrics_config': metricsConfig,
       },
