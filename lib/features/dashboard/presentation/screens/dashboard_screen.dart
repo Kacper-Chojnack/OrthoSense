@@ -355,9 +355,9 @@ class _TrendChart extends StatelessWidget {
                 Text(
                   '+15° improvement this week',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
