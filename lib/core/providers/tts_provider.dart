@@ -5,5 +5,7 @@ part 'tts_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 TtsService ttsService(Ref ref) {
-  return TtsService();
+  final service = TtsService();
+  ref.onDispose(service.dispose);
+  return service;
 }

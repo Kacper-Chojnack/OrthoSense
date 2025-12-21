@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ExerciseModel {
 
- String get id; String get name; String get description; String get instructions; ExerciseCategory get category;@JsonKey(name: 'body_part') BodyPart get bodyPart;@JsonKey(name: 'difficulty_level') int get difficultyLevel;@JsonKey(name: 'video_url') String? get videoUrl;@JsonKey(name: 'thumbnail_url') String? get thumbnailUrl;@JsonKey(name: 'duration_seconds') int? get durationSeconds;@JsonKey(name: 'sensor_config') Map<String, dynamic> get sensorConfig;@JsonKey(name: 'metrics_config') Map<String, dynamic> get metricsConfig;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') DateTime? get createdAt;
+ String get id; String get name; String get description; String get instructions; ExerciseCategory get category;@JsonKey(name: 'body_part') BodyPart get bodyPart;@JsonKey(name: 'difficulty_level') int get difficultyLevel;@JsonKey(name: 'video_url') String? get videoUrl;@JsonKey(name: 'thumbnail_url') String? get thumbnailUrl;@JsonKey(name: 'duration_seconds') int? get durationSeconds;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') DateTime? get createdAt;
 /// Create a copy of ExerciseModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ExerciseModelCopyWith<ExerciseModel> get copyWith => _$ExerciseModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.instructions, instructions) || other.instructions == instructions)&&(identical(other.category, category) || other.category == category)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.difficultyLevel, difficultyLevel) || other.difficultyLevel == difficultyLevel)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&const DeepCollectionEquality().equals(other.sensorConfig, sensorConfig)&&const DeepCollectionEquality().equals(other.metricsConfig, metricsConfig)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.instructions, instructions) || other.instructions == instructions)&&(identical(other.category, category) || other.category == category)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.difficultyLevel, difficultyLevel) || other.difficultyLevel == difficultyLevel)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,instructions,category,bodyPart,difficultyLevel,videoUrl,thumbnailUrl,durationSeconds,const DeepCollectionEquality().hash(sensorConfig),const DeepCollectionEquality().hash(metricsConfig),isActive,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,description,instructions,category,bodyPart,difficultyLevel,videoUrl,thumbnailUrl,durationSeconds,isActive,createdAt);
 
 @override
 String toString() {
-  return 'ExerciseModel(id: $id, name: $name, description: $description, instructions: $instructions, category: $category, bodyPart: $bodyPart, difficultyLevel: $difficultyLevel, videoUrl: $videoUrl, thumbnailUrl: $thumbnailUrl, durationSeconds: $durationSeconds, sensorConfig: $sensorConfig, metricsConfig: $metricsConfig, isActive: $isActive, createdAt: $createdAt)';
+  return 'ExerciseModel(id: $id, name: $name, description: $description, instructions: $instructions, category: $category, bodyPart: $bodyPart, difficultyLevel: $difficultyLevel, videoUrl: $videoUrl, thumbnailUrl: $thumbnailUrl, durationSeconds: $durationSeconds, isActive: $isActive, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ExerciseModelCopyWith<$Res>  {
   factory $ExerciseModelCopyWith(ExerciseModel value, $Res Function(ExerciseModel) _then) = _$ExerciseModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String instructions, ExerciseCategory category,@JsonKey(name: 'body_part') BodyPart bodyPart,@JsonKey(name: 'difficulty_level') int difficultyLevel,@JsonKey(name: 'video_url') String? videoUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'duration_seconds') int? durationSeconds,@JsonKey(name: 'sensor_config') Map<String, dynamic> sensorConfig,@JsonKey(name: 'metrics_config') Map<String, dynamic> metricsConfig,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String name, String description, String instructions, ExerciseCategory category,@JsonKey(name: 'body_part') BodyPart bodyPart,@JsonKey(name: 'difficulty_level') int difficultyLevel,@JsonKey(name: 'video_url') String? videoUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'duration_seconds') int? durationSeconds,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 
@@ -65,7 +65,7 @@ class _$ExerciseModelCopyWithImpl<$Res>
 
 /// Create a copy of ExerciseModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? instructions = null,Object? category = null,Object? bodyPart = null,Object? difficultyLevel = null,Object? videoUrl = freezed,Object? thumbnailUrl = freezed,Object? durationSeconds = freezed,Object? sensorConfig = null,Object? metricsConfig = null,Object? isActive = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? instructions = null,Object? category = null,Object? bodyPart = null,Object? difficultyLevel = null,Object? videoUrl = freezed,Object? thumbnailUrl = freezed,Object? durationSeconds = freezed,Object? isActive = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -77,9 +77,7 @@ as BodyPart,difficultyLevel: null == difficultyLevel ? _self.difficultyLevel : d
 as int,videoUrl: freezed == videoUrl ? _self.videoUrl : videoUrl // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
 as String?,durationSeconds: freezed == durationSeconds ? _self.durationSeconds : durationSeconds // ignore: cast_nullable_to_non_nullable
-as int?,sensorConfig: null == sensorConfig ? _self.sensorConfig : sensorConfig // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,metricsConfig: null == metricsConfig ? _self.metricsConfig : metricsConfig // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -166,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'sensor_config')  Map<String, dynamic> sensorConfig, @JsonKey(name: 'metrics_config')  Map<String, dynamic> metricsConfig, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExerciseModel() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.sensorConfig,_that.metricsConfig,_that.isActive,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.isActive,_that.createdAt);case _:
   return orElse();
 
 }
@@ -187,10 +185,10 @@ return $default(_that.id,_that.name,_that.description,_that.instructions,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'sensor_config')  Map<String, dynamic> sensorConfig, @JsonKey(name: 'metrics_config')  Map<String, dynamic> metricsConfig, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _ExerciseModel():
-return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.sensorConfig,_that.metricsConfig,_that.isActive,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.isActive,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +205,10 @@ return $default(_that.id,_that.name,_that.description,_that.instructions,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'sensor_config')  Map<String, dynamic> sensorConfig, @JsonKey(name: 'metrics_config')  Map<String, dynamic> metricsConfig, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String instructions,  ExerciseCategory category, @JsonKey(name: 'body_part')  BodyPart bodyPart, @JsonKey(name: 'difficulty_level')  int difficultyLevel, @JsonKey(name: 'video_url')  String? videoUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'duration_seconds')  int? durationSeconds, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ExerciseModel() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.sensorConfig,_that.metricsConfig,_that.isActive,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.instructions,_that.category,_that.bodyPart,_that.difficultyLevel,_that.videoUrl,_that.thumbnailUrl,_that.durationSeconds,_that.isActive,_that.createdAt);case _:
   return null;
 
 }
@@ -222,7 +220,7 @@ return $default(_that.id,_that.name,_that.description,_that.instructions,_that.c
 @JsonSerializable()
 
 class _ExerciseModel implements ExerciseModel {
-  const _ExerciseModel({required this.id, required this.name, this.description = '', this.instructions = '', this.category = ExerciseCategory.mobility, @JsonKey(name: 'body_part') this.bodyPart = BodyPart.knee, @JsonKey(name: 'difficulty_level') this.difficultyLevel = 1, @JsonKey(name: 'video_url') this.videoUrl, @JsonKey(name: 'thumbnail_url') this.thumbnailUrl, @JsonKey(name: 'duration_seconds') this.durationSeconds, @JsonKey(name: 'sensor_config') final  Map<String, dynamic> sensorConfig = const {}, @JsonKey(name: 'metrics_config') final  Map<String, dynamic> metricsConfig = const {}, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt}): _sensorConfig = sensorConfig,_metricsConfig = metricsConfig;
+  const _ExerciseModel({required this.id, required this.name, this.description = '', this.instructions = '', this.category = ExerciseCategory.mobility, @JsonKey(name: 'body_part') this.bodyPart = BodyPart.knee, @JsonKey(name: 'difficulty_level') this.difficultyLevel = 1, @JsonKey(name: 'video_url') this.videoUrl, @JsonKey(name: 'thumbnail_url') this.thumbnailUrl, @JsonKey(name: 'duration_seconds') this.durationSeconds, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') this.createdAt});
   factory _ExerciseModel.fromJson(Map<String, dynamic> json) => _$ExerciseModelFromJson(json);
 
 @override final  String id;
@@ -235,20 +233,6 @@ class _ExerciseModel implements ExerciseModel {
 @override@JsonKey(name: 'video_url') final  String? videoUrl;
 @override@JsonKey(name: 'thumbnail_url') final  String? thumbnailUrl;
 @override@JsonKey(name: 'duration_seconds') final  int? durationSeconds;
- final  Map<String, dynamic> _sensorConfig;
-@override@JsonKey(name: 'sensor_config') Map<String, dynamic> get sensorConfig {
-  if (_sensorConfig is EqualUnmodifiableMapView) return _sensorConfig;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_sensorConfig);
-}
-
- final  Map<String, dynamic> _metricsConfig;
-@override@JsonKey(name: 'metrics_config') Map<String, dynamic> get metricsConfig {
-  if (_metricsConfig is EqualUnmodifiableMapView) return _metricsConfig;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_metricsConfig);
-}
-
 @override@JsonKey(name: 'is_active') final  bool isActive;
 @override@JsonKey(name: 'created_at') final  DateTime? createdAt;
 
@@ -265,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.instructions, instructions) || other.instructions == instructions)&&(identical(other.category, category) || other.category == category)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.difficultyLevel, difficultyLevel) || other.difficultyLevel == difficultyLevel)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&const DeepCollectionEquality().equals(other._sensorConfig, _sensorConfig)&&const DeepCollectionEquality().equals(other._metricsConfig, _metricsConfig)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExerciseModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.instructions, instructions) || other.instructions == instructions)&&(identical(other.category, category) || other.category == category)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.difficultyLevel, difficultyLevel) || other.difficultyLevel == difficultyLevel)&&(identical(other.videoUrl, videoUrl) || other.videoUrl == videoUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,instructions,category,bodyPart,difficultyLevel,videoUrl,thumbnailUrl,durationSeconds,const DeepCollectionEquality().hash(_sensorConfig),const DeepCollectionEquality().hash(_metricsConfig),isActive,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,description,instructions,category,bodyPart,difficultyLevel,videoUrl,thumbnailUrl,durationSeconds,isActive,createdAt);
 
 @override
 String toString() {
-  return 'ExerciseModel(id: $id, name: $name, description: $description, instructions: $instructions, category: $category, bodyPart: $bodyPart, difficultyLevel: $difficultyLevel, videoUrl: $videoUrl, thumbnailUrl: $thumbnailUrl, durationSeconds: $durationSeconds, sensorConfig: $sensorConfig, metricsConfig: $metricsConfig, isActive: $isActive, createdAt: $createdAt)';
+  return 'ExerciseModel(id: $id, name: $name, description: $description, instructions: $instructions, category: $category, bodyPart: $bodyPart, difficultyLevel: $difficultyLevel, videoUrl: $videoUrl, thumbnailUrl: $thumbnailUrl, durationSeconds: $durationSeconds, isActive: $isActive, createdAt: $createdAt)';
 }
 
 
@@ -285,7 +269,7 @@ abstract mixin class _$ExerciseModelCopyWith<$Res> implements $ExerciseModelCopy
   factory _$ExerciseModelCopyWith(_ExerciseModel value, $Res Function(_ExerciseModel) _then) = __$ExerciseModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String instructions, ExerciseCategory category,@JsonKey(name: 'body_part') BodyPart bodyPart,@JsonKey(name: 'difficulty_level') int difficultyLevel,@JsonKey(name: 'video_url') String? videoUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'duration_seconds') int? durationSeconds,@JsonKey(name: 'sensor_config') Map<String, dynamic> sensorConfig,@JsonKey(name: 'metrics_config') Map<String, dynamic> metricsConfig,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String name, String description, String instructions, ExerciseCategory category,@JsonKey(name: 'body_part') BodyPart bodyPart,@JsonKey(name: 'difficulty_level') int difficultyLevel,@JsonKey(name: 'video_url') String? videoUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'duration_seconds') int? durationSeconds,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 
@@ -302,7 +286,7 @@ class __$ExerciseModelCopyWithImpl<$Res>
 
 /// Create a copy of ExerciseModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? instructions = null,Object? category = null,Object? bodyPart = null,Object? difficultyLevel = null,Object? videoUrl = freezed,Object? thumbnailUrl = freezed,Object? durationSeconds = freezed,Object? sensorConfig = null,Object? metricsConfig = null,Object? isActive = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? instructions = null,Object? category = null,Object? bodyPart = null,Object? difficultyLevel = null,Object? videoUrl = freezed,Object? thumbnailUrl = freezed,Object? durationSeconds = freezed,Object? isActive = null,Object? createdAt = freezed,}) {
   return _then(_ExerciseModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -314,9 +298,7 @@ as BodyPart,difficultyLevel: null == difficultyLevel ? _self.difficultyLevel : d
 as int,videoUrl: freezed == videoUrl ? _self.videoUrl : videoUrl // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
 as String?,durationSeconds: freezed == durationSeconds ? _self.durationSeconds : durationSeconds // ignore: cast_nullable_to_non_nullable
-as int?,sensorConfig: null == sensorConfig ? _self._sensorConfig : sensorConfig // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,metricsConfig: null == metricsConfig ? _self._metricsConfig : metricsConfig // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as int?,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

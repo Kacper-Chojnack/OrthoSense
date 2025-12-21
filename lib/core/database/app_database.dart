@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -37,6 +37,15 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(sessions);
           await m.createTable(exerciseResults);
+        }
+
+        // Migration to v3: Ensure settings table exists
+        if (from < 3) {
+          try {
+            await m.createTable(settings);
+          } catch (e) {
+            // Ignore if table already exists (e.g. fresh install on v2)
+          }
         }
       },
     );

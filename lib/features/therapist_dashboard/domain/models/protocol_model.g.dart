@@ -10,6 +10,7 @@ _ProtocolModel _$ProtocolModelFromJson(Map<String, dynamic> json) =>
     _ProtocolModel(
       id: json['id'] as String,
       name: json['name'] as String,
+      createdBy: json['created_by'] as String,
       description: json['description'] as String? ?? '',
       condition: json['condition'] as String? ?? '',
       phase: json['phase'] as String? ?? '',
@@ -19,7 +20,6 @@ _ProtocolModel _$ProtocolModelFromJson(Map<String, dynamic> json) =>
           $enumDecodeNullable(_$ProtocolStatusEnumMap, json['status']) ??
           ProtocolStatus.draft,
       isTemplate: json['is_template'] as bool? ?? true,
-      createdBy: json['created_by'] as String,
       createdAt: json['created_at'] == null
           ? null
           : DateTime.parse(json['created_at'] as String),
@@ -29,6 +29,7 @@ Map<String, dynamic> _$ProtocolModelToJson(_ProtocolModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'created_by': instance.createdBy,
       'description': instance.description,
       'condition': instance.condition,
       'phase': instance.phase,
@@ -36,7 +37,6 @@ Map<String, dynamic> _$ProtocolModelToJson(_ProtocolModel instance) =>
       'frequency_per_week': instance.frequencyPerWeek,
       'status': _$ProtocolStatusEnumMap[instance.status]!,
       'is_template': instance.isTemplate,
-      'created_by': instance.createdBy,
       'created_at': instance.createdAt?.toIso8601String(),
     };
 
@@ -51,6 +51,7 @@ _ProtocolWithExercises _$ProtocolWithExercisesFromJson(
 ) => _ProtocolWithExercises(
   id: json['id'] as String,
   name: json['name'] as String,
+  createdBy: json['created_by'] as String,
   description: json['description'] as String? ?? '',
   condition: json['condition'] as String? ?? '',
   phase: json['phase'] as String? ?? '',
@@ -60,7 +61,6 @@ _ProtocolWithExercises _$ProtocolWithExercisesFromJson(
       $enumDecodeNullable(_$ProtocolStatusEnumMap, json['status']) ??
       ProtocolStatus.draft,
   isTemplate: json['is_template'] as bool? ?? true,
-  createdBy: json['created_by'] as String,
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -78,6 +78,7 @@ Map<String, dynamic> _$ProtocolWithExercisesToJson(
 ) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
+  'created_by': instance.createdBy,
   'description': instance.description,
   'condition': instance.condition,
   'phase': instance.phase,
@@ -85,7 +86,6 @@ Map<String, dynamic> _$ProtocolWithExercisesToJson(
   'frequency_per_week': instance.frequencyPerWeek,
   'status': _$ProtocolStatusEnumMap[instance.status]!,
   'is_template': instance.isTemplate,
-  'created_by': instance.createdBy,
   'created_at': instance.createdAt?.toIso8601String(),
   'exercises': instance.exercises,
 };

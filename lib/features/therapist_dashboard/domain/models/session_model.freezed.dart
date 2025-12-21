@@ -314,7 +314,7 @@ as DateTime?,
 /// @nodoc
 mixin _$SessionSummary {
 
-@JsonKey(name: 'session_id') String get sessionId;@JsonKey(name: 'patient_id') String get patientId;@JsonKey(name: 'patient_name') String get patientName;@JsonKey(name: 'scheduled_date') DateTime get scheduledDate; SessionStatus get status;@JsonKey(name: 'overall_score') double? get overallScore;@JsonKey(name: 'exercises_completed') int get exercisesCompleted;@JsonKey(name: 'total_exercises') int get totalExercises;@JsonKey(name: 'duration_seconds') int? get durationSeconds;
+@JsonKey(name: 'session_id') String get sessionId;@JsonKey(name: 'patient_id') String get patientId;@JsonKey(name: 'scheduled_date') DateTime get scheduledDate;@JsonKey(name: 'patient_name') String get patientName; SessionStatus get status;@JsonKey(name: 'overall_score') double? get overallScore;@JsonKey(name: 'exercises_completed') int get exercisesCompleted;@JsonKey(name: 'total_exercises') int get totalExercises;@JsonKey(name: 'duration_seconds') int? get durationSeconds;
 /// Create a copy of SessionSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -327,16 +327,16 @@ $SessionSummaryCopyWith<SessionSummary> get copyWith => _$SessionSummaryCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionSummary&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.scheduledDate, scheduledDate) || other.scheduledDate == scheduledDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.overallScore, overallScore) || other.overallScore == overallScore)&&(identical(other.exercisesCompleted, exercisesCompleted) || other.exercisesCompleted == exercisesCompleted)&&(identical(other.totalExercises, totalExercises) || other.totalExercises == totalExercises)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionSummary&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.scheduledDate, scheduledDate) || other.scheduledDate == scheduledDate)&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.status, status) || other.status == status)&&(identical(other.overallScore, overallScore) || other.overallScore == overallScore)&&(identical(other.exercisesCompleted, exercisesCompleted) || other.exercisesCompleted == exercisesCompleted)&&(identical(other.totalExercises, totalExercises) || other.totalExercises == totalExercises)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,sessionId,patientId,patientName,scheduledDate,status,overallScore,exercisesCompleted,totalExercises,durationSeconds);
+int get hashCode => Object.hash(runtimeType,sessionId,patientId,scheduledDate,patientName,status,overallScore,exercisesCompleted,totalExercises,durationSeconds);
 
 @override
 String toString() {
-  return 'SessionSummary(sessionId: $sessionId, patientId: $patientId, patientName: $patientName, scheduledDate: $scheduledDate, status: $status, overallScore: $overallScore, exercisesCompleted: $exercisesCompleted, totalExercises: $totalExercises, durationSeconds: $durationSeconds)';
+  return 'SessionSummary(sessionId: $sessionId, patientId: $patientId, scheduledDate: $scheduledDate, patientName: $patientName, status: $status, overallScore: $overallScore, exercisesCompleted: $exercisesCompleted, totalExercises: $totalExercises, durationSeconds: $durationSeconds)';
 }
 
 
@@ -347,7 +347,7 @@ abstract mixin class $SessionSummaryCopyWith<$Res>  {
   factory $SessionSummaryCopyWith(SessionSummary value, $Res Function(SessionSummary) _then) = _$SessionSummaryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'session_id') String sessionId,@JsonKey(name: 'patient_id') String patientId,@JsonKey(name: 'patient_name') String patientName,@JsonKey(name: 'scheduled_date') DateTime scheduledDate, SessionStatus status,@JsonKey(name: 'overall_score') double? overallScore,@JsonKey(name: 'exercises_completed') int exercisesCompleted,@JsonKey(name: 'total_exercises') int totalExercises,@JsonKey(name: 'duration_seconds') int? durationSeconds
+@JsonKey(name: 'session_id') String sessionId,@JsonKey(name: 'patient_id') String patientId,@JsonKey(name: 'scheduled_date') DateTime scheduledDate,@JsonKey(name: 'patient_name') String patientName, SessionStatus status,@JsonKey(name: 'overall_score') double? overallScore,@JsonKey(name: 'exercises_completed') int exercisesCompleted,@JsonKey(name: 'total_exercises') int totalExercises,@JsonKey(name: 'duration_seconds') int? durationSeconds
 });
 
 
@@ -364,13 +364,13 @@ class _$SessionSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SessionSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? sessionId = null,Object? patientId = null,Object? patientName = null,Object? scheduledDate = null,Object? status = null,Object? overallScore = freezed,Object? exercisesCompleted = null,Object? totalExercises = null,Object? durationSeconds = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? sessionId = null,Object? patientId = null,Object? scheduledDate = null,Object? patientName = null,Object? status = null,Object? overallScore = freezed,Object? exercisesCompleted = null,Object? totalExercises = null,Object? durationSeconds = freezed,}) {
   return _then(_self.copyWith(
 sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
-as String,patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,scheduledDate: null == scheduledDate ? _self.scheduledDate : scheduledDate // ignore: cast_nullable_to_non_nullable
-as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as DateTime,patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SessionStatus,overallScore: freezed == overallScore ? _self.overallScore : overallScore // ignore: cast_nullable_to_non_nullable
 as double?,exercisesCompleted: null == exercisesCompleted ? _self.exercisesCompleted : exercisesCompleted // ignore: cast_nullable_to_non_nullable
 as int,totalExercises: null == totalExercises ? _self.totalExercises : totalExercises // ignore: cast_nullable_to_non_nullable
@@ -460,10 +460,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'patient_name')  String patientName, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate, @JsonKey(name: 'patient_name')  String patientName,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SessionSummary() when $default != null:
-return $default(_that.sessionId,_that.patientId,_that.patientName,_that.scheduledDate,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
+return $default(_that.sessionId,_that.patientId,_that.scheduledDate,_that.patientName,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
   return orElse();
 
 }
@@ -481,10 +481,10 @@ return $default(_that.sessionId,_that.patientId,_that.patientName,_that.schedule
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'patient_name')  String patientName, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate, @JsonKey(name: 'patient_name')  String patientName,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)  $default,) {final _that = this;
 switch (_that) {
 case _SessionSummary():
-return $default(_that.sessionId,_that.patientId,_that.patientName,_that.scheduledDate,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
+return $default(_that.sessionId,_that.patientId,_that.scheduledDate,_that.patientName,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -501,10 +501,10 @@ return $default(_that.sessionId,_that.patientId,_that.patientName,_that.schedule
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'patient_name')  String patientName, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'session_id')  String sessionId, @JsonKey(name: 'patient_id')  String patientId, @JsonKey(name: 'scheduled_date')  DateTime scheduledDate, @JsonKey(name: 'patient_name')  String patientName,  SessionStatus status, @JsonKey(name: 'overall_score')  double? overallScore, @JsonKey(name: 'exercises_completed')  int exercisesCompleted, @JsonKey(name: 'total_exercises')  int totalExercises, @JsonKey(name: 'duration_seconds')  int? durationSeconds)?  $default,) {final _that = this;
 switch (_that) {
 case _SessionSummary() when $default != null:
-return $default(_that.sessionId,_that.patientId,_that.patientName,_that.scheduledDate,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
+return $default(_that.sessionId,_that.patientId,_that.scheduledDate,_that.patientName,_that.status,_that.overallScore,_that.exercisesCompleted,_that.totalExercises,_that.durationSeconds);case _:
   return null;
 
 }
@@ -516,13 +516,13 @@ return $default(_that.sessionId,_that.patientId,_that.patientName,_that.schedule
 @JsonSerializable()
 
 class _SessionSummary implements SessionSummary {
-  const _SessionSummary({@JsonKey(name: 'session_id') required this.sessionId, @JsonKey(name: 'patient_id') required this.patientId, @JsonKey(name: 'patient_name') this.patientName = '', @JsonKey(name: 'scheduled_date') required this.scheduledDate, this.status = SessionStatus.inProgress, @JsonKey(name: 'overall_score') this.overallScore, @JsonKey(name: 'exercises_completed') this.exercisesCompleted = 0, @JsonKey(name: 'total_exercises') this.totalExercises = 0, @JsonKey(name: 'duration_seconds') this.durationSeconds});
+  const _SessionSummary({@JsonKey(name: 'session_id') required this.sessionId, @JsonKey(name: 'patient_id') required this.patientId, @JsonKey(name: 'scheduled_date') required this.scheduledDate, @JsonKey(name: 'patient_name') this.patientName = '', this.status = SessionStatus.inProgress, @JsonKey(name: 'overall_score') this.overallScore, @JsonKey(name: 'exercises_completed') this.exercisesCompleted = 0, @JsonKey(name: 'total_exercises') this.totalExercises = 0, @JsonKey(name: 'duration_seconds') this.durationSeconds});
   factory _SessionSummary.fromJson(Map<String, dynamic> json) => _$SessionSummaryFromJson(json);
 
 @override@JsonKey(name: 'session_id') final  String sessionId;
 @override@JsonKey(name: 'patient_id') final  String patientId;
-@override@JsonKey(name: 'patient_name') final  String patientName;
 @override@JsonKey(name: 'scheduled_date') final  DateTime scheduledDate;
+@override@JsonKey(name: 'patient_name') final  String patientName;
 @override@JsonKey() final  SessionStatus status;
 @override@JsonKey(name: 'overall_score') final  double? overallScore;
 @override@JsonKey(name: 'exercises_completed') final  int exercisesCompleted;
@@ -542,16 +542,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionSummary&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.scheduledDate, scheduledDate) || other.scheduledDate == scheduledDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.overallScore, overallScore) || other.overallScore == overallScore)&&(identical(other.exercisesCompleted, exercisesCompleted) || other.exercisesCompleted == exercisesCompleted)&&(identical(other.totalExercises, totalExercises) || other.totalExercises == totalExercises)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionSummary&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.patientId, patientId) || other.patientId == patientId)&&(identical(other.scheduledDate, scheduledDate) || other.scheduledDate == scheduledDate)&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.status, status) || other.status == status)&&(identical(other.overallScore, overallScore) || other.overallScore == overallScore)&&(identical(other.exercisesCompleted, exercisesCompleted) || other.exercisesCompleted == exercisesCompleted)&&(identical(other.totalExercises, totalExercises) || other.totalExercises == totalExercises)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,sessionId,patientId,patientName,scheduledDate,status,overallScore,exercisesCompleted,totalExercises,durationSeconds);
+int get hashCode => Object.hash(runtimeType,sessionId,patientId,scheduledDate,patientName,status,overallScore,exercisesCompleted,totalExercises,durationSeconds);
 
 @override
 String toString() {
-  return 'SessionSummary(sessionId: $sessionId, patientId: $patientId, patientName: $patientName, scheduledDate: $scheduledDate, status: $status, overallScore: $overallScore, exercisesCompleted: $exercisesCompleted, totalExercises: $totalExercises, durationSeconds: $durationSeconds)';
+  return 'SessionSummary(sessionId: $sessionId, patientId: $patientId, scheduledDate: $scheduledDate, patientName: $patientName, status: $status, overallScore: $overallScore, exercisesCompleted: $exercisesCompleted, totalExercises: $totalExercises, durationSeconds: $durationSeconds)';
 }
 
 
@@ -562,7 +562,7 @@ abstract mixin class _$SessionSummaryCopyWith<$Res> implements $SessionSummaryCo
   factory _$SessionSummaryCopyWith(_SessionSummary value, $Res Function(_SessionSummary) _then) = __$SessionSummaryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'session_id') String sessionId,@JsonKey(name: 'patient_id') String patientId,@JsonKey(name: 'patient_name') String patientName,@JsonKey(name: 'scheduled_date') DateTime scheduledDate, SessionStatus status,@JsonKey(name: 'overall_score') double? overallScore,@JsonKey(name: 'exercises_completed') int exercisesCompleted,@JsonKey(name: 'total_exercises') int totalExercises,@JsonKey(name: 'duration_seconds') int? durationSeconds
+@JsonKey(name: 'session_id') String sessionId,@JsonKey(name: 'patient_id') String patientId,@JsonKey(name: 'scheduled_date') DateTime scheduledDate,@JsonKey(name: 'patient_name') String patientName, SessionStatus status,@JsonKey(name: 'overall_score') double? overallScore,@JsonKey(name: 'exercises_completed') int exercisesCompleted,@JsonKey(name: 'total_exercises') int totalExercises,@JsonKey(name: 'duration_seconds') int? durationSeconds
 });
 
 
@@ -579,13 +579,13 @@ class __$SessionSummaryCopyWithImpl<$Res>
 
 /// Create a copy of SessionSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? sessionId = null,Object? patientId = null,Object? patientName = null,Object? scheduledDate = null,Object? status = null,Object? overallScore = freezed,Object? exercisesCompleted = null,Object? totalExercises = null,Object? durationSeconds = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? sessionId = null,Object? patientId = null,Object? scheduledDate = null,Object? patientName = null,Object? status = null,Object? overallScore = freezed,Object? exercisesCompleted = null,Object? totalExercises = null,Object? durationSeconds = freezed,}) {
   return _then(_SessionSummary(
 sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
 as String,patientId: null == patientId ? _self.patientId : patientId // ignore: cast_nullable_to_non_nullable
-as String,patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,scheduledDate: null == scheduledDate ? _self.scheduledDate : scheduledDate // ignore: cast_nullable_to_non_nullable
-as DateTime,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as DateTime,patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SessionStatus,overallScore: freezed == overallScore ? _self.overallScore : overallScore // ignore: cast_nullable_to_non_nullable
 as double?,exercisesCompleted: null == exercisesCompleted ? _self.exercisesCompleted : exercisesCompleted // ignore: cast_nullable_to_non_nullable
 as int,totalExercises: null == totalExercises ? _self.totalExercises : totalExercises // ignore: cast_nullable_to_non_nullable

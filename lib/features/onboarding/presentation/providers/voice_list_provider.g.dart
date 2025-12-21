@@ -48,4 +48,4 @@ final class VoiceListProvider
   }
 }
 
-String _$voiceListHash() => r'4da46e9c00f1073742b82613ab13ac52e6801c39';
+String _$voiceListHash() => r'fc8ea6e3b64d8f8e5dbe213e8ce26c3725abd3c5';

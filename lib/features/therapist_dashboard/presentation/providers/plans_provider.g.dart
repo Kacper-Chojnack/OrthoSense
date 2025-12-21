@@ -212,7 +212,7 @@ final class PlansNotifierProvider
   PlansNotifier create() => PlansNotifier();
 }
 
-String _$plansNotifierHash() => r'8cf3d4cd1d9d8dc8c867c0b22e87e4efb6a61eae';
+String _$plansNotifierHash() => r'b7c2e2a5ce170633cc60468938416d809be3dfd6';
 
 /// Notifier for treatment plan management.
 

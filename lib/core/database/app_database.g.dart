@@ -842,39 +842,6 @@ class $ExerciseResultsTable extends ExerciseResults
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _feedbackMeta = const VerificationMeta(
-    'feedback',
-  );
-  @override
-  late final GeneratedColumn<String> feedback = GeneratedColumn<String>(
-    'feedback',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _rangeOfMotionDegreesMeta =
-      const VerificationMeta('rangeOfMotionDegrees');
-  @override
-  late final GeneratedColumn<double> rangeOfMotionDegrees =
-      GeneratedColumn<double>(
-        'range_of_motion_degrees',
-        aliasedName,
-        true,
-        type: DriftSqlType.double,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _targetRangeOfMotionMeta =
-      const VerificationMeta('targetRangeOfMotion');
-  @override
-  late final GeneratedColumn<double> targetRangeOfMotion =
-      GeneratedColumn<double>(
-        'target_range_of_motion',
-        aliasedName,
-        true,
-        type: DriftSqlType.double,
-        requiredDuringInsert: false,
-      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -884,9 +851,6 @@ class $ExerciseResultsTable extends ExerciseResults
     setsCompleted,
     repsCompleted,
     score,
-    feedback,
-    rangeOfMotionDegrees,
-    targetRangeOfMotion,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -956,30 +920,6 @@ class $ExerciseResultsTable extends ExerciseResults
         score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
       );
     }
-    if (data.containsKey('feedback')) {
-      context.handle(
-        _feedbackMeta,
-        feedback.isAcceptableOrUnknown(data['feedback']!, _feedbackMeta),
-      );
-    }
-    if (data.containsKey('range_of_motion_degrees')) {
-      context.handle(
-        _rangeOfMotionDegreesMeta,
-        rangeOfMotionDegrees.isAcceptableOrUnknown(
-          data['range_of_motion_degrees']!,
-          _rangeOfMotionDegreesMeta,
-        ),
-      );
-    }
-    if (data.containsKey('target_range_of_motion')) {
-      context.handle(
-        _targetRangeOfMotionMeta,
-        targetRangeOfMotion.isAcceptableOrUnknown(
-          data['target_range_of_motion']!,
-          _targetRangeOfMotionMeta,
-        ),
-      );
-    }
     return context;
   }
 
@@ -1017,18 +957,6 @@ class $ExerciseResultsTable extends ExerciseResults
         DriftSqlType.int,
         data['${effectivePrefix}score'],
       ),
-      feedback: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}feedback'],
-      ),
-      rangeOfMotionDegrees: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}range_of_motion_degrees'],
-      ),
-      targetRangeOfMotion: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}target_range_of_motion'],
-      ),
     );
   }
 
@@ -1059,15 +987,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
 
   /// Exercise score (0-100).
   final int? score;
-
-  /// AI-generated feedback for this exercise.
-  final String? feedback;
-
-  /// Range of motion measurement in degrees (e.g., knee flexion).
-  final double? rangeOfMotionDegrees;
-
-  /// Target range of motion for comparison.
-  final double? targetRangeOfMotion;
   const ExerciseResult({
     required this.id,
     required this.sessionId,
@@ -1076,9 +995,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     required this.setsCompleted,
     required this.repsCompleted,
     this.score,
-    this.feedback,
-    this.rangeOfMotionDegrees,
-    this.targetRangeOfMotion,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1091,15 +1007,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     map['reps_completed'] = Variable<int>(repsCompleted);
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<int>(score);
-    }
-    if (!nullToAbsent || feedback != null) {
-      map['feedback'] = Variable<String>(feedback);
-    }
-    if (!nullToAbsent || rangeOfMotionDegrees != null) {
-      map['range_of_motion_degrees'] = Variable<double>(rangeOfMotionDegrees);
-    }
-    if (!nullToAbsent || targetRangeOfMotion != null) {
-      map['target_range_of_motion'] = Variable<double>(targetRangeOfMotion);
     }
     return map;
   }
@@ -1115,15 +1022,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       score: score == null && nullToAbsent
           ? const Value.absent()
           : Value(score),
-      feedback: feedback == null && nullToAbsent
-          ? const Value.absent()
-          : Value(feedback),
-      rangeOfMotionDegrees: rangeOfMotionDegrees == null && nullToAbsent
-          ? const Value.absent()
-          : Value(rangeOfMotionDegrees),
-      targetRangeOfMotion: targetRangeOfMotion == null && nullToAbsent
-          ? const Value.absent()
-          : Value(targetRangeOfMotion),
     );
   }
 
@@ -1140,13 +1038,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       setsCompleted: serializer.fromJson<int>(json['setsCompleted']),
       repsCompleted: serializer.fromJson<int>(json['repsCompleted']),
       score: serializer.fromJson<int?>(json['score']),
-      feedback: serializer.fromJson<String?>(json['feedback']),
-      rangeOfMotionDegrees: serializer.fromJson<double?>(
-        json['rangeOfMotionDegrees'],
-      ),
-      targetRangeOfMotion: serializer.fromJson<double?>(
-        json['targetRangeOfMotion'],
-      ),
     );
   }
   @override
@@ -1160,9 +1051,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       'setsCompleted': serializer.toJson<int>(setsCompleted),
       'repsCompleted': serializer.toJson<int>(repsCompleted),
       'score': serializer.toJson<int?>(score),
-      'feedback': serializer.toJson<String?>(feedback),
-      'rangeOfMotionDegrees': serializer.toJson<double?>(rangeOfMotionDegrees),
-      'targetRangeOfMotion': serializer.toJson<double?>(targetRangeOfMotion),
     };
   }
 
@@ -1174,9 +1062,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     int? setsCompleted,
     int? repsCompleted,
     Value<int?> score = const Value.absent(),
-    Value<String?> feedback = const Value.absent(),
-    Value<double?> rangeOfMotionDegrees = const Value.absent(),
-    Value<double?> targetRangeOfMotion = const Value.absent(),
   }) => ExerciseResult(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -1185,13 +1070,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     setsCompleted: setsCompleted ?? this.setsCompleted,
     repsCompleted: repsCompleted ?? this.repsCompleted,
     score: score.present ? score.value : this.score,
-    feedback: feedback.present ? feedback.value : this.feedback,
-    rangeOfMotionDegrees: rangeOfMotionDegrees.present
-        ? rangeOfMotionDegrees.value
-        : this.rangeOfMotionDegrees,
-    targetRangeOfMotion: targetRangeOfMotion.present
-        ? targetRangeOfMotion.value
-        : this.targetRangeOfMotion,
   );
   ExerciseResult copyWithCompanion(ExerciseResultsCompanion data) {
     return ExerciseResult(
@@ -1210,13 +1088,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           ? data.repsCompleted.value
           : this.repsCompleted,
       score: data.score.present ? data.score.value : this.score,
-      feedback: data.feedback.present ? data.feedback.value : this.feedback,
-      rangeOfMotionDegrees: data.rangeOfMotionDegrees.present
-          ? data.rangeOfMotionDegrees.value
-          : this.rangeOfMotionDegrees,
-      targetRangeOfMotion: data.targetRangeOfMotion.present
-          ? data.targetRangeOfMotion.value
-          : this.targetRangeOfMotion,
     );
   }
 
@@ -1229,10 +1100,7 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           ..write('exerciseName: $exerciseName, ')
           ..write('setsCompleted: $setsCompleted, ')
           ..write('repsCompleted: $repsCompleted, ')
-          ..write('score: $score, ')
-          ..write('feedback: $feedback, ')
-          ..write('rangeOfMotionDegrees: $rangeOfMotionDegrees, ')
-          ..write('targetRangeOfMotion: $targetRangeOfMotion')
+          ..write('score: $score')
           ..write(')'))
         .toString();
   }
@@ -1246,9 +1114,6 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     setsCompleted,
     repsCompleted,
     score,
-    feedback,
-    rangeOfMotionDegrees,
-    targetRangeOfMotion,
   );
   @override
   bool operator ==(Object other) =>
@@ -1260,10 +1125,7 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           other.exerciseName == this.exerciseName &&
           other.setsCompleted == this.setsCompleted &&
           other.repsCompleted == this.repsCompleted &&
-          other.score == this.score &&
-          other.feedback == this.feedback &&
-          other.rangeOfMotionDegrees == this.rangeOfMotionDegrees &&
-          other.targetRangeOfMotion == this.targetRangeOfMotion);
+          other.score == this.score);
 }
 
 class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
@@ -1274,9 +1136,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
   final Value<int> setsCompleted;
   final Value<int> repsCompleted;
   final Value<int?> score;
-  final Value<String?> feedback;
-  final Value<double?> rangeOfMotionDegrees;
-  final Value<double?> targetRangeOfMotion;
   final Value<int> rowid;
   const ExerciseResultsCompanion({
     this.id = const Value.absent(),
@@ -1286,9 +1145,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     this.setsCompleted = const Value.absent(),
     this.repsCompleted = const Value.absent(),
     this.score = const Value.absent(),
-    this.feedback = const Value.absent(),
-    this.rangeOfMotionDegrees = const Value.absent(),
-    this.targetRangeOfMotion = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExerciseResultsCompanion.insert({
@@ -1299,9 +1155,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     this.setsCompleted = const Value.absent(),
     this.repsCompleted = const Value.absent(),
     this.score = const Value.absent(),
-    this.feedback = const Value.absent(),
-    this.rangeOfMotionDegrees = const Value.absent(),
-    this.targetRangeOfMotion = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -1315,9 +1168,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     Expression<int>? setsCompleted,
     Expression<int>? repsCompleted,
     Expression<int>? score,
-    Expression<String>? feedback,
-    Expression<double>? rangeOfMotionDegrees,
-    Expression<double>? targetRangeOfMotion,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1328,11 +1178,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
       if (setsCompleted != null) 'sets_completed': setsCompleted,
       if (repsCompleted != null) 'reps_completed': repsCompleted,
       if (score != null) 'score': score,
-      if (feedback != null) 'feedback': feedback,
-      if (rangeOfMotionDegrees != null)
-        'range_of_motion_degrees': rangeOfMotionDegrees,
-      if (targetRangeOfMotion != null)
-        'target_range_of_motion': targetRangeOfMotion,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1345,9 +1190,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     Value<int>? setsCompleted,
     Value<int>? repsCompleted,
     Value<int?>? score,
-    Value<String?>? feedback,
-    Value<double?>? rangeOfMotionDegrees,
-    Value<double?>? targetRangeOfMotion,
     Value<int>? rowid,
   }) {
     return ExerciseResultsCompanion(
@@ -1358,9 +1200,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
       setsCompleted: setsCompleted ?? this.setsCompleted,
       repsCompleted: repsCompleted ?? this.repsCompleted,
       score: score ?? this.score,
-      feedback: feedback ?? this.feedback,
-      rangeOfMotionDegrees: rangeOfMotionDegrees ?? this.rangeOfMotionDegrees,
-      targetRangeOfMotion: targetRangeOfMotion ?? this.targetRangeOfMotion,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1389,19 +1228,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     if (score.present) {
       map['score'] = Variable<int>(score.value);
     }
-    if (feedback.present) {
-      map['feedback'] = Variable<String>(feedback.value);
-    }
-    if (rangeOfMotionDegrees.present) {
-      map['range_of_motion_degrees'] = Variable<double>(
-        rangeOfMotionDegrees.value,
-      );
-    }
-    if (targetRangeOfMotion.present) {
-      map['target_range_of_motion'] = Variable<double>(
-        targetRangeOfMotion.value,
-      );
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1418,9 +1244,6 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
           ..write('setsCompleted: $setsCompleted, ')
           ..write('repsCompleted: $repsCompleted, ')
           ..write('score: $score, ')
-          ..write('feedback: $feedback, ')
-          ..write('rangeOfMotionDegrees: $rangeOfMotionDegrees, ')
-          ..write('targetRangeOfMotion: $targetRangeOfMotion, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1972,9 +1795,6 @@ typedef $$ExerciseResultsTableCreateCompanionBuilder =
       Value<int> setsCompleted,
       Value<int> repsCompleted,
       Value<int?> score,
-      Value<String?> feedback,
-      Value<double?> rangeOfMotionDegrees,
-      Value<double?> targetRangeOfMotion,
       Value<int> rowid,
     });
 typedef $$ExerciseResultsTableUpdateCompanionBuilder =
@@ -1986,9 +1806,6 @@ typedef $$ExerciseResultsTableUpdateCompanionBuilder =
       Value<int> setsCompleted,
       Value<int> repsCompleted,
       Value<int?> score,
-      Value<String?> feedback,
-      Value<double?> rangeOfMotionDegrees,
-      Value<double?> targetRangeOfMotion,
       Value<int> rowid,
     });
 
@@ -2060,21 +1877,6 @@ class $$ExerciseResultsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get feedback => $composableBuilder(
-    column: $table.feedback,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get rangeOfMotionDegrees => $composableBuilder(
-    column: $table.rangeOfMotionDegrees,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get targetRangeOfMotion => $composableBuilder(
-    column: $table.targetRangeOfMotion,
-    builder: (column) => ColumnFilters(column),
-  );
-
   $$SessionsTableFilterComposer get sessionId {
     final $$SessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2138,21 +1940,6 @@ class $$ExerciseResultsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get feedback => $composableBuilder(
-    column: $table.feedback,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get rangeOfMotionDegrees => $composableBuilder(
-    column: $table.rangeOfMotionDegrees,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<double> get targetRangeOfMotion => $composableBuilder(
-    column: $table.targetRangeOfMotion,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   $$SessionsTableOrderingComposer get sessionId {
     final $$SessionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2211,19 +1998,6 @@ class $$ExerciseResultsTableAnnotationComposer
 
   GeneratedColumn<int> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
-
-  GeneratedColumn<String> get feedback =>
-      $composableBuilder(column: $table.feedback, builder: (column) => column);
-
-  GeneratedColumn<double> get rangeOfMotionDegrees => $composableBuilder(
-    column: $table.rangeOfMotionDegrees,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<double> get targetRangeOfMotion => $composableBuilder(
-    column: $table.targetRangeOfMotion,
-    builder: (column) => column,
-  );
 
   $$SessionsTableAnnotationComposer get sessionId {
     final $$SessionsTableAnnotationComposer composer = $composerBuilder(
@@ -2286,9 +2060,6 @@ class $$ExerciseResultsTableTableManager
                 Value<int> setsCompleted = const Value.absent(),
                 Value<int> repsCompleted = const Value.absent(),
                 Value<int?> score = const Value.absent(),
-                Value<String?> feedback = const Value.absent(),
-                Value<double?> rangeOfMotionDegrees = const Value.absent(),
-                Value<double?> targetRangeOfMotion = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseResultsCompanion(
                 id: id,
@@ -2298,9 +2069,6 @@ class $$ExerciseResultsTableTableManager
                 setsCompleted: setsCompleted,
                 repsCompleted: repsCompleted,
                 score: score,
-                feedback: feedback,
-                rangeOfMotionDegrees: rangeOfMotionDegrees,
-                targetRangeOfMotion: targetRangeOfMotion,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2312,9 +2080,6 @@ class $$ExerciseResultsTableTableManager
                 Value<int> setsCompleted = const Value.absent(),
                 Value<int> repsCompleted = const Value.absent(),
                 Value<int?> score = const Value.absent(),
-                Value<String?> feedback = const Value.absent(),
-                Value<double?> rangeOfMotionDegrees = const Value.absent(),
-                Value<double?> targetRangeOfMotion = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseResultsCompanion.insert(
                 id: id,
@@ -2324,9 +2089,6 @@ class $$ExerciseResultsTableTableManager
                 setsCompleted: setsCompleted,
                 repsCompleted: repsCompleted,
                 score: score,
-                feedback: feedback,
-                rangeOfMotionDegrees: rangeOfMotionDegrees,
-                targetRangeOfMotion: targetRangeOfMotion,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

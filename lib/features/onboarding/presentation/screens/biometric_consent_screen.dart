@@ -94,7 +94,7 @@ class _BiometricConsentScreenState
                       title: 'On-Device Processing',
                       description:
                           'All pose estimation happens locally on your device '
-                          'using Edge AI (MediaPipe). Your camera feed is NEVER '
+                          'using Edge AI. Your camera feed is NEVER '
                           'sent to any server.',
                     ),
                     const SizedBox(height: 16),

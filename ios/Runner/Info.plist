@@ -53,6 +53,8 @@
 	<!-- Microphone Permission (for future video recording) -->
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OrthoSense may use the microphone for audio feedback during exercises.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>OrthoSense needs access to the local network to communicate with the backend server.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

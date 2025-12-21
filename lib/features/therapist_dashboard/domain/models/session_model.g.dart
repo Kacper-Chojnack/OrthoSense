@@ -59,8 +59,8 @@ _SessionSummary _$SessionSummaryFromJson(Map<String, dynamic> json) =>
     _SessionSummary(
       sessionId: json['session_id'] as String,
       patientId: json['patient_id'] as String,
-      patientName: json['patient_name'] as String? ?? '',
       scheduledDate: DateTime.parse(json['scheduled_date'] as String),
+      patientName: json['patient_name'] as String? ?? '',
       status:
           $enumDecodeNullable(_$SessionStatusEnumMap, json['status']) ??
           SessionStatus.inProgress,
@@ -74,8 +74,8 @@ Map<String, dynamic> _$SessionSummaryToJson(_SessionSummary instance) =>
     <String, dynamic>{
       'session_id': instance.sessionId,
       'patient_id': instance.patientId,
-      'patient_name': instance.patientName,
       'scheduled_date': instance.scheduledDate.toIso8601String(),
+      'patient_name': instance.patientName,
       'status': _$SessionStatusEnumMap[instance.status]!,
       'overall_score': instance.overallScore,
       'exercises_completed': instance.exercisesCompleted,

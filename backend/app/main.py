@@ -1,6 +1,6 @@
 """FastAPI application entry point.
 
-Configures CORS, logging, and database lifecycle.
+Configures CORS, logging, database lifecycle, and WebSocket endpoints.
 """
 
 from collections.abc import AsyncGenerator
@@ -27,6 +27,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     logger.info("application_startup", database_url=settings.database_url[:20] + "...")
     await init_db()
     logger.info("database_initialized")
+
+    logger.info("initializing_ai_system")
+    try:
+        from app.core.ai_system import get_ai_system, is_ai_available
+
+        if is_ai_available():
+            get_ai_system()
+            logger.info("ai_system_ready")
+        else:
+            logger.warning("ai_system_unavailable")
+    except Exception as e:
+        logger.warning("ai_system_init_skipped", reason=str(e))
 
     yield
     logger.info("application_shutdown")

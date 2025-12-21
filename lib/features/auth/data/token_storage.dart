@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:orthosense/core/providers/shared_preferences_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'token_storage.g.dart';
 
@@ -24,19 +29,29 @@ abstract class TokenStorage {
   DateTime? getTokenExpiration(String token);
 }
 
-/// Secure token storage using FlutterSecureStorage (iOS/Android).
+/// Secure token storage using FlutterSecureStorage (iOS/Android) or SharedPreferences (macOS).
 class SecureTokenStorage implements TokenStorage {
-  SecureTokenStorage(this._storage);
+  SecureTokenStorage(this._storage, this._prefs);
 
   final FlutterSecureStorage _storage;
+  final SharedPreferences _prefs;
+
+  bool get _isMacOS => !kIsWeb && Platform.isMacOS;
 
   @override
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: StorageKeys.accessToken, value: token);
+    if (_isMacOS) {
+      await _prefs.setString(StorageKeys.accessToken, token);
+    } else {
+      await _storage.write(key: StorageKeys.accessToken, value: token);
+    }
   }
 
   @override
   Future<String?> getAccessToken() async {
+    if (_isMacOS) {
+      return _prefs.getString(StorageKeys.accessToken);
+    }
     return _storage.read(key: StorageKeys.accessToken);
   }
 
@@ -45,23 +60,40 @@ class SecureTokenStorage implements TokenStorage {
     required String userId,
     required String email,
   }) async {
-    await _storage.write(key: StorageKeys.userId, value: userId);
-    await _storage.write(key: StorageKeys.userEmail, value: email);
+    if (_isMacOS) {
+      await _prefs.setString(StorageKeys.userId, userId);
+      await _prefs.setString(StorageKeys.userEmail, email);
+    } else {
+      await _storage.write(key: StorageKeys.userId, value: userId);
+      await _storage.write(key: StorageKeys.userEmail, value: email);
+    }
   }
 
   @override
   Future<String?> getUserId() async {
+    if (_isMacOS) {
+      return _prefs.getString(StorageKeys.userId);
+    }
     return _storage.read(key: StorageKeys.userId);
   }
 
   @override
   Future<String?> getUserEmail() async {
+    if (_isMacOS) {
+      return _prefs.getString(StorageKeys.userEmail);
+    }
     return _storage.read(key: StorageKeys.userEmail);
   }
 
   @override
   Future<void> clearAll() async {
-    await _storage.deleteAll();
+    if (_isMacOS) {
+      await _prefs.remove(StorageKeys.accessToken);
+      await _prefs.remove(StorageKeys.userId);
+      await _prefs.remove(StorageKeys.userEmail);
+    } else {
+      await _storage.deleteAll();
+    }
   }
 
   @override
@@ -104,5 +136,8 @@ FlutterSecureStorage flutterSecureStorage(Ref ref) {
 /// Secure token storage provider.
 @Riverpod(keepAlive: true)
 TokenStorage tokenStorage(Ref ref) {
-  return SecureTokenStorage(ref.watch(flutterSecureStorageProvider));
+  return SecureTokenStorage(
+    ref.watch(flutterSecureStorageProvider),
+    ref.watch(sharedPreferencesProvider),
+  );
 }

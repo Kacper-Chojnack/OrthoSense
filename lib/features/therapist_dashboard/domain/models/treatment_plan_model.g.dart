@@ -12,9 +12,9 @@ _TreatmentPlanModel _$TreatmentPlanModelFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       patientId: json['patient_id'] as String,
       therapistId: json['therapist_id'] as String,
+      startDate: DateTime.parse(json['start_date'] as String),
       protocolId: json['protocol_id'] as String?,
       notes: json['notes'] as String? ?? '',
-      startDate: DateTime.parse(json['start_date'] as String),
       endDate: json['end_date'] == null
           ? null
           : DateTime.parse(json['end_date'] as String),
@@ -35,9 +35,9 @@ Map<String, dynamic> _$TreatmentPlanModelToJson(_TreatmentPlanModel instance) =>
       'name': instance.name,
       'patient_id': instance.patientId,
       'therapist_id': instance.therapistId,
+      'start_date': instance.startDate.toIso8601String(),
       'protocol_id': instance.protocolId,
       'notes': instance.notes,
-      'start_date': instance.startDate.toIso8601String(),
       'end_date': instance.endDate?.toIso8601String(),
       'status': _$PlanStatusEnumMap[instance.status]!,
       'frequency_per_week': instance.frequencyPerWeek,
@@ -60,9 +60,9 @@ _TreatmentPlanDetails _$TreatmentPlanDetailsFromJson(
   name: json['name'] as String,
   patientId: json['patient_id'] as String,
   therapistId: json['therapist_id'] as String,
+  startDate: DateTime.parse(json['start_date'] as String),
   protocolId: json['protocol_id'] as String?,
   notes: json['notes'] as String? ?? '',
-  startDate: DateTime.parse(json['start_date'] as String),
   endDate: json['end_date'] == null
       ? null
       : DateTime.parse(json['end_date'] as String),
@@ -88,9 +88,9 @@ Map<String, dynamic> _$TreatmentPlanDetailsToJson(
   'name': instance.name,
   'patient_id': instance.patientId,
   'therapist_id': instance.therapistId,
+  'start_date': instance.startDate.toIso8601String(),
   'protocol_id': instance.protocolId,
   'notes': instance.notes,
-  'start_date': instance.startDate.toIso8601String(),
   'end_date': instance.endDate?.toIso8601String(),
   'status': _$PlanStatusEnumMap[instance.status]!,
   'frequency_per_week': instance.frequencyPerWeek,

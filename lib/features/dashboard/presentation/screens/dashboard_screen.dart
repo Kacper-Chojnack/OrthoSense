@@ -4,6 +4,7 @@ import 'package:orthosense/features/auth/domain/models/user_model.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/exercise_selection_screen.dart';
 
 /// Main dashboard screen with analytics overview and quick actions.
 class DashboardScreen extends ConsumerWidget {
@@ -81,12 +82,16 @@ class DashboardScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO(user): Start new session
-        },
+        onPressed: () => _startSession(context),
         icon: const Icon(Icons.play_arrow),
         label: const Text('Start Session'),
       ),
+    );
+  }
+
+  void _startSession(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ExerciseSelectionScreen()),
     );
   }
 
@@ -243,17 +248,22 @@ class _StatCard extends StatelessWidget {
       elevation: 0,
       color: color.withValues(alpha: 0.1),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 24),
-            const Spacer(),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 4),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
               ),
             ),
             Text(

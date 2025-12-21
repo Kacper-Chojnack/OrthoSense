@@ -18,9 +18,13 @@ String _getBaseUrl() {
     return 'http://10.0.2.2:8000';
   }
 
-  // iOS Simulator, macOS, Linux, Windows
+  if (Platform.isMacOS) {
+    return 'http://127.0.0.1:8000';
+  }
+
+  // iOS Simulator, Linux, Windows
   // Using local IP for physical device debugging
-  return 'http://192.168.0.17:8000';
+  return 'http://192.168.1.103:8000';
 }
 
 /// Provides configured [Dio] instance for API calls.

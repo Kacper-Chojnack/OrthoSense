@@ -58,10 +58,6 @@ class Exercise(ExerciseBase, table=True):
     __tablename__ = "exercises"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    # Sensor configuration for pose detection (MediaPipe landmarks, angles to track)
-    sensor_config: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    # Metrics thresholds (min/max angles, rep counting logic)
-    metrics_config: dict = Field(default_factory=dict, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime | None = Field(default=None)
 
@@ -87,8 +83,6 @@ class ExerciseCreate(SQLModel):
     video_url: str | None = None
     thumbnail_url: str | None = None
     duration_seconds: int | None = None
-    sensor_config: dict = Field(default_factory=dict)
-    metrics_config: dict = Field(default_factory=dict)
 
 
 class ExerciseRead(SQLModel):
@@ -104,8 +98,6 @@ class ExerciseRead(SQLModel):
     video_url: str | None
     thumbnail_url: str | None
     duration_seconds: int | None
-    sensor_config: dict
-    metrics_config: dict
     is_active: bool
     created_at: datetime
 
@@ -122,6 +114,4 @@ class ExerciseUpdate(SQLModel):
     video_url: str | None = None
     thumbnail_url: str | None = None
     duration_seconds: int | None = None
-    sensor_config: dict | None = None
-    metrics_config: dict | None = None
     is_active: bool | None = None
