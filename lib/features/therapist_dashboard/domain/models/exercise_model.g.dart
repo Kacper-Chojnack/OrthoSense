@@ -22,9 +22,6 @@ _ExerciseModel _$ExerciseModelFromJson(Map<String, dynamic> json) =>
       videoUrl: json['video_url'] as String?,
       thumbnailUrl: json['thumbnail_url'] as String?,
       durationSeconds: (json['duration_seconds'] as num?)?.toInt(),
-      sensorConfig: json['sensor_config'] as Map<String, dynamic>? ?? const {},
-      metricsConfig:
-          json['metrics_config'] as Map<String, dynamic>? ?? const {},
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] == null
           ? null
@@ -43,8 +40,6 @@ Map<String, dynamic> _$ExerciseModelToJson(_ExerciseModel instance) =>
       'video_url': instance.videoUrl,
       'thumbnail_url': instance.thumbnailUrl,
       'duration_seconds': instance.durationSeconds,
-      'sensor_config': instance.sensorConfig,
-      'metrics_config': instance.metricsConfig,
       'is_active': instance.isActive,
       'created_at': instance.createdAt?.toIso8601String(),
     };

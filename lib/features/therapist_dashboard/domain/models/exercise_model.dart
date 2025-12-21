@@ -55,12 +55,6 @@ abstract class ExerciseModel with _$ExerciseModel {
     @JsonKey(name: 'video_url') String? videoUrl,
     @JsonKey(name: 'thumbnail_url') String? thumbnailUrl,
     @JsonKey(name: 'duration_seconds') int? durationSeconds,
-    @JsonKey(name: 'sensor_config')
-    @Default({})
-    Map<String, dynamic> sensorConfig,
-    @JsonKey(name: 'metrics_config')
-    @Default({})
-    Map<String, dynamic> metricsConfig,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _ExerciseModel;

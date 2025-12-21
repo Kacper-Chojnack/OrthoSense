@@ -208,7 +208,7 @@ final class ProtocolsNotifierProvider
   ProtocolsNotifier create() => ProtocolsNotifier();
 }
 
-String _$protocolsNotifierHash() => r'f2f68fc39425112f15eba42d17c6f34b98b1947e';
+String _$protocolsNotifierHash() => r'494fd96010d5c0568dbe8121e318a19c8b8bd635';
 
 /// Notifier for protocol management actions.
 

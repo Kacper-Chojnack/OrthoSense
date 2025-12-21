@@ -1,0 +1,91 @@
+import base64
+import json
+import os
+import time
+
+import cv2
+import pytest
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+# Base path for test videos
+TEST_VIDEOS_DIR = os.path.join(os.path.dirname(__file__), "..", "app", "test")
+
+# List of video files to test
+VIDEO_FILES = [
+    "Deep Squats.mp4",
+    "standing-shoulder-abduction1.mp4",
+    "standing-shoulder-abduction2.mp4",
+    "standing-shoulder-abduction3.mp4",
+]
+
+
+@pytest.mark.parametrize("video_filename", VIDEO_FILES)
+def test_e2e_video_analysis_websocket(video_filename):
+    """
+    E2E test that simulates a client sending video frames to the analysis WebSocket.
+    Runs for each video file in the list.
+    """
+    video_path = os.path.join(TEST_VIDEOS_DIR, video_filename)
+
+    if not os.path.exists(video_path):
+        pytest.skip(f"Test video not found: {video_path}")
+
+    client = TestClient(app)
+
+    # Open video file
+    cap = cv2.VideoCapture(video_path)
+    assert cap.isOpened(), f"Failed to open video file: {video_path}"
+
+    frame_count = 0
+    analyzed_count = 0
+
+    # Determine exercise name from filename (simple heuristic)
+    exercise_name = "Deep Squat" if "Squat" in video_filename else "Shoulder Abduction"
+
+    try:
+        with client.websocket_connect("/ws/analyze") as websocket:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                frame_count += 1
+
+                # Encode frame to JPEG
+                _, buffer = cv2.imencode(".jpg", frame)
+                jpeg_b64 = base64.b64encode(buffer).decode("utf-8")
+
+                # Construct payload
+                payload = {
+                    "jpeg_b64": jpeg_b64,
+                    "ts_ms": int(time.time() * 1000),
+                    "exercise": exercise_name,
+                }
+
+                websocket.send_text(json.dumps(payload))
+
+                # The server analyzes every 5 frames
+                if frame_count % 5 == 0:
+                    response = websocket.receive_json()
+
+                    # Basic validation of the response
+                    assert response["type"] == "analysis"
+                    assert "feedback" in response
+                    assert "metrics" in response
+
+                    analyzed_count += 1
+
+                # Limit the test to a certain number of frames to avoid running too long
+                # 60 frames is enough to fill the buffer (60) and get some analysis
+                if frame_count >= 60:
+                    break
+
+    finally:
+        cap.release()
+
+    print(
+        f"\nProcessed {frame_count} frames from {video_filename}, received {analyzed_count} analysis results."
+    )
+    assert analyzed_count > 0, "Should have received at least one analysis result"

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProtocolModel {
 
- String get id; String get name; String get description; String get condition; String get phase;@JsonKey(name: 'duration_weeks') int? get durationWeeks;@JsonKey(name: 'frequency_per_week') int get frequencyPerWeek; ProtocolStatus get status;@JsonKey(name: 'is_template') bool get isTemplate;@JsonKey(name: 'created_by') String get createdBy;@JsonKey(name: 'created_at') DateTime? get createdAt;
+ String get id; String get name;@JsonKey(name: 'created_by') String get createdBy; String get description; String get condition; String get phase;@JsonKey(name: 'duration_weeks') int? get durationWeeks;@JsonKey(name: 'frequency_per_week') int get frequencyPerWeek; ProtocolStatus get status;@JsonKey(name: 'is_template') bool get isTemplate;@JsonKey(name: 'created_at') DateTime? get createdAt;
 /// Create a copy of ProtocolModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ProtocolModelCopyWith<ProtocolModel> get copyWith => _$ProtocolModelCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProtocolModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProtocolModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdBy,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,createdBy,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdAt);
 
 @override
 String toString() {
-  return 'ProtocolModel(id: $id, name: $name, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdBy: $createdBy, createdAt: $createdAt)';
+  return 'ProtocolModel(id: $id, name: $name, createdBy: $createdBy, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ProtocolModelCopyWith<$Res>  {
   factory $ProtocolModelCopyWith(ProtocolModel value, $Res Function(ProtocolModel) _then) = _$ProtocolModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_by') String createdBy,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String name,@JsonKey(name: 'created_by') String createdBy, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 
@@ -65,10 +65,11 @@ class _$ProtocolModelCopyWithImpl<$Res>
 
 /// Create a copy of ProtocolModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdBy = null,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? createdBy = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,condition: null == condition ? _self.condition : condition // ignore: cast_nullable_to_non_nullable
 as String,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
@@ -76,8 +77,7 @@ as String,durationWeeks: freezed == durationWeeks ? _self.durationWeeks : durati
 as int?,frequencyPerWeek: null == frequencyPerWeek ? _self.frequencyPerWeek : frequencyPerWeek // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProtocolStatus,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
-as bool,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -163,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProtocolModel() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt);case _:
   return orElse();
 
 }
@@ -184,10 +184,10 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _ProtocolModel():
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +204,10 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ProtocolModel() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt);case _:
   return null;
 
 }
@@ -219,11 +219,12 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 @JsonSerializable()
 
 class _ProtocolModel implements ProtocolModel {
-  const _ProtocolModel({required this.id, required this.name, this.description = '', this.condition = '', this.phase = '', @JsonKey(name: 'duration_weeks') this.durationWeeks, @JsonKey(name: 'frequency_per_week') this.frequencyPerWeek = 3, this.status = ProtocolStatus.draft, @JsonKey(name: 'is_template') this.isTemplate = true, @JsonKey(name: 'created_by') required this.createdBy, @JsonKey(name: 'created_at') this.createdAt});
+  const _ProtocolModel({required this.id, required this.name, @JsonKey(name: 'created_by') required this.createdBy, this.description = '', this.condition = '', this.phase = '', @JsonKey(name: 'duration_weeks') this.durationWeeks, @JsonKey(name: 'frequency_per_week') this.frequencyPerWeek = 3, this.status = ProtocolStatus.draft, @JsonKey(name: 'is_template') this.isTemplate = true, @JsonKey(name: 'created_at') this.createdAt});
   factory _ProtocolModel.fromJson(Map<String, dynamic> json) => _$ProtocolModelFromJson(json);
 
 @override final  String id;
 @override final  String name;
+@override@JsonKey(name: 'created_by') final  String createdBy;
 @override@JsonKey() final  String description;
 @override@JsonKey() final  String condition;
 @override@JsonKey() final  String phase;
@@ -231,7 +232,6 @@ class _ProtocolModel implements ProtocolModel {
 @override@JsonKey(name: 'frequency_per_week') final  int frequencyPerWeek;
 @override@JsonKey() final  ProtocolStatus status;
 @override@JsonKey(name: 'is_template') final  bool isTemplate;
-@override@JsonKey(name: 'created_by') final  String createdBy;
 @override@JsonKey(name: 'created_at') final  DateTime? createdAt;
 
 /// Create a copy of ProtocolModel
@@ -247,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProtocolModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProtocolModel&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdBy,createdAt);
+int get hashCode => Object.hash(runtimeType,id,name,createdBy,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdAt);
 
 @override
 String toString() {
-  return 'ProtocolModel(id: $id, name: $name, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdBy: $createdBy, createdAt: $createdAt)';
+  return 'ProtocolModel(id: $id, name: $name, createdBy: $createdBy, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdAt: $createdAt)';
 }
 
 
@@ -267,7 +267,7 @@ abstract mixin class _$ProtocolModelCopyWith<$Res> implements $ProtocolModelCopy
   factory _$ProtocolModelCopyWith(_ProtocolModel value, $Res Function(_ProtocolModel) _then) = __$ProtocolModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_by') String createdBy,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String name,@JsonKey(name: 'created_by') String createdBy, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 
@@ -284,10 +284,11 @@ class __$ProtocolModelCopyWithImpl<$Res>
 
 /// Create a copy of ProtocolModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdBy = null,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? createdBy = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdAt = freezed,}) {
   return _then(_ProtocolModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,condition: null == condition ? _self.condition : condition // ignore: cast_nullable_to_non_nullable
 as String,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
@@ -295,8 +296,7 @@ as String,durationWeeks: freezed == durationWeeks ? _self.durationWeeks : durati
 as int?,frequencyPerWeek: null == frequencyPerWeek ? _self.frequencyPerWeek : frequencyPerWeek // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProtocolStatus,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
-as bool,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -308,7 +308,7 @@ as DateTime?,
 /// @nodoc
 mixin _$ProtocolWithExercises {
 
- String get id; String get name; String get description; String get condition; String get phase;@JsonKey(name: 'duration_weeks') int? get durationWeeks;@JsonKey(name: 'frequency_per_week') int get frequencyPerWeek; ProtocolStatus get status;@JsonKey(name: 'is_template') bool get isTemplate;@JsonKey(name: 'created_by') String get createdBy;@JsonKey(name: 'created_at') DateTime? get createdAt; List<ProtocolExerciseModel> get exercises;
+ String get id; String get name;@JsonKey(name: 'created_by') String get createdBy; String get description; String get condition; String get phase;@JsonKey(name: 'duration_weeks') int? get durationWeeks;@JsonKey(name: 'frequency_per_week') int get frequencyPerWeek; ProtocolStatus get status;@JsonKey(name: 'is_template') bool get isTemplate;@JsonKey(name: 'created_at') DateTime? get createdAt; List<ProtocolExerciseModel> get exercises;
 /// Create a copy of ProtocolWithExercises
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -321,16 +321,16 @@ $ProtocolWithExercisesCopyWith<ProtocolWithExercises> get copyWith => _$Protocol
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProtocolWithExercises&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProtocolWithExercises&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.exercises, exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdBy,createdAt,const DeepCollectionEquality().hash(exercises));
+int get hashCode => Object.hash(runtimeType,id,name,createdBy,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdAt,const DeepCollectionEquality().hash(exercises));
 
 @override
 String toString() {
-  return 'ProtocolWithExercises(id: $id, name: $name, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdBy: $createdBy, createdAt: $createdAt, exercises: $exercises)';
+  return 'ProtocolWithExercises(id: $id, name: $name, createdBy: $createdBy, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdAt: $createdAt, exercises: $exercises)';
 }
 
 
@@ -341,7 +341,7 @@ abstract mixin class $ProtocolWithExercisesCopyWith<$Res>  {
   factory $ProtocolWithExercisesCopyWith(ProtocolWithExercises value, $Res Function(ProtocolWithExercises) _then) = _$ProtocolWithExercisesCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_by') String createdBy,@JsonKey(name: 'created_at') DateTime? createdAt, List<ProtocolExerciseModel> exercises
+ String id, String name,@JsonKey(name: 'created_by') String createdBy, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_at') DateTime? createdAt, List<ProtocolExerciseModel> exercises
 });
 
 
@@ -358,10 +358,11 @@ class _$ProtocolWithExercisesCopyWithImpl<$Res>
 
 /// Create a copy of ProtocolWithExercises
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdBy = null,Object? createdAt = freezed,Object? exercises = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? createdBy = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdAt = freezed,Object? exercises = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,condition: null == condition ? _self.condition : condition // ignore: cast_nullable_to_non_nullable
 as String,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
@@ -369,8 +370,7 @@ as String,durationWeeks: freezed == durationWeeks ? _self.durationWeeks : durati
 as int?,frequencyPerWeek: null == frequencyPerWeek ? _self.frequencyPerWeek : frequencyPerWeek // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProtocolStatus,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
-as bool,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,exercises: null == exercises ? _self.exercises : exercises // ignore: cast_nullable_to_non_nullable
 as List<ProtocolExerciseModel>,
   ));
@@ -457,10 +457,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProtocolWithExercises() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt,_that.exercises);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt,_that.exercises);case _:
   return orElse();
 
 }
@@ -478,10 +478,10 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)  $default,) {final _that = this;
 switch (_that) {
 case _ProtocolWithExercises():
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt,_that.exercises);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt,_that.exercises);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -498,10 +498,10 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_by')  String createdBy, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name, @JsonKey(name: 'created_by')  String createdBy,  String description,  String condition,  String phase, @JsonKey(name: 'duration_weeks')  int? durationWeeks, @JsonKey(name: 'frequency_per_week')  int frequencyPerWeek,  ProtocolStatus status, @JsonKey(name: 'is_template')  bool isTemplate, @JsonKey(name: 'created_at')  DateTime? createdAt,  List<ProtocolExerciseModel> exercises)?  $default,) {final _that = this;
 switch (_that) {
 case _ProtocolWithExercises() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdBy,_that.createdAt,_that.exercises);case _:
+return $default(_that.id,_that.name,_that.createdBy,_that.description,_that.condition,_that.phase,_that.durationWeeks,_that.frequencyPerWeek,_that.status,_that.isTemplate,_that.createdAt,_that.exercises);case _:
   return null;
 
 }
@@ -513,11 +513,12 @@ return $default(_that.id,_that.name,_that.description,_that.condition,_that.phas
 @JsonSerializable()
 
 class _ProtocolWithExercises implements ProtocolWithExercises {
-  const _ProtocolWithExercises({required this.id, required this.name, this.description = '', this.condition = '', this.phase = '', @JsonKey(name: 'duration_weeks') this.durationWeeks, @JsonKey(name: 'frequency_per_week') this.frequencyPerWeek = 3, this.status = ProtocolStatus.draft, @JsonKey(name: 'is_template') this.isTemplate = true, @JsonKey(name: 'created_by') required this.createdBy, @JsonKey(name: 'created_at') this.createdAt, final  List<ProtocolExerciseModel> exercises = const []}): _exercises = exercises;
+  const _ProtocolWithExercises({required this.id, required this.name, @JsonKey(name: 'created_by') required this.createdBy, this.description = '', this.condition = '', this.phase = '', @JsonKey(name: 'duration_weeks') this.durationWeeks, @JsonKey(name: 'frequency_per_week') this.frequencyPerWeek = 3, this.status = ProtocolStatus.draft, @JsonKey(name: 'is_template') this.isTemplate = true, @JsonKey(name: 'created_at') this.createdAt, final  List<ProtocolExerciseModel> exercises = const []}): _exercises = exercises;
   factory _ProtocolWithExercises.fromJson(Map<String, dynamic> json) => _$ProtocolWithExercisesFromJson(json);
 
 @override final  String id;
 @override final  String name;
+@override@JsonKey(name: 'created_by') final  String createdBy;
 @override@JsonKey() final  String description;
 @override@JsonKey() final  String condition;
 @override@JsonKey() final  String phase;
@@ -525,7 +526,6 @@ class _ProtocolWithExercises implements ProtocolWithExercises {
 @override@JsonKey(name: 'frequency_per_week') final  int frequencyPerWeek;
 @override@JsonKey() final  ProtocolStatus status;
 @override@JsonKey(name: 'is_template') final  bool isTemplate;
-@override@JsonKey(name: 'created_by') final  String createdBy;
 @override@JsonKey(name: 'created_at') final  DateTime? createdAt;
  final  List<ProtocolExerciseModel> _exercises;
 @override@JsonKey() List<ProtocolExerciseModel> get exercises {
@@ -548,16 +548,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProtocolWithExercises&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProtocolWithExercises&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.createdBy, createdBy) || other.createdBy == createdBy)&&(identical(other.description, description) || other.description == description)&&(identical(other.condition, condition) || other.condition == condition)&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.durationWeeks, durationWeeks) || other.durationWeeks == durationWeeks)&&(identical(other.frequencyPerWeek, frequencyPerWeek) || other.frequencyPerWeek == frequencyPerWeek)&&(identical(other.status, status) || other.status == status)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._exercises, _exercises));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdBy,createdAt,const DeepCollectionEquality().hash(_exercises));
+int get hashCode => Object.hash(runtimeType,id,name,createdBy,description,condition,phase,durationWeeks,frequencyPerWeek,status,isTemplate,createdAt,const DeepCollectionEquality().hash(_exercises));
 
 @override
 String toString() {
-  return 'ProtocolWithExercises(id: $id, name: $name, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdBy: $createdBy, createdAt: $createdAt, exercises: $exercises)';
+  return 'ProtocolWithExercises(id: $id, name: $name, createdBy: $createdBy, description: $description, condition: $condition, phase: $phase, durationWeeks: $durationWeeks, frequencyPerWeek: $frequencyPerWeek, status: $status, isTemplate: $isTemplate, createdAt: $createdAt, exercises: $exercises)';
 }
 
 
@@ -568,7 +568,7 @@ abstract mixin class _$ProtocolWithExercisesCopyWith<$Res> implements $ProtocolW
   factory _$ProtocolWithExercisesCopyWith(_ProtocolWithExercises value, $Res Function(_ProtocolWithExercises) _then) = __$ProtocolWithExercisesCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_by') String createdBy,@JsonKey(name: 'created_at') DateTime? createdAt, List<ProtocolExerciseModel> exercises
+ String id, String name,@JsonKey(name: 'created_by') String createdBy, String description, String condition, String phase,@JsonKey(name: 'duration_weeks') int? durationWeeks,@JsonKey(name: 'frequency_per_week') int frequencyPerWeek, ProtocolStatus status,@JsonKey(name: 'is_template') bool isTemplate,@JsonKey(name: 'created_at') DateTime? createdAt, List<ProtocolExerciseModel> exercises
 });
 
 
@@ -585,10 +585,11 @@ class __$ProtocolWithExercisesCopyWithImpl<$Res>
 
 /// Create a copy of ProtocolWithExercises
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdBy = null,Object? createdAt = freezed,Object? exercises = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? createdBy = null,Object? description = null,Object? condition = null,Object? phase = null,Object? durationWeeks = freezed,Object? frequencyPerWeek = null,Object? status = null,Object? isTemplate = null,Object? createdAt = freezed,Object? exercises = null,}) {
   return _then(_ProtocolWithExercises(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,condition: null == condition ? _self.condition : condition // ignore: cast_nullable_to_non_nullable
 as String,phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
@@ -596,8 +597,7 @@ as String,durationWeeks: freezed == durationWeeks ? _self.durationWeeks : durati
 as int?,frequencyPerWeek: null == frequencyPerWeek ? _self.frequencyPerWeek : frequencyPerWeek // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProtocolStatus,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
-as bool,createdBy: null == createdBy ? _self.createdBy : createdBy // ignore: cast_nullable_to_non_nullable
-as String,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,exercises: null == exercises ? _self._exercises : exercises // ignore: cast_nullable_to_non_nullable
 as List<ProtocolExerciseModel>,
   ));

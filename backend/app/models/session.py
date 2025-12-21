@@ -73,10 +73,6 @@ class SessionExerciseResult(SQLModel, table=True):
     reps_completed: int = Field(default=0)
     hold_seconds_achieved: int | None = Field(default=None)
     score: float | None = Field(default=None, ge=0, le=100)
-    # Detailed metrics from pose estimation (angles, velocities, etc.)
-    metrics_data: dict = Field(default_factory=dict, sa_column=Column(JSON))
-    # AI feedback generated during exercise
-    feedback: str = Field(default="")
     started_at: datetime | None = Field(default=None)
     completed_at: datetime | None = Field(default=None)
 
@@ -143,8 +139,6 @@ class SessionExerciseResultCreate(SQLModel):
     reps_completed: int = 0
     hold_seconds_achieved: int | None = None
     score: float | None = None
-    metrics_data: dict = Field(default_factory=dict)
-    feedback: str = ""
 
 
 class SessionExerciseResultRead(SQLModel):
@@ -157,8 +151,6 @@ class SessionExerciseResultRead(SQLModel):
     reps_completed: int
     hold_seconds_achieved: int | None
     score: float | None
-    metrics_data: dict
-    feedback: str
     started_at: datetime | None
     completed_at: datetime | None
 

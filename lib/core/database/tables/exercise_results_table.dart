@@ -26,15 +26,6 @@ class ExerciseResults extends Table {
   /// Exercise score (0-100).
   IntColumn get score => integer().nullable()();
 
-  /// AI-generated feedback for this exercise.
-  TextColumn get feedback => text().nullable()();
-
-  /// Range of motion measurement in degrees (e.g., knee flexion).
-  RealColumn get rangeOfMotionDegrees => real().nullable()();
-
-  /// Target range of motion for comparison.
-  RealColumn get targetRangeOfMotion => real().nullable()();
-
   @override
   Set<Column> get primaryKey => {id};
 }

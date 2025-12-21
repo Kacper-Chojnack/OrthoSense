@@ -324,8 +324,6 @@ class TherapistRepository {
     String? videoUrl,
     String? thumbnailUrl,
     int? durationSeconds,
-    Map<String, dynamic> sensorConfig = const {},
-    Map<String, dynamic> metricsConfig = const {},
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/v1/exercises',
@@ -336,11 +334,9 @@ class TherapistRepository {
         'category': category.name,
         'body_part': bodyPart.name,
         'difficulty_level': difficultyLevel,
-        'video_url': ?videoUrl,
-        'thumbnail_url': ?thumbnailUrl,
-        'duration_seconds': ?durationSeconds,
-        'sensor_config': sensorConfig,
-        'metrics_config': metricsConfig,
+        'video_url': videoUrl,
+        'thumbnail_url': thumbnailUrl,
+        'duration_seconds': durationSeconds,
       },
     );
     return ExerciseModel.fromJson(response.data!);

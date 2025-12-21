@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     # Frontend URL for email links
     frontend_url: str = "http://localhost:8080"
 
+    max_upload_size_mb: int = 100
+    upload_temp_dir: str = "/tmp/orthosense_uploads"
+
     @property
     def is_sqlite(self) -> bool:
         """Check if using SQLite (for conditional async driver selection)."""
