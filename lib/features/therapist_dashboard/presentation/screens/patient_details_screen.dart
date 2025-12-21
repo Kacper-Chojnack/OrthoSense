@@ -60,7 +60,7 @@ class PatientDetailsScreen extends ConsumerWidget {
                   onPressed: () {
                     // TODO(user): Navigate to create plan screen
                   },
-                  icon: const Icon(Icons.add),
+                  icon: Image.asset('assets/images/logo.png', height: 24),
                   label: const Text('New Plan'),
                 ),
               ],
@@ -85,11 +85,9 @@ class PatientDetailsScreen extends ConsumerWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              child: Text(
-                patient.fullName.isNotEmpty
-                    ? patient.fullName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(fontSize: 24),
+              child: Image.asset(
+                'assets/images/logo.png',
+                height: 30,
               ),
             ),
             const SizedBox(width: 16),
@@ -131,19 +129,16 @@ class PatientDetailsScreen extends ConsumerWidget {
         _buildStatCard(
           'Compliance',
           '${stats.complianceRate.toStringAsFixed(1)}%',
-          Icons.check_circle_outline,
           Colors.blue,
         ),
         _buildStatCard(
           'Sessions',
           '${stats.completedSessions} / ${stats.totalSessions}',
-          Icons.fitness_center,
           Colors.orange,
         ),
         _buildStatCard(
           'Streak',
           '${stats.streakDays} days',
-          Icons.local_fire_department,
           Colors.red,
         ),
         _buildStatCard(
@@ -151,7 +146,6 @@ class PatientDetailsScreen extends ConsumerWidget {
           stats.averageScore != null
               ? '${stats.averageScore!.toStringAsFixed(1)}%'
               : 'N/A',
-          Icons.star_border,
           Colors.purple,
         ),
       ],
@@ -161,7 +155,6 @@ class PatientDetailsScreen extends ConsumerWidget {
   Widget _buildStatCard(
     String title,
     String value,
-    IconData icon,
     Color color,
   ) {
     return Card(
@@ -170,7 +163,11 @@ class PatientDetailsScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 32),
+            Image.asset(
+              'assets/images/logo.png',
+              height: 32,
+              color: color,
+            ),
             const SizedBox(height: 8),
             Text(
               value,
@@ -212,7 +209,10 @@ class PatientDetailsScreen extends ConsumerWidget {
             subtitle: Text(
               '${plan.status.name.toUpperCase()} • ${plan.frequencyPerWeek}x / week',
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+            ),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(

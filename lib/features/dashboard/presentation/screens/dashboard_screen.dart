@@ -19,13 +19,13 @@ class DashboardScreen extends ConsumerWidget {
         title: const Text('OrthoSense'),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.person_outline),
+          icon: Image.asset('assets/images/logo.png', height: 24),
           tooltip: 'Profile',
           onPressed: () => _openProfile(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: Image.asset('assets/images/logo.png', height: 24),
             tooltip: 'Activity Log',
             onPressed: () => _openActivityLog(context),
           ),
@@ -83,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startSession(context),
-        icon: const Icon(Icons.play_arrow),
+        icon: Image.asset('assets/images/logo.png', height: 24),
         label: const Text('Start Session'),
       ),
     );
@@ -193,33 +193,29 @@ class _StatsGrid extends StatelessWidget {
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
       childAspectRatio: 1.4,
-      children: const [
+      children: [
         _StatCard(
           label: 'Sessions',
           value: '12',
           trend: '+3 this week',
-          icon: Icons.fitness_center,
           color: Colors.blue,
         ),
         _StatCard(
           label: 'Avg Score',
           value: '87%',
           trend: '+5% vs last week',
-          icon: Icons.analytics,
           color: Colors.green,
         ),
         _StatCard(
           label: 'Active Streak',
           value: '3',
           trend: 'days',
-          icon: Icons.local_fire_department,
           color: Colors.orange,
         ),
         _StatCard(
           label: 'Total Time',
           value: '4h 20m',
           trend: 'this month',
-          icon: Icons.timer,
           color: Colors.purple,
         ),
       ],
@@ -232,14 +228,12 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.trend,
-    required this.icon,
     required this.color,
   });
 
   final String label;
   final String value;
   final String trend;
-  final IconData icon;
   final Color color;
 
   @override
@@ -252,7 +246,7 @@ class _StatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 20),
+            Image.asset('assets/images/logo.png', height: 20, color: color),
             const SizedBox(height: 4),
             Flexible(
               child: FittedBox(
@@ -356,10 +350,10 @@ class _TrendChart extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.trending_up,
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 20,
                   color: Colors.green,
-                  size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -449,14 +443,15 @@ class _RecentSessionTile extends StatelessWidget {
         trailing: isPending
             ? Tooltip(
                 message: 'Pending sync',
-                child: Icon(
-                  Icons.cloud_off,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 20,
                   color: Theme.of(context).colorScheme.error,
-                  size: 20,
                 ),
               )
-            : Icon(
-                Icons.chevron_right,
+            : Image.asset(
+                'assets/images/logo.png',
+                height: 24,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         onTap: () {

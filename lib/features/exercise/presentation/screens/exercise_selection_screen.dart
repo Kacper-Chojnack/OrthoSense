@@ -125,9 +125,10 @@ class _ExerciseCard extends StatelessWidget {
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  exercise.icon,
-                  size: 32,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 32,
+                  width: 32,
                   color: colorScheme.onPrimaryContainer,
                 ),
               ),
@@ -152,8 +153,10 @@ class _ExerciseCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
+              Image.asset(
+                'assets/images/logo.png',
+                height: 24,
+                width: 24,
                 color: colorScheme.onSurfaceVariant,
               ),
             ],
@@ -208,9 +211,10 @@ class _ExerciseDetailsSheet extends StatelessWidget {
                         color: colorScheme.primaryContainer,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        exercise.icon,
-                        size: 40,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 40,
+                        width: 40,
                         color: colorScheme.onPrimaryContainer,
                       ),
                     ),
@@ -289,7 +293,6 @@ class _ExerciseDetailsSheet extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _CameraOptionButton(
-                            icon: Icons.camera_front,
                             label: 'Front Camera',
                             onPressed: () => _startAnalysis(
                               context,
@@ -301,7 +304,6 @@ class _ExerciseDetailsSheet extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: _CameraOptionButton(
-                            icon: Icons.camera_rear,
                             label: 'Back Camera',
                             onPressed: () => _startAnalysis(
                               context,
@@ -341,12 +343,10 @@ class _ExerciseDetailsSheet extends StatelessWidget {
 
 class _CameraOptionButton extends StatelessWidget {
   const _CameraOptionButton({
-    required this.icon,
     required this.label,
     required this.onPressed,
   });
 
-  final IconData icon;
   final String label;
   final VoidCallback onPressed;
 
@@ -362,7 +362,7 @@ class _CameraOptionButton extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 32),
+          Image.asset('assets/images/logo.png', height: 32),
           const SizedBox(height: 8),
           Text(label),
         ],

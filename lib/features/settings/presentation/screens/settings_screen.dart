@@ -116,8 +116,9 @@ class _AppearanceSection extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.palette_outlined,
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 24,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 12),
@@ -131,21 +132,21 @@ class _AppearanceSection extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: SegmentedButton<ThemeMode>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: ThemeMode.system,
-                    icon: Icon(Icons.brightness_auto),
-                    label: Text('System'),
+                    icon: Image.asset('assets/images/logo.png', height: 20),
+                    label: const Text('System'),
                   ),
                   ButtonSegment(
                     value: ThemeMode.light,
-                    icon: Icon(Icons.light_mode),
-                    label: Text('Light'),
+                    icon: Image.asset('assets/images/logo.png', height: 20),
+                    label: const Text('Light'),
                   ),
                   ButtonSegment(
                     value: ThemeMode.dark,
-                    icon: Icon(Icons.dark_mode),
-                    label: Text('Dark'),
+                    icon: Image.asset('assets/images/logo.png', height: 20),
+                    label: const Text('Dark'),
                   ),
                 ],
                 selected: {themeMode},
@@ -221,9 +222,10 @@ class _AccountSection extends ConsumerWidget {
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: colorScheme.primaryContainer,
-                child: Text(
-                  user.email.substring(0, 1).toUpperCase(),
-                  style: TextStyle(color: colorScheme.onPrimaryContainer),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 24,
+                  color: colorScheme.onPrimaryContainer,
                 ),
               ),
               title: Text(user.email),
@@ -232,12 +234,17 @@ class _AccountSection extends ConsumerWidget {
           ],
           // Edit Profile
           ListTile(
-            leading: Icon(
-              Icons.edit,
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: colorScheme.onSurfaceVariant,
             ),
             title: const Text('Edit Profile'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             onTap: isLoading
                 ? null
                 : () {
@@ -251,8 +258,9 @@ class _AccountSection extends ConsumerWidget {
           const Divider(height: 1),
           // Download My Data (GDPR)
           ListTile(
-            leading: Icon(
-              Icons.download,
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: colorScheme.primary,
             ),
             title: const Text('Download My Data'),
@@ -263,14 +271,19 @@ class _AccountSection extends ConsumerWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Icon(Icons.chevron_right),
+                : Image.asset(
+                    'assets/images/logo.png',
+                    height: 24,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             onTap: isLoading ? null : () => _handleDownloadData(context, ref),
           ),
           const Divider(height: 1),
           // Sign Out
           ListTile(
-            leading: Icon(
-              Icons.logout,
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: colorScheme.error,
             ),
             title: Text(
@@ -283,8 +296,9 @@ class _AccountSection extends ConsumerWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(
-                    Icons.chevron_right,
+                : Image.asset(
+                    'assets/images/logo.png',
+                    height: 24,
                     color: colorScheme.error,
                   ),
             onTap: isLoading ? null : () => _handleLogout(context, ref),
@@ -292,8 +306,9 @@ class _AccountSection extends ConsumerWidget {
           const Divider(height: 1),
           // Delete Account (GDPR)
           ListTile(
-            leading: const Icon(
-              Icons.delete_forever,
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: Colors.red,
             ),
             title: const Text(
@@ -301,8 +316,9 @@ class _AccountSection extends ConsumerWidget {
               style: TextStyle(color: Colors.red),
             ),
             subtitle: const Text('GDPR: Right to be Forgotten'),
-            trailing: const Icon(
-              Icons.chevron_right,
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: Colors.red,
             ),
             onTap: isLoading ? null : () => _handleDeleteAccount(context, ref),
@@ -332,7 +348,7 @@ class _AccountSection extends ConsumerWidget {
           ),
           FilledButton.icon(
             onPressed: () => Navigator.of(context).pop(true),
-            icon: const Icon(Icons.download),
+            icon: Image.asset('assets/images/logo.png', height: 20),
             label: const Text('Download'),
           ),
         ],
@@ -382,7 +398,11 @@ class _AccountSection extends ConsumerWidget {
     final firstConfirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning, color: Colors.red, size: 48),
+        icon: Image.asset(
+          'assets/images/logo.png',
+          height: 48,
+          color: Colors.red,
+        ),
         title: const Text('Delete Account?'),
         content: const Text(
           'This will permanently delete:\n\n'
@@ -494,7 +514,11 @@ class _AboutSection extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.info_outline),
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             title: const Text('Version'),
             trailing: Text(
               '1.0.0',
@@ -505,9 +529,17 @@ class _AboutSection extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.description_outlined),
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             title: const Text('Licenses'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             onTap: () => showLicensePage(
               context: context,
               applicationName: 'OrthoSense',
@@ -525,9 +557,17 @@ class _AboutSection extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             title: const Text('Privacy Policy'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Privacy policy coming soon')),
@@ -536,9 +576,17 @@ class _AboutSection extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.article_outlined),
+            leading: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             title: const Text('Terms of Service'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: colorScheme.onSurfaceVariant,
+            ),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Terms of service coming soon')),
@@ -571,10 +619,9 @@ class _NotificationSectionState extends ConsumerState<_NotificationSection> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: SwitchListTile(
-        secondary: Icon(
-          enabled
-              ? Icons.notifications_active_outlined
-              : Icons.notifications_off_outlined,
+        secondary: Image.asset(
+          'assets/images/logo.png',
+          height: 24,
           color: colorScheme.primary,
         ),
         title: const Text('Session Reminders'),
@@ -632,10 +679,18 @@ class _VoiceSection extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ListTile(
-        leading: const Icon(Icons.record_voice_over),
+        leading: Image.asset(
+          'assets/images/logo.png',
+          height: 24,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         title: const Text('Assistant Voice'),
         subtitle: const Text('Change the voice of your exercise assistant'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Image.asset(
+          'assets/images/logo.png',
+          height: 24,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(

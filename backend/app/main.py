@@ -50,13 +50,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS for Flutter app
+# CORS for Flutter app - Secure configuration
+# Note: allow_credentials=True requires specific origins, not wildcards
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)

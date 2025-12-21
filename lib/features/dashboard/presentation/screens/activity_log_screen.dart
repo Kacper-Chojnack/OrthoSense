@@ -15,31 +15,31 @@ class ActivityLogScreen extends ConsumerWidget {
         title: const Text('Activity Log'),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
+            icon: Image.asset('assets/images/logo.png', height: 24),
             tooltip: 'Export Options',
             onSelected: (value) => _handleExport(context, value),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'pdf',
                 child: ListTile(
-                  leading: Icon(Icons.picture_as_pdf),
-                  title: Text('Export as PDF'),
+                  leading: Image.asset('assets/images/logo.png', height: 24),
+                  title: const Text('Export as PDF'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'csv',
                 child: ListTile(
-                  leading: Icon(Icons.table_chart),
-                  title: Text('Export as CSV'),
+                  leading: Image.asset('assets/images/logo.png', height: 24),
+                  title: const Text('Export as CSV'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'share',
                 child: ListTile(
-                  leading: Icon(Icons.share),
-                  title: Text('Share with Doctor'),
+                  leading: Image.asset('assets/images/logo.png', height: 24),
+                  title: const Text('Share with Doctor'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -74,9 +74,9 @@ class ActivityLogScreen extends ConsumerWidget {
                 FilterChip(
                   label: const Text('Pending Sync'),
                   onSelected: (_) {},
-                  avatar: Icon(
-                    Icons.cloud_off,
-                    size: 18,
+                  avatar: Image.asset(
+                    'assets/images/logo.png',
+                    height: 18,
                     color: colorScheme.error,
                   ),
                 ),

@@ -115,7 +115,7 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
   Future<void> _previewVoice(Map<String, String> voice) async {
     final tts = ref.read(ttsServiceProvider);
     await tts.setVoice(voice);
-    await tts.speak("Hello, I am ${voice['name']}. Welcome to OrthoSense.");
+    await tts.speakNow("Hello, I am ${voice['name']}. Welcome to OrthoSense.");
   }
 
   Future<void> _confirmSelection() async {
