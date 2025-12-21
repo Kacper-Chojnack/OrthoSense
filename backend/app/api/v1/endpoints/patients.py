@@ -98,7 +98,7 @@ async def list_patients(
 
     statement = (
         select(User)
-        .where(User.id.in_(subquery))
+        .where(User.id.in_(subquery))  # type: ignore[attr-defined]
         .where(User.role == UserRole.PATIENT)
         .offset(skip)
         .limit(limit)
@@ -154,15 +154,17 @@ async def get_patient_plans(
             TreatmentPlan.patient_id == patient_id,
         )
         .options(
-            selectinload(TreatmentPlan.patient),
-            selectinload(TreatmentPlan.protocol),
+            selectinload(TreatmentPlan.patient),  # type: ignore[arg-type]
+            selectinload(TreatmentPlan.protocol),  # type: ignore[arg-type]
         )
     )
 
     if status_filter:
         statement = statement.where(TreatmentPlan.status == status_filter)
 
-    statement = statement.order_by(TreatmentPlan.created_at.desc())
+    statement = statement.order_by(
+        TreatmentPlan.created_at.desc()  # type: ignore[attr-defined]
+    )
     result = await session.execute(statement)
     plans = result.scalars().all()
 
@@ -170,13 +172,13 @@ async def get_patient_plans(
     enriched_plans = []
     for plan in plans:
         # Count sessions
-        sessions_stmt = select(func.count(Session.id)).where(
+        sessions_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
             Session.treatment_plan_id == plan.id
         )
         total_result = await session.execute(sessions_stmt)
         total_sessions = total_result.scalar() or 0
 
-        completed_stmt = select(func.count(Session.id)).where(
+        completed_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
             Session.treatment_plan_id == plan.id,
             Session.status == SessionStatus.COMPLETED,
         )
@@ -213,9 +215,9 @@ async def get_patient_plans(
 @router.get("/{patient_id}/stats", response_model=PatientStats)
 async def get_patient_stats(
     patient_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    current_user: TherapistUser,
     plan_id: UUID | None = None,
-    session: Annotated[AsyncSession, Depends(get_session)] = None,
-    current_user: TherapistUser = None,
 ) -> PatientStats:
     """Get statistics for a patient's rehabilitation progress."""
     plan = await _verify_plan_access(session, current_user.id, patient_id, plan_id)
@@ -299,8 +301,11 @@ async def get_patient_sessions(
     # Query sessions
     statement = (
         select(Session)
-        .where(Session.treatment_plan_id.in_(plan_ids))
-        .options(selectinload(Session.patient), selectinload(Session.exercise_results))
+        .where(Session.treatment_plan_id.in_(plan_ids))  # type: ignore[attr-defined]
+        .options(
+            selectinload(Session.patient),  # type: ignore[arg-type]
+            selectinload(Session.exercise_results),  # type: ignore[arg-type]
+        )
     )
 
     if plan_id and plan_id in plan_ids:
@@ -309,7 +314,11 @@ async def get_patient_sessions(
         statement = statement.where(Session.status == status_filter)
 
     statement = (
-        statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+        statement.order_by(
+            Session.scheduled_date.desc()  # type: ignore[attr-defined]
+        )
+        .offset(skip)
+        .limit(limit)
     )
     result = await session.execute(statement)
     sessions = result.scalars().all()

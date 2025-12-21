@@ -52,7 +52,9 @@ async def list_sessions(
         plan_ids_stmt = select(TreatmentPlan.id).where(
             TreatmentPlan.therapist_id == current_user.id
         )
-        statement = select(Session).where(Session.treatment_plan_id.in_(plan_ids_stmt))
+        statement = select(Session).where(
+            Session.treatment_plan_id.in_(plan_ids_stmt)  # type: ignore[attr-defined]
+        )
 
     if plan_id:
         statement = statement.where(Session.treatment_plan_id == plan_id)
@@ -60,7 +62,11 @@ async def list_sessions(
         statement = statement.where(Session.status == status_filter)
 
     statement = (
-        statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
+        statement.order_by(
+            Session.scheduled_date.desc()  # type: ignore[attr-defined]
+        )
+        .offset(skip)
+        .limit(limit)
     )
     result = await session.execute(statement)
     return list(result.scalars().all())
@@ -76,7 +82,7 @@ async def get_session_detail(
     statement = (
         select(Session)
         .where(Session.id == session_id)
-        .options(selectinload(Session.exercise_results))
+        .options(selectinload(Session.exercise_results))  # type: ignore[arg-type]
     )
     result = await session.execute(statement)
     exercise_session = result.scalar_one_or_none()

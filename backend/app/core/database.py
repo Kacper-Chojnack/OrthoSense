@@ -20,7 +20,7 @@ engine = create_async_engine(
     connect_args=_connect_args,
 )
 
-async_session_factory = sessionmaker(
+async_session_factory = sessionmaker(  # type: ignore[call-overload]
     engine,
     class_=AsyncSession,
     expire_on_commit=False,

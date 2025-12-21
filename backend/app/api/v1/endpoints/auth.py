@@ -438,7 +438,6 @@ async def export_user_data(
                 "sets_completed": r.sets_completed,
                 "reps_completed": r.reps_completed,
                 "score": r.score,
-                "feedback": r.feedback,
             }
             for r in results_result.scalars().all()
         ]
@@ -469,8 +468,6 @@ async def export_user_data(
             "id": str(p.id),
             "name": p.name,
             "description": p.description,
-            "body_region": p.body_region.value if p.body_region else None,
-            "difficulty": p.difficulty.value if p.difficulty else None,
             "created_at": p.created_at.isoformat(),
         }
         for p in protocols_result.scalars().all()

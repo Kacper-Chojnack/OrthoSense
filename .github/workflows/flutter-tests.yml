@@ -65,8 +65,8 @@ jobs:
           flutter pub get
           dart analyze --fatal-infos --no-fatal-warnings
 
-      - name: Dart pub outdated (vuln deps)
-        run: flutter pub outdated --mode=vuln
+      - name: Dart pub outdated
+        run: flutter pub outdated
 
       - name: Semgrep (Dart/Flutter)
         uses: semgrep/semgrep-action@v1

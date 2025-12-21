@@ -108,7 +108,9 @@ async def list_protocols(
             statement = statement.where(Protocol.created_by == current_user.id)
 
     if condition:
-        statement = statement.where(Protocol.condition.ilike(f"%{condition}%"))
+        statement = statement.where(
+            Protocol.condition.ilike(f"%{condition}%")  # type: ignore[attr-defined]
+        )
 
     statement = statement.offset(skip).limit(limit).order_by(Protocol.name)
     result = await session.execute(statement)
@@ -125,7 +127,7 @@ async def get_protocol(
     statement = (
         select(Protocol)
         .where(Protocol.id == protocol_id)
-        .options(selectinload(Protocol.exercises))
+        .options(selectinload(Protocol.exercises))  # type: ignore[arg-type]
     )
     result = await session.execute(statement)
     protocol = result.scalar_one_or_none()

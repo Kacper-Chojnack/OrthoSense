@@ -52,7 +52,9 @@ async def list_plans(
         statement = statement.where(TreatmentPlan.status == status_filter)
 
     statement = (
-        statement.offset(skip).limit(limit).order_by(TreatmentPlan.created_at.desc())
+        statement.offset(skip)
+        .limit(limit)
+        .order_by(TreatmentPlan.created_at.desc())  # type: ignore[attr-defined]
     )
     result = await session.execute(statement)
     return list(result.scalars().all())
@@ -69,8 +71,8 @@ async def get_plan(
         select(TreatmentPlan)
         .where(TreatmentPlan.id == plan_id)
         .options(
-            selectinload(TreatmentPlan.patient),
-            selectinload(TreatmentPlan.protocol),
+            selectinload(TreatmentPlan.patient),  # type: ignore[arg-type]
+            selectinload(TreatmentPlan.protocol),  # type: ignore[arg-type]
         )
     )
     result = await session.execute(statement)
@@ -95,13 +97,13 @@ async def get_plan(
         )
 
     # Calculate stats
-    sessions_stmt = select(func.count(Session.id)).where(
+    sessions_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
         Session.treatment_plan_id == plan.id
     )
     total_result = await session.execute(sessions_stmt)
     total_sessions = total_result.scalar() or 0
 
-    completed_stmt = select(func.count(Session.id)).where(
+    completed_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
         Session.treatment_plan_id == plan.id,
         Session.status == SessionStatus.COMPLETED,
     )
