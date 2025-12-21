@@ -59,7 +59,9 @@ def test_e2e_video_analysis_websocket(video_filename):
     exercise_name = "Deep Squat" if "Squat" in video_filename else "Shoulder Abduction"
 
     try:
-        with client.websocket_connect("/ws/analyze") as websocket:
+        # Use a dummy client_id for the test
+        client_id = "test_client_123"
+        with client.websocket_connect(f"/api/v1/analysis/ws/{client_id}") as websocket:
             while True:
                 ret, frame = cap.read()
                 if not ret:

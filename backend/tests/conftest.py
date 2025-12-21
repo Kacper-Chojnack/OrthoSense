@@ -1,7 +1,12 @@
 """Pytest fixtures for async testing with authentication support."""
 
+import os
 from collections.abc import AsyncGenerator
 from uuid import uuid4
+
+# Set environment variables BEFORE importing app modules
+os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 
 import pytest
 from httpx import ASGITransport, AsyncClient

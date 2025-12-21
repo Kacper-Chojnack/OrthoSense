@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 
 # Security: Maximum message size for WebSocket (1MB)
 MAX_WS_MESSAGE_SIZE = 1024 * 1024  # 1MB
-MAX_JSON_SIZE = 4096  # 4KB for JSON commands
+MAX_JSON_SIZE = 1024 * 1024  # Increased to 1MB for tests sending base64 images in JSON
 
 
 class ConnectionManager:
