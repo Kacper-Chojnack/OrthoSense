@@ -1,92 +1,80 @@
 """Singleton wrapper for OrthoSense AI System.
 
-Provides global access to the heavy AI system instance.
-Backend creates ONE instance at startup; all requests share it.
+Provides global access to AI system with lazy initialization.
+The system is heavy (loads ML models), so we use singleton pattern.
 """
 
-import sys
-from collections import deque
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-import numpy as np
-
-AI_PATH = Path(__file__).parent.parent.parent.parent / "OrthoSense-zosia" / "ai"
-sys.path.insert(0, str(AI_PATH))
+from app.core.logging import get_logger
 
 if TYPE_CHECKING:
-    from core.system import OrthoSenseSystem as OrthoSenseSystemType
+    from app.ai.core.system import OrthoSenseSystem
 
-_ai_instance: "OrthoSenseSystemType | None" = None
+logger = get_logger(__name__)
 
-
-class LiveAnalysisSession:
-    """Manages frame buffer for live analysis sliding window."""
-
-    WINDOW_SIZE = 60
-    MIN_FRAMES = 30
-
-    def __init__(self, exercise_name: str) -> None:
-        self.exercise_name = exercise_name
-        self.frame_buffer: deque[np.ndarray] = deque(maxlen=self.WINDOW_SIZE)
-        self.last_feedback: str = ""
-        self.last_is_correct: bool = True
-
-    def add_frame(self, landmarks: np.ndarray) -> None:
-        """Add processed landmarks to the buffer."""
-        self.frame_buffer.append(landmarks)
-
-    def can_analyze(self) -> bool:
-        """Check if we have enough frames for analysis."""
-        return len(self.frame_buffer) >= self.MIN_FRAMES
-
-    def get_window(self) -> list[np.ndarray]:
-        """Get current frame window for analysis."""
-        return list(self.frame_buffer)
-
-    def reset(self) -> None:
-        """Clear the frame buffer."""
-        self.frame_buffer.clear()
+_ai_instance: "OrthoSenseSystem | None" = None
+_ai_available: bool | None = None
 
 
-def get_ai_system() -> "OrthoSenseSystemType":
-    """Get the global AI system instance (Singleton pattern).
+def is_ai_available() -> bool:
+    """Check if AI dependencies are available.
 
     Returns:
-        OrthoSenseSystem: The initialized AI system instance.
+        True if mediapipe and torch are installed.
+    """
+    global _ai_available
+
+    if _ai_available is not None:
+        return _ai_available
+
+    try:
+        import mediapipe  # noqa: F401
+        import torch  # noqa: F401
+
+        _ai_available = True
+    except ImportError:
+        _ai_available = False
+        logger.warning(
+            "ai_dependencies_missing",
+            hint="Install with: pip install mediapipe torch",
+        )
+
+    return _ai_available
+
+
+def get_ai_system() -> "OrthoSenseSystem":
+    """Get the global AI system instance.
+
+    Lazy initialization - creates instance on first call.
+
+    Returns:
+        Initialized OrthoSenseSystem instance.
 
     Raises:
-        ImportError: If AI modules cannot be loaded.
+        RuntimeError: If AI dependencies are not available.
     """
     global _ai_instance
 
+    if not is_ai_available():
+        raise RuntimeError(
+            "AI system unavailable. Install dependencies: pip install mediapipe torch"
+        )
+
     if _ai_instance is None:
-        from core.system import OrthoSenseSystem
+        from app.ai.core.system import OrthoSenseSystem
 
         _ai_instance = OrthoSenseSystem()
+        _ai_instance.initialize()
+        logger.info("ai_system_singleton_created")
 
     return _ai_instance
 
 
-def is_ai_available() -> bool:
-    """Check if AI system can be initialized."""
-    try:
-        from core.system import OrthoSenseSystem  # noqa: F401
+def reset_ai_system() -> None:
+    """Reset the AI system (for testing)."""
+    global _ai_instance
 
-        return True
-    except ImportError:
-        return False
-
-
-def get_available_exercises() -> dict[int, str]:
-    """Get list of available exercises from AI config."""
-    try:
-        from core import config
-
-        return config.EXERCISE_NAMES
-    except ImportError:
-        return {
-            0: "Deep Squat",
-            1: "Hurdle Step",
-            2: "Standing Shoulder Abduction",
-        }
+    if _ai_instance is not None:
+        _ai_instance.close()
+        _ai_instance = None

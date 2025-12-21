@@ -330,7 +330,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
+              color: Colors.white,
+            ),
             onPressed: () {
               _stopAnalysis();
               Navigator.of(context).pop();
@@ -372,8 +376,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             ),
           ),
           IconButton(
-            icon: Icon(
-              widget.useFrontCamera ? Icons.camera_front : Icons.camera_rear,
+            icon: Image.asset(
+              'assets/images/logo.png',
+              height: 24,
               color: Colors.white,
             ),
             onPressed: null,
@@ -402,10 +407,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       ),
       child: Row(
         children: [
-          Icon(
-            _isCorrect ? Icons.check_circle : Icons.warning,
+          Image.asset(
+            'assets/images/logo.png',
+            height: 28,
             color: Colors.white,
-            size: 28,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -465,7 +470,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildControlButton(
-                icon: Icons.volume_up,
                 label: 'Audio',
                 onPressed: () {
                   final tts = ref.read(ttsServiceProvider);
@@ -475,7 +479,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               ),
               _buildMainButton(colorScheme),
               _buildControlButton(
-                icon: Icons.info_outline,
                 label: 'Guide',
                 onPressed: _showInstructions,
               ),
@@ -487,7 +490,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   Widget _buildControlButton({
-    required IconData icon,
     required String label,
     required VoidCallback onPressed,
   }) {
@@ -495,7 +497,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: Icon(icon, color: Colors.white, size: 28),
+          icon: Image.asset(
+            'assets/images/logo.png',
+            height: 28,
+            color: Colors.white,
+          ),
           onPressed: onPressed,
         ),
         Text(
@@ -530,10 +536,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             ),
           ],
         ),
-        child: Icon(
-          _isAnalyzing ? Icons.stop : Icons.play_arrow,
+        child: Image.asset(
+          'assets/images/logo.png',
+          height: 40,
           color: Colors.white,
-          size: 40,
         ),
       ),
     );
@@ -555,21 +561,21 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const ListTile(
-              leading: Icon(Icons.visibility),
-              title: Text('Make sure your full body is visible'),
+            ListTile(
+              leading: Image.asset('assets/images/logo.png', height: 24),
+              title: const Text('Make sure your full body is visible'),
             ),
-            const ListTile(
-              leading: Icon(Icons.lightbulb),
-              title: Text('Good lighting helps AI detection'),
+            ListTile(
+              leading: Image.asset('assets/images/logo.png', height: 24),
+              title: const Text('Good lighting helps AI detection'),
             ),
-            const ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Stand 2-3 meters from the camera'),
+            ListTile(
+              leading: Image.asset('assets/images/logo.png', height: 24),
+              title: const Text('Stand 2-3 meters from the camera'),
             ),
-            const ListTile(
-              leading: Icon(Icons.straighten),
-              title: Text('Wear fitted clothing for better tracking'),
+            ListTile(
+              leading: Image.asset('assets/images/logo.png', height: 24),
+              title: const Text('Wear fitted clothing for better tracking'),
             ),
             const SizedBox(height: 16),
             SizedBox(

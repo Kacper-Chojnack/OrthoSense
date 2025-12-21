@@ -15,7 +15,7 @@ class ProtocolsScreen extends ConsumerWidget {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: Image.asset('assets/images/logo.png', height: 24),
             onPressed: () {
               // TODO(user): Navigate to create protocol screen
             },

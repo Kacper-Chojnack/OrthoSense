@@ -38,8 +38,6 @@ class ExercisesNotifier extends _$ExercisesNotifier {
     String? videoUrl,
     String? thumbnailUrl,
     int? durationSeconds,
-    Map<String, dynamic> sensorConfig = const {},
-    Map<String, dynamic> metricsConfig = const {},
   }) async {
     final repo = ref.read(therapistRepositoryProvider);
     final exercise = await repo.createExercise(
@@ -52,8 +50,6 @@ class ExercisesNotifier extends _$ExercisesNotifier {
       videoUrl: videoUrl,
       thumbnailUrl: thumbnailUrl,
       durationSeconds: durationSeconds,
-      sensorConfig: sensorConfig,
-      metricsConfig: metricsConfig,
     );
     ref.invalidate(exercisesListProvider);
     return exercise;

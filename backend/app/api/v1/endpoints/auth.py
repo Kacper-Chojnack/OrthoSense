@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,7 @@ from sqlmodel import select
 from app.core.database import get_session
 from app.core.deps import CurrentUser
 from app.core.logging import get_logger
+from app.core.rate_limit import auth_limiter, strict_limiter
 from app.core.security import (
     create_access_token,
     create_password_reset_token,
@@ -46,13 +47,17 @@ logger = get_logger(__name__)
     status_code=status.HTTP_201_CREATED,
 )
 async def register(
+    request: Request,
     data: UserCreate,
     session: AsyncSession = Depends(get_session),
 ) -> User:
     """Register a new user account.
 
     Sends verification email (logged to console in dev mode).
+    Rate limited to 5 requests per minute per IP.
     """
+    await auth_limiter.check(request, "register")
+
     # Check if email already exists
     statement = select(User).where(User.email == data.email)
     result = await session.execute(statement)
@@ -88,13 +93,17 @@ async def register(
 
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_session),
 ) -> Token:
     """Authenticate user and return access token.
 
     Uses OAuth2 password flow for compatibility with OpenAPI.
+    Rate limited to 5 requests per minute per IP to prevent brute force.
     """
+    await auth_limiter.check(request, "login")
+
     # Find user by email
     statement = select(User).where(User.email == form_data.username)
     result = await session.execute(statement)
@@ -169,13 +178,16 @@ async def verify_email(
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
 async def forgot_password(
+    request: Request,
     data: ForgotPassword,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     """Request password reset email.
 
     Always returns success to prevent email enumeration attacks.
+    Rate limited to 3 requests per 5 minutes per IP.
     """
+    await strict_limiter.check(request, "forgot_password")
     statement = select(User).where(User.email == data.email)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()
@@ -196,10 +208,16 @@ async def forgot_password(
 
 @router.post("/reset-password", response_model=UserRead)
 async def reset_password(
+    request: Request,
     data: PasswordReset,
     session: AsyncSession = Depends(get_session),
 ) -> User:
-    """Reset password using token from email link."""
+    """Reset password using token from email link.
+
+    Rate limited to 3 requests per 5 minutes per IP.
+    """
+    await strict_limiter.check(request, "reset_password")
+
     user_id = verify_token(data.token, "reset")
     if user_id is None:
         raise HTTPException(
@@ -245,13 +263,17 @@ async def get_current_user_profile(
 
 @router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
 async def resend_verification(
+    request: Request,
     email: EmailStr,
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, str]:
     """Resend verification email.
 
     Always returns success to prevent email enumeration.
+    Rate limited to 3 requests per 5 minutes per IP.
     """
+    await strict_limiter.check(request, "resend_verification")
+
     statement = select(User).where(User.email == email)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()

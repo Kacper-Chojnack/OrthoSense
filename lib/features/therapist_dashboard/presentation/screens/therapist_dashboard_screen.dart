@@ -29,7 +29,7 @@ class _TherapistDashboardScreenState
         title: const Text('Therapist Dashboard'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Image.asset('assets/images/logo.png', height: 24),
             onPressed: () {
               ref.read(authProvider.notifier).logout();
             },
@@ -46,18 +46,18 @@ class _TherapistDashboardScreenState
               });
             },
             labelType: NavigationRailLabelType.all,
-            destinations: const [
+            destinations: [
               NavigationRailDestination(
-                icon: Icon(Icons.people),
-                label: Text('Patients'),
+                icon: Image.asset('assets/images/logo.png', height: 24),
+                label: const Text('Patients'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.library_books),
-                label: Text('Protocols'),
+                icon: Image.asset('assets/images/logo.png', height: 24),
+                label: const Text('Protocols'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.analytics),
-                label: Text('Analytics'),
+                icon: Image.asset('assets/images/logo.png', height: 24),
+                label: const Text('Analytics'),
               ),
             ],
           ),

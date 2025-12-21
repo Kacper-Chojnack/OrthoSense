@@ -26,8 +26,18 @@ class Settings(BaseSettings):
     # Format: postgresql+asyncpg://user:pass@host:port/db
     database_url: str = "sqlite+aiosqlite:///./orthosense.db"
 
-    # CORS - Flutter app origins
-    cors_origins: list[str] = ["*"]
+    # CORS - Secure origins for production
+    # Override in production with specific domains
+    cors_origins: list[str] = ["http://localhost:8080", "http://localhost:3000"]
+
+    # Privacy: Server-side video analysis is DISABLED by default.
+    # Edge AI on mobile is the primary architecture (video never leaves device).
+    # Enable ONLY for internal testing with explicit consent.
+    enable_server_side_analysis: bool = False
+
+    # Rate Limiting (Redis)
+    redis_url: str = "redis://localhost:6379"
+    rate_limit_enabled: bool = True
 
     # JWT Authentication
     # SONARQUBE FIX: Removed hardcoded default secret to prevent security hotspots.

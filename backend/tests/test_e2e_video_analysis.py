@@ -7,6 +7,7 @@ import cv2
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.main import app
 
 # Base path for test videos
@@ -19,6 +20,19 @@ VIDEO_FILES = [
     "standing-shoulder-abduction2.mp4",
     "standing-shoulder-abduction3.mp4",
 ]
+
+
+@pytest.fixture(autouse=True)
+def enable_server_side_analysis():
+    """Temporarily enable server-side analysis for WebSocket tests.
+
+    NOTE: Server-side video analysis is DISABLED by default for privacy.
+    This fixture enables it ONLY for testing the internal WebSocket endpoint.
+    """
+    original_value = settings.enable_server_side_analysis
+    settings.enable_server_side_analysis = True
+    yield
+    settings.enable_server_side_analysis = original_value
 
 
 @pytest.mark.parametrize("video_filename", VIDEO_FILES)

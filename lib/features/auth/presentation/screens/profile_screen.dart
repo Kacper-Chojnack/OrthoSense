@@ -22,12 +22,12 @@ class ProfileScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt),
+              leading: Image.asset('assets/images/logo.png', height: 24),
               title: const Text('Take a photo'),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library),
+              leading: Image.asset('assets/images/logo.png', height: 24),
               title: const Text('Choose from gallery'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -55,7 +55,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final profileImagePath = ref.watch(profileImageProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -63,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: Image.asset('assets/images/logo.png', height: 24),
             tooltip: 'Settings',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
@@ -85,20 +84,11 @@ class ProfileScreen extends ConsumerWidget {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: colorScheme.primaryContainer,
-                          backgroundImage: profileImagePath.value != null
-                              ? FileImage(File(profileImagePath.value!))
-                              : null,
-                          child: profileImagePath.value == null
-                              ? Text(
-                                  user.email.substring(0, 1).toUpperCase(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineLarge
-                                      ?.copyWith(
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                )
-                              : null,
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 60,
+                            width: 60,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -114,7 +104,11 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 20),
+                            icon: Image.asset(
+                              'assets/images/logo.png',
+                              height: 20,
+                              color: colorScheme.onPrimary,
+                            ),
                             color: colorScheme.onPrimary,
                             onPressed: () => _pickImage(context, ref),
                             constraints: const BoxConstraints(
