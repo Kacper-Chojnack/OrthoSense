@@ -108,9 +108,10 @@ class TtsService {
       unawaited(_playNext());
     }
 
-    _tts.setCompletionHandler(onDone);
-    _tts.setCancelHandler(onDone);
-    _tts.setErrorHandler((_) => onDone());
+    _tts
+      ..setCompletionHandler(onDone)
+      ..setCancelHandler(onDone)
+      ..setErrorHandler((_) => onDone());
   }
 
   /// Add text to queue. Plays immediately if idle and not muted.

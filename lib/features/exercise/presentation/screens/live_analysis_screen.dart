@@ -322,7 +322,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withOpacity(0.7),
+            Colors.black.withValues(alpha: 0.7),
             Colors.transparent,
           ],
         ),
@@ -366,7 +366,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
                     Text(
                       _connectionStatus,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -394,12 +394,12 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: _isCorrect
-            ? Colors.green.withOpacity(0.9)
-            : Colors.orange.withOpacity(0.9),
+            ? Colors.green.withValues(alpha: 0.9)
+            : Colors.orange.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -440,7 +440,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            Colors.black.withOpacity(0.8),
+            Colors.black.withValues(alpha: 0.8),
             Colors.transparent,
           ],
         ),
@@ -460,7 +460,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             Text(
               'Frames: $_framesBuffered',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -507,7 +507,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             fontSize: 12,
           ),
         ),
@@ -530,7 +530,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           boxShadow: [
             BoxShadow(
               color: (_isAnalyzing ? Colors.red : colorScheme.primary)
-                  .withOpacity(0.5),
+                  .withValues(alpha: 0.5),
               blurRadius: 20,
               spreadRadius: 2,
             ),
