@@ -193,7 +193,7 @@ class _StatsGrid extends StatelessWidget {
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
       childAspectRatio: 1.4,
-      children: [
+      children: const [
         _StatCard(
           label: 'Sessions',
           value: '12',

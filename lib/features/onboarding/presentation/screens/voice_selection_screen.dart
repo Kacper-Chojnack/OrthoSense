@@ -60,35 +60,37 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: voices.length,
-                  itemBuilder: (context, index) {
-                    final voice = voices[index];
-
-                    // Ensure we have a selection
-                    if (_selectedVoice == null && index == 0) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setState(() {
-                          _selectedVoice = voice;
-                        });
-                      });
+                child: RadioGroup<Map<String, String>?>(
+                  groupValue: _selectedVoice,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedVoice = value;
+                    });
+                    if (value != null) {
+                      _previewVoice(value);
                     }
-
-                    return RadioListTile<Map<String, String>>(
-                      title: Text(voice['name'] ?? 'Unknown Voice'),
-                      subtitle: Text(_getFlag(voice['locale'] ?? '')),
-                      value: voice,
-                      groupValue: _selectedVoice,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedVoice = value;
-                        });
-                        if (value != null) {
-                          _previewVoice(value);
-                        }
-                      },
-                    );
                   },
+                  child: ListView.builder(
+                    itemCount: voices.length,
+                    itemBuilder: (context, index) {
+                      final voice = voices[index];
+
+                      // Ensure we have a selection
+                      if (_selectedVoice == null && index == 0) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          setState(() {
+                            _selectedVoice = voice;
+                          });
+                        });
+                      }
+
+                      return RadioListTile<Map<String, String>>(
+                        title: Text(voice['name'] ?? 'Unknown Voice'),
+                        subtitle: Text(_getFlag(voice['locale'] ?? '')),
+                        value: voice,
+                      );
+                    },
+                  ),
                 ),
               ),
               Padding(
