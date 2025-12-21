@@ -52,7 +52,11 @@ async def list_plans(
         statement = statement.where(TreatmentPlan.status == status_filter)
 
     statement = (
-        statement.offset(skip).limit(limit).order_by(TreatmentPlan.created_at.desc())  # type: ignore[attr-defined]
+        statement.offset(skip)
+        .limit(limit)
+        .order_by(
+            TreatmentPlan.created_at.desc()  # type: ignore[attr-defined]
+        )
     )
     result = await session.execute(statement)
     return list(result.scalars().all())
