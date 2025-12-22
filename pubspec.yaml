@@ -30,6 +30,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.24
   timezone: ^0.10.0
   uuid: ^4.4.0
+  video_player: ^2.9.2
   wakelock_plus: ^1.4.0
   web_socket_channel: ^3.0.1
 

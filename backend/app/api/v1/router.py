@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     analysis,
     auth,
+    exercise_videos,
     exercises,
     patients,
     plans,
@@ -30,6 +31,12 @@ api_router.include_router(
     exercises.router,
     prefix="/exercises",
     tags=["exercises"],
+)
+
+api_router.include_router(
+    exercise_videos.router,
+    prefix="/exercise-videos",
+    tags=["exercise-videos"],
 )
 
 api_router.include_router(

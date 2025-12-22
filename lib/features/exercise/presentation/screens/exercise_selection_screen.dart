@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
+import 'package:orthosense/features/exercise/presentation/widgets/exercise_demo_video_sheet.dart';
 
 /// Screen for selecting an exercise to perform with real-time analysis.
 class ExerciseSelectionScreen extends ConsumerWidget {
@@ -19,6 +20,15 @@ class ExerciseSelectionScreen extends ConsumerWidget {
         'Keep heels on the ground',
         'Maintain upright torso',
       ],
+      // Demo video showing correct technique (stored locally in assets)
+      demoVideo: DemoVideo(
+        title: 'Proper Deep Squat Form',
+        description:
+            'Watch how to maintain proper form throughout the movement. '
+            'Focus on keeping your heels down and chest up.',
+        assetPath: 'assets/videos/deep_squat_demo.mp4',
+        viewAngle: 'side',
+      ),
     ),
     ExerciseInfo(
       id: 1,
@@ -32,6 +42,14 @@ class ExerciseSelectionScreen extends ConsumerWidget {
         'Keep pelvis stable and level',
         'Avoid torso lean',
       ],
+      demoVideo: DemoVideo(
+        title: 'Hurdle Step Technique',
+        description:
+            'Maintain balance and control while stepping over the hurdle. '
+            'Keep your standing leg stable.',
+        assetPath: 'assets/videos/hurdle_step_demo.mp4',
+        viewAngle: 'front',
+      ),
     ),
     ExerciseInfo(
       id: 2,
@@ -45,6 +63,14 @@ class ExerciseSelectionScreen extends ConsumerWidget {
         'Keep arms symmetrical',
         'Avoid shrugging shoulders',
       ],
+      demoVideo: DemoVideo(
+        title: 'Shoulder Abduction Form',
+        description:
+            'Raise arms smoothly to shoulder height. '
+            'Avoid shrugging or leaning.',
+        assetPath: 'assets/videos/shoulder_abduction_demo.mp4',
+        viewAngle: 'front',
+      ),
     ),
   ];
 
@@ -85,6 +111,7 @@ class ExerciseInfo {
     required this.description,
     required this.icon,
     required this.instructions,
+    this.demoVideo,
   });
 
   final int id;
@@ -92,6 +119,7 @@ class ExerciseInfo {
   final String description;
   final IconData icon;
   final List<String> instructions;
+  final DemoVideo? demoVideo;
 }
 
 class _ExerciseCard extends StatelessWidget {
@@ -167,13 +195,13 @@ class _ExerciseCard extends StatelessWidget {
   }
 }
 
-class _ExerciseDetailsSheet extends StatelessWidget {
+class _ExerciseDetailsSheet extends ConsumerWidget {
   const _ExerciseDetailsSheet({required this.exercise});
 
   final ExerciseInfo exercise;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -296,6 +324,7 @@ class _ExerciseDetailsSheet extends StatelessWidget {
                             label: 'Front Camera',
                             onPressed: () => _startAnalysis(
                               context,
+                              ref,
                               exercise,
                               useFrontCamera: true,
                             ),
@@ -307,6 +336,7 @@ class _ExerciseDetailsSheet extends StatelessWidget {
                             label: 'Back Camera',
                             onPressed: () => _startAnalysis(
                               context,
+                              ref,
                               exercise,
                               useFrontCamera: false,
                             ),
@@ -324,20 +354,44 @@ class _ExerciseDetailsSheet extends StatelessWidget {
     );
   }
 
-  void _startAnalysis(
+  Future<void> _startAnalysis(
     BuildContext context,
+    WidgetRef ref,
     ExerciseInfo exercise, {
     required bool useFrontCamera,
-  }) {
+  }) async {
+    // Close the exercise details sheet first
     Navigator.of(context).pop();
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LiveAnalysisScreen(
-          exerciseName: exercise.name,
-          useFrontCamera: useFrontCamera,
+
+    // Show demo video if available and user hasn't opted to skip
+    if (exercise.demoVideo != null) {
+      final shouldProceed = await ExerciseDemoVideoSheet.showIfNeeded(
+        context: context,
+        ref: ref,
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        demoVideo: exercise.demoVideo,
+        onContinue: () {
+          // This is called after user clicks "Start Exercise"
+        },
+      );
+
+      if (!shouldProceed) {
+        return; // User cancelled
+      }
+    }
+
+    // Navigate to live analysis screen
+    if (context.mounted) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => LiveAnalysisScreen(
+            exerciseName: exercise.name,
+            useFrontCamera: useFrontCamera,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
 

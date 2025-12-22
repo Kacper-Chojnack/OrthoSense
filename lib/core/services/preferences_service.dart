@@ -10,6 +10,7 @@ class PreferencesService {
   static const String keyVoiceSelected = 'voice_selected';
   static const String keySelectedVoiceMap = 'selected_voice_map';
   static const String keyNotificationsEnabled = 'notifications_enabled';
+  static const String keySkipExerciseVideoPrefix = 'skip_exercise_video_';
 
   final SharedPreferences _prefs;
 
@@ -50,6 +51,26 @@ class PreferencesService {
       _prefs.getBool(keyNotificationsEnabled) ?? true;
   Future<void> setNotificationsEnabled({required bool value}) =>
       _prefs.setBool(keyNotificationsEnabled, value);
+
+  // Exercise Video Demo Skip Preferences
+  // Returns true if user chose to skip demo video for this exercise
+  bool shouldSkipExerciseVideo(int exerciseId) =>
+      _prefs.getBool('$keySkipExerciseVideoPrefix$exerciseId') ?? false;
+
+  Future<void> setSkipExerciseVideo({
+    required int exerciseId,
+    required bool skip,
+  }) => _prefs.setBool('$keySkipExerciseVideoPrefix$exerciseId', skip);
+
+  // Reset all exercise video skip preferences
+  Future<void> resetAllExerciseVideoPreferences() async {
+    final keys = _prefs.getKeys().where(
+      (key) => key.startsWith(keySkipExerciseVideoPrefix),
+    );
+    for (final key in keys) {
+      await _prefs.remove(key);
+    }
+  }
 
   /// Clears all preferences (for account deletion or reset).
   Future<void> clearAll() async {

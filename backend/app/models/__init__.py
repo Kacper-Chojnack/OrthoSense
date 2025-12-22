@@ -8,6 +8,12 @@ from app.models.exercise import (
     ExerciseRead,
     ExerciseUpdate,
 )
+from app.models.exercise_video import (
+    ExerciseVideo,
+    ExerciseVideoCreate,
+    ExerciseVideoRead,
+    ExerciseVideoUpdate,
+)
 from app.models.protocol import (
     Protocol,
     ProtocolCreate,
@@ -76,6 +82,11 @@ __all__ = [
     "ExerciseUpdate",
     "ExerciseCategory",
     "BodyPart",
+    # Exercise Video
+    "ExerciseVideo",
+    "ExerciseVideoCreate",
+    "ExerciseVideoRead",
+    "ExerciseVideoUpdate",
     # Protocol
     "Protocol",
     "ProtocolCreate",

@@ -65,9 +65,11 @@ class Exercise(ExerciseBase, table=True):
     protocol_exercises: list["ProtocolExercise"] = Relationship(
         back_populates="exercise"
     )
+    demo_videos: list["ExerciseVideo"] = Relationship(back_populates="exercise")
 
 
-# Forward reference
+# Forward references
+from app.models.exercise_video import ExerciseVideo  # noqa: E402
 from app.models.protocol import ProtocolExercise  # noqa: E402
 
 
