@@ -24,7 +24,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=Kacper-Chojnack_OrthoSense
-            -Dsonar.organization=kacper-chojnack
+            -Dsonar.organization=kacper-chojnack-1
             -Dsonar.sources=backend/app,lib
             -Dsonar.tests=backend/tests,test
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
