@@ -29,7 +29,7 @@ def is_ai_available() -> bool:
         return _ai_available
 
     try:
-        import mediapipe  # noqa: F401
+        import mediapipe  # type: ignore[import-untyped]  # noqa: F401
         import torch  # noqa: F401
 
         _ai_available = True
