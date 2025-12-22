@@ -1,0 +1,20 @@
+# OrthoSense Code Owners
+# These owners will be requested for review when someone opens a pull request
+
+# Default owners for everything
+* @Kacper-Chojnack
+
+# Backend specific
+/backend/ @Kacper-Chojnack
+
+# Flutter app
+/lib/ @Kacper-Chojnack
+
+# CI/CD
+/.github/ @Kacper-Chojnack
+
+# Configuration
+/config/ @Kacper-Chojnack
+
+# Documentation
+/docs/ @Kacper-Chojnack

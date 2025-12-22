@@ -63,7 +63,7 @@ flutter analyze --write=flutter-analyze.txt || true
 # SonarQube scan
 echo "Running SonarQube scanner..."
 sonar-scanner \
-  -Dproject.settings=sonar-project-frontend.properties \
+  -Dproject.settings=config/sonar/sonar-project-frontend.properties \
   -Dsonar.host.url=http://localhost:9000 \
   -Dsonar.token=${SONAR_TOKEN}
 
