@@ -5,6 +5,7 @@ import cv2
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.ai_system import is_ai_available
 from app.core.config import settings
 from app.main import app
 
@@ -33,6 +34,10 @@ def enable_server_side_analysis():
     settings.enable_server_side_analysis = original_value
 
 
+@pytest.mark.skipif(
+    not is_ai_available(),
+    reason="AI dependencies (mediapipe, torch) not installed. Run pip install .[ai-full]",
+)
 @pytest.mark.parametrize("video_filename", VIDEO_FILES)
 def test_e2e_video_analysis_websocket(video_filename):
     """
