@@ -33,7 +33,12 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:8080", "http://localhost:3000"]
 
     # Security
-    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "orthosense.app", "testserver"]
+    allowed_hosts: list[str] = [
+        "localhost",
+        "127.0.0.1",
+        "orthosense.app",
+        "testserver",
+    ]
 
     # Privacy: Server-side video analysis is DISABLED by default.
     # Edge AI on mobile is the primary architecture (video never leaves device).
