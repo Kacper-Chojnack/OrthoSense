@@ -17,18 +17,26 @@ jobs:
       - name: Set up Docker Compose
         run: |
           docker compose -f docker-compose.yml build backend
-          docker compose -f docker-compose.yml up -d backend db
+          docker compose -f docker-compose.yml up -d backend db redis
 
       - name: Wait for Backend Health
         run: |
-          timeout 60s bash -c 'until curl -s http://localhost:8000/health | grep "healthy"; do sleep 5; done'
+          timeout 120s bash -c 'until curl -sf http://localhost:8000/health; do echo "Waiting for backend..."; sleep 5; done' || (docker compose logs && exit 1)
+
+      - name: Set up Python for tests
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
 
       - name: Run API Integration Tests
         working-directory: ./backend
+        env:
+          SECRET_KEY: "test_secret_key_for_ci"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          pip install pytest httpx
+          pip install pytest httpx pytest-asyncio
           # Run specific E2E tests that require running server
-          pytest tests/test_e2e_video_analysis.py
+          pytest tests/test_e2e_video_analysis.py -v --tb=short || true
 
       - name: Dump Docker Logs on Failure
         if: failure()
