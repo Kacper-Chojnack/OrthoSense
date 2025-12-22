@@ -68,7 +68,7 @@ jobs:
         run: flutter analyze --write=flutter-analyze.txt || true
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v4
+        uses: SonarSource/sonarqube-scan-action@v5
         if: ${{ env.SONAR_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

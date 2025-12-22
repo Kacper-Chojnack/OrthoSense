@@ -22,4 +22,4 @@ jobs:
           -e SECRET_KEY=test_secret \
           -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
           orthosense-backend \
-          /bin/bash -c "pip install .[dev] pytest-cov && pytest tests/ -v --tb=short"
+          /bin/bash -c "pip install .[dev] pytest-cov && python -m pytest tests/ -v --tb=short"
