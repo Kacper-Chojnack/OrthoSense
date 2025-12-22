@@ -31,6 +31,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Install CPU-only version of torch to save space (avoiding 5GB+ CUDA deps)
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install ".[dev,ai-full]"
 
       - name: Lint with Ruff
