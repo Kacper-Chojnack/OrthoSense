@@ -50,7 +50,7 @@ jobs:
           mypy app/ --junit-xml mypy-report.xml || true
 
       - name: SonarQube Scan (Backend)
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        if: ${{ env.SONAR_TOKEN != '' }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
         run: flutter analyze --write=flutter-analyze.txt || true
 
       - name: SonarQube Scan (Frontend)
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+        if: ${{ env.SONAR_TOKEN != '' }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
+import 'package:orthosense/core/database/connection/connection.dart' as impl;
 import 'package:orthosense/core/database/tables/exercise_results_table.dart';
 import 'package:orthosense/core/database/tables/sessions_table.dart';
 import 'package:orthosense/core/database/tables/settings_table.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 export 'package:orthosense/core/database/converters.dart';
 
@@ -18,7 +14,7 @@ part 'app_database.g.dart';
   tables: [Settings, Sessions, ExerciseResults],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase() : super(impl.openConnection());
 
   /// Constructor for testing with custom executor.
   AppDatabase.forTesting(super.e);
@@ -52,10 +48,3 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'orthosense.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}
