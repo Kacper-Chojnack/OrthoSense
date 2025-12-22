@@ -12,7 +12,7 @@ jobs:
     name: Full Stack E2E
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Compose
         run: |
@@ -24,7 +24,7 @@ jobs:
           timeout 120s bash -c 'until curl -sf http://localhost:8000/health; do echo "Waiting for backend..."; sleep 5; done' || (docker compose logs && exit 1)
 
       - name: Set up Python for tests
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
