@@ -32,6 +32,9 @@ jobs:
 
       - name: Run Tests with Coverage
         working-directory: ./backend
+        env:
+          SECRET_KEY: "test_secret_key_for_ci"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
           pytest tests/ \
             --cov=app \
@@ -50,7 +53,7 @@ jobs:
           mypy app/ --junit-xml mypy-report.xml || true
 
       - name: SonarQube Scan (Backend)
-        if: ${{ env.SONAR_TOKEN != '' }}
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,7 +93,7 @@ jobs:
         run: flutter analyze --write=flutter-analyze.txt || true
 
       - name: SonarQube Scan (Frontend)
-        if: ${{ env.SONAR_TOKEN != '' }}
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
