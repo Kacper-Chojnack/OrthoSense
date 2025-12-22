@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-orthosense}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-orthosense_secret}
+      - POSTGRES_DB=${POSTGRES_DB:-orthosense_db}
+    networks:
+      - ortho-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-orthosense}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - ortho-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-orthosense}:${POSTGRES_PASSWORD:-orthosense_secret}@db:5432/${POSTGRES_DB:-orthosense_db}
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY:-dev_secret_key_change_in_prod}
+      - PROJECT_NAME=OrthoSense
+      - DEBUG=${DEBUG:-false}
+    networks:
+      - ortho-net
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  ortho-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: sonar-lint
+        name: SonarLint Local Analysis
+        entry: bash -c 'sonarlint-cli --src backend/app --tests backend/tests'
+        language: system
+        pass_filenames: false

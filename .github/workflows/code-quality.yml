@@ -1,0 +1,31 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=Kacper-Chojnack_OrthoSense
+            -Dsonar.organization=kacper-chojnack
+            -Dsonar.sources=backend/app,lib
+            -Dsonar.tests=backend/tests,test
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.flutter.coverage.reportPath=coverage/lcov.info
+            -Dsonar.exclusions=**/*.g.dart,**/*.freezed.dart

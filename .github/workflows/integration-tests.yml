@@ -1,0 +1,39 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *' # Nightly at 2 AM
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    name: Full Stack E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose -f docker-compose.yml build backend
+          docker compose -f docker-compose.yml up -d backend db
+
+      - name: Wait for Backend Health
+        run: |
+          timeout 60s bash -c 'until curl -s http://localhost:8000/health | grep "healthy"; do sleep 5; done'
+
+      - name: Run API Integration Tests
+        working-directory: ./backend
+        run: |
+          pip install pytest httpx
+          # Run specific E2E tests that require running server
+          pytest tests/test_e2e_video_analysis.py
+
+      - name: Dump Docker Logs on Failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

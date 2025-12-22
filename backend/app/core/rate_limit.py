@@ -4,6 +4,7 @@ Provides decorator-based rate limiting for FastAPI endpoints.
 Falls back to in-memory limiter when Redis is unavailable.
 """
 
+import asyncio
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
@@ -46,7 +47,7 @@ class RateLimiter:
         """Lazy load Redis client."""
         if self._redis_client is None and self.use_redis:
             try:
-                import redis.asyncio as redis
+                import redis.asyncio as redis  # type: ignore
 
                 self._redis_client = redis.from_url(
                     settings.redis_url,
@@ -125,20 +126,22 @@ class RateLimiter:
 
     async def _check_memory(self, key: str) -> tuple[bool, int]:
         """Async wrapper for in-memory rate limiting."""
+        # Simulate async I/O
+        await asyncio.sleep(0)
         return self._check_memory_sync(key)
 
-    async def check(self, request: Request, key_prefix: str = "default") -> bool:
+    async def check(self, request: Request, key_prefix: str = "default") -> None:
         """Check if request is within rate limit.
 
         Args:
             request: FastAPI request object.
             key_prefix: Prefix for rate limit key (e.g., endpoint name).
 
-        Returns:
-            True if request is allowed, raises HTTPException otherwise.
+        Raises:
+            HTTPException: If rate limit exceeded.
         """
         if not settings.rate_limit_enabled:
-            return True
+            return
 
         key = self._get_client_key(request, key_prefix)
         allowed, _ = await self._check_redis(key)
@@ -155,8 +158,6 @@ class RateLimiter:
                 detail=f"Rate limit exceeded. Try again in {self.window_seconds} seconds.",
                 headers={"Retry-After": str(self.window_seconds)},
             )
-
-        return True
 
 
 # Pre-configured limiters for common use cases

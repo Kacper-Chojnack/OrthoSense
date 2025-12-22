@@ -3,6 +3,8 @@
 Environment variables override defaults. Use .env file for local development.
 """
 
+import os
+import tempfile
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,6 +32,9 @@ class Settings(BaseSettings):
     # Override in production with specific domains
     cors_origins: list[str] = ["http://localhost:8080", "http://localhost:3000"]
 
+    # Security
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1", "orthosense.app", "testserver"]
+
     # Privacy: Server-side video analysis is DISABLED by default.
     # Edge AI on mobile is the primary architecture (video never leaves device).
     # Enable ONLY for internal testing with explicit consent.
@@ -53,7 +58,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:8080"
 
     max_upload_size_mb: int = 100
-    upload_temp_dir: str = "/tmp/orthosense_uploads"
+    upload_temp_dir: str = os.path.join(tempfile.gettempdir(), "orthosense_uploads")
 
     @property
     def is_sqlite(self) -> bool:

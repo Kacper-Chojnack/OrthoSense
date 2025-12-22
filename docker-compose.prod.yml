@@ -1,0 +1,25 @@
+services:
+  backend:
+    restart: unless-stopped
+    environment:
+      - DEBUG=false
+      # In prod, we might want to disable server-side analysis for privacy/perf
+      - ENABLE_SERVER_SIDE_ANALYSIS=false
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.flutter
+    ports:
+      - "80:80"
+    networks:
+      - ortho-net
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped

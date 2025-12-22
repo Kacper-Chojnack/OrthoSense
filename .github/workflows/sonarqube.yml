@@ -1,0 +1,103 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *' # Daily at 2:00 AM
+
+jobs:
+  sonarqube-backend:
+    name: Backend Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install pytest-cov ruff mypy
+
+      - name: Run Tests with Coverage
+        working-directory: ./backend
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term \
+            --junitxml=test-results.xml
+
+      - name: Run Ruff (Linting)
+        working-directory: ./backend
+        run: |
+          ruff check app/ --output-format=json > ruff-report.json || true
+
+      - name: Run MyPy (Type Checking)
+        working-directory: ./backend
+        run: |
+          mypy app/ --junit-xml mypy-report.xml || true
+
+      - name: SonarQube Scan (Backend)
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: backend
+          args: >
+            -Dsonar.projectKey=orthosense-backend
+            -Dsonar.sources=app
+            -Dsonar.tests=tests
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.xunit.reportPath=test-results.xml
+            -Dsonar.python.ruff.reportPaths=ruff-report.json
+            -Dsonar.python.mypy.reportPaths=mypy-report.xml
+
+  sonarqube-frontend:
+    name: Frontend Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests with Coverage
+        run: flutter test --coverage --coverage-path=coverage/lcov.info
+
+      - name: Run Flutter Analyze
+        run: flutter analyze --write=flutter-analyze.txt || true
+
+      - name: SonarQube Scan (Frontend)
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=orthosense-frontend
+            -Dsonar.sources=lib
+            -Dsonar.tests=test
+            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info
+            -Dsonar.flutter.analysis.reportPath=flutter-analyze.txt
+            -Dsonar.exclusions=**/*.g.dart,**/*.freezed.dart,**/generated/**

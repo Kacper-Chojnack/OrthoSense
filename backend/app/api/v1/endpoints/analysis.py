@@ -90,6 +90,118 @@ async def get_ai_status() -> dict[str, Any]:
     return result
 
 
+async def _handle_text_message(
+    client_id: str,
+    text_content: str,
+    ai_system: Any,
+    manager: ConnectionManager,
+) -> None:
+    """Handle text/JSON commands from WebSocket."""
+    if len(text_content) > MAX_JSON_SIZE:
+        logger.warning(
+            "ws_json_too_large",
+            client_id=client_id,
+            size=len(text_content),
+        )
+        await manager.send_json(
+            client_id,
+            {"error": "JSON message too large", "max_size": MAX_JSON_SIZE},
+        )
+        return
+
+    try:
+        data = json.loads(text_content)
+        action = data.get("action")
+
+        if action == "start":
+            exercise = data.get("exercise", "Deep Squat")
+            if ai_system.set_exercise(exercise):
+                await manager.send_json(
+                    client_id,
+                    {
+                        "status": "started",
+                        "exercise": exercise,
+                        "feedback": f"Starting {exercise} analysis",
+                        "voice_message": f"Get ready for {exercise}",
+                    },
+                )
+            else:
+                await manager.send_json(
+                    client_id,
+                    {
+                        "error": f"Unknown exercise: {exercise}",
+                        "supported": list(EXERCISE_CLASSES.values()),
+                    },
+                )
+
+        elif action == "stop":
+            ai_system.reset()
+            await manager.send_json(
+                client_id,
+                {
+                    "status": "stopped",
+                    "feedback": "Analysis stopped",
+                },
+            )
+
+        elif action == "reset":
+            ai_system.reset()
+            await manager.send_json(
+                client_id,
+                {
+                    "status": "reset",
+                    "feedback": "Buffer cleared",
+                },
+            )
+
+        elif action == "ping":
+            await manager.send_json(client_id, {"status": "pong"})
+
+    except json.JSONDecodeError:
+        logger.warning("invalid_json", client_id=client_id)
+
+
+async def _handle_binary_message(
+    client_id: str,
+    frame_bytes: bytes,
+    ai_system: Any,
+    manager: ConnectionManager,
+) -> None:
+    """Handle binary video frame data."""
+    if len(frame_bytes) > MAX_WS_MESSAGE_SIZE:
+        logger.warning(
+            "ws_frame_too_large",
+            client_id=client_id,
+            size=len(frame_bytes),
+        )
+        # We don't close the connection here to be more resilient, just warn
+        await manager.send_json(
+            client_id,
+            {"error": "Frame too large", "max_size": MAX_WS_MESSAGE_SIZE},
+        )
+        return
+
+    # Decode JPEG to numpy array
+    nparr = np.frombuffer(frame_bytes, np.uint8)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if frame is None:
+        await manager.send_json(
+            client_id,
+            {
+                "error": "Invalid frame data",
+                "feedback": "Camera error",
+            },
+        )
+        return
+
+    # Analyze frame using AI system
+    result = ai_system.analyze_frame(frame)
+
+    # Send result back
+    await manager.send_json(client_id, result.to_dict())
+
+
 @router.websocket("/ws/{client_id}")
 async def websocket_analysis_endpoint(
     websocket: WebSocket,
@@ -100,27 +212,6 @@ async def websocket_analysis_endpoint(
     PRIVACY: This endpoint is DISABLED by default (enable_server_side_analysis=false).
     The primary OrthoSense architecture uses Edge AI - video never leaves the device.
     Enable ONLY for internal testing with explicit user consent.
-
-    Protocol:
-    1. Client connects and sends JSON: {"action": "start", "exercise": "Deep Squat"}
-    2. Client streams JPEG frames as binary data
-    3. Server responds with JSON analysis for each frame
-    4. Client sends {"action": "stop"} to end session
-
-    Response format:
-    {
-        "feedback": "Keep your back straight",
-        "voice_message": "Keep your back straight",
-        "is_correct": false,
-        "score": 75.0,
-        "frames_buffered": 15,
-        "frames_needed": 30,
-        "pose_detected": true,
-        "classification": {  // Only when confident
-            "exercise_name": "Deep Squat",
-            "confidence": 0.95
-        }
-    }
     """
     # Privacy gate: Reject connections if server-side analysis is disabled
     if not settings.enable_server_side_analysis:
@@ -155,7 +246,6 @@ async def websocket_analysis_endpoint(
         return
 
     ai_system = get_ai_system()
-    current_exercise = "Deep Squat"
 
     try:
         while True:
@@ -166,109 +256,14 @@ async def websocket_analysis_endpoint(
                 break
 
             if "text" in message:
-                # Security: Validate JSON message size
-                text_content = message["text"]
-                if len(text_content) > MAX_JSON_SIZE:
-                    logger.warning(
-                        "ws_json_too_large",
-                        client_id=client_id,
-                        size=len(text_content),
-                    )
-                    await manager.send_json(
-                        client_id,
-                        {"error": "JSON message too large", "max_size": MAX_JSON_SIZE},
-                    )
-                    continue
-
-                # Handle JSON commands
-                try:
-                    data = json.loads(text_content)
-                    action = data.get("action")
-
-                    if action == "start":
-                        exercise = data.get("exercise", "Deep Squat")
-                        if ai_system.set_exercise(exercise):
-                            current_exercise = exercise
-                            await manager.send_json(
-                                client_id,
-                                {
-                                    "status": "started",
-                                    "exercise": current_exercise,
-                                    "feedback": f"Starting {current_exercise} analysis",
-                                    "voice_message": f"Get ready for {current_exercise}",
-                                },
-                            )
-                        else:
-                            await manager.send_json(
-                                client_id,
-                                {
-                                    "error": f"Unknown exercise: {exercise}",
-                                    "supported": list(EXERCISE_CLASSES.values()),
-                                },
-                            )
-
-                    elif action == "stop":
-                        ai_system.reset()
-                        await manager.send_json(
-                            client_id,
-                            {
-                                "status": "stopped",
-                                "feedback": "Analysis stopped",
-                            },
-                        )
-
-                    elif action == "reset":
-                        ai_system.reset()
-                        await manager.send_json(
-                            client_id,
-                            {
-                                "status": "reset",
-                                "feedback": "Buffer cleared",
-                            },
-                        )
-
-                    elif action == "ping":
-                        await manager.send_json(client_id, {"status": "pong"})
-
-                except json.JSONDecodeError:
-                    logger.warning("invalid_json", client_id=client_id)
+                await _handle_text_message(
+                    client_id, message["text"], ai_system, manager
+                )
 
             elif "bytes" in message:
-                # Handle binary frame data
-                frame_bytes = message["bytes"]
-
-                # Security: Validate binary frame size to prevent DoS
-                if len(frame_bytes) > MAX_WS_MESSAGE_SIZE:
-                    logger.warning(
-                        "ws_frame_too_large",
-                        client_id=client_id,
-                        size=len(frame_bytes),
-                    )
-                    await websocket.close(
-                        code=ws_status.WS_1009_MESSAGE_TOO_BIG,
-                        reason=f"Frame exceeds {MAX_WS_MESSAGE_SIZE} bytes limit",
-                    )
-                    return
-
-                # Decode JPEG to numpy array
-                nparr = np.frombuffer(frame_bytes, np.uint8)
-                frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-                if frame is None:
-                    await manager.send_json(
-                        client_id,
-                        {
-                            "error": "Invalid frame data",
-                            "feedback": "Camera error",
-                        },
-                    )
-                    continue
-
-                # Analyze frame using new AI system
-                result = ai_system.analyze_frame(frame)
-
-                # Send result back
-                await manager.send_json(client_id, result.to_dict())
+                await _handle_binary_message(
+                    client_id, message["bytes"], ai_system, manager
+                )
 
     except WebSocketDisconnect:
         logger.info("ws_client_disconnected", client_id=client_id)
