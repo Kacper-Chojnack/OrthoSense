@@ -18,7 +18,7 @@ jobs:
 
       - name: Comment PR with SonarQube Results
         if: steps.pr.outputs.number != ''
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
