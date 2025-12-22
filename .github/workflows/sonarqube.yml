@@ -1,4 +1,4 @@
-name: SonarQube Analysis
+name: SonarCloud Analysis
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     - cron: '0 2 * * *' # Daily at 2:00 AM
 
 jobs:
-  sonarqube-backend:
+  sonarcloud-backend:
     name: Backend Analysis
     runs-on: ubuntu-latest
     steps:
@@ -52,16 +52,17 @@ jobs:
         run: |
           mypy app/ --junit-xml mypy-report.xml || true
 
-      - name: SonarQube Scan (Backend)
-        uses: sonarsource/sonarqube-scan-action@master
+      - name: SonarCloud Scan (Backend)
+        uses: SonarSource/sonarcloud-github-action@master
         if: env.SONAR_TOKEN
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: backend
           args: >
-            -Dsonar.projectKey=orthosense-backend
+            -Dsonar.projectKey=Kacper-Chojnack_OrthoSense
+            -Dsonar.organization=kacper-chojnack
             -Dsonar.sources=app
             -Dsonar.tests=tests
             -Dsonar.python.coverage.reportPaths=coverage.xml
@@ -69,7 +70,7 @@ jobs:
             -Dsonar.python.ruff.reportPaths=ruff-report.json
             -Dsonar.python.mypy.reportPaths=mypy-report.xml
 
-  sonarqube-frontend:
+  sonarcloud-frontend:
     name: Frontend Analysis
     runs-on: ubuntu-latest
     steps:
@@ -92,15 +93,16 @@ jobs:
       - name: Run Flutter Analyze
         run: flutter analyze --write=flutter-analyze.txt || true
 
-      - name: SonarQube Scan (Frontend)
-        uses: sonarsource/sonarqube-scan-action@master
+      - name: SonarCloud Scan (Frontend)
+        uses: SonarSource/sonarcloud-github-action@master
         if: env.SONAR_TOKEN
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=orthosense-frontend
+            -Dsonar.projectKey=Kacper-Chojnack_OrthoSense
+            -Dsonar.organization=kacper-chojnack
             -Dsonar.sources=lib
             -Dsonar.tests=test
             -Dsonar.dart.coverage.reportPaths=coverage/lcov.info
