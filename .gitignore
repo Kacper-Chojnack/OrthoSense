@@ -1,53 +1,118 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-*.db
+# ===========================
+# OrthoSense .gitignore
+# ===========================
 
-# IntelliJ related
+# === OS & IDE ===
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# === Flutter/Dart ===
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 /build/
+**/doc/api/
+.metadata
 
-# Symbolication related
-app.*.symbols
+# Generated code - keep .g.dart and .freezed.dart for faster CI
+# pubspec.lock - keep for reproducible builds
 
-# Obfuscation related
-app.*.map.json
+# === iOS ===
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Pods/
+**/ios/.symlinks/
 
-# Android Studio will place build artifacts here
+# === Android ===
 /android/app/debug
 /android/app/profile
 /android/app/release
 **/android/local.properties
+**/android/.gradle/
+**/android/app/build/
 
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
+# === Symbolication & Obfuscation ===
+app.*.symbols
+app.*.map.json
+
+# === Python Backend ===
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.cover
+.hypothesis/
+
+# Backend virtual environments
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+
+# Backend databases (local dev)
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+
+# === Environment Files ===
+.env
+.env.local
+.env.*.local
+!backend/.env.example
+
+# === Analysis & Quality Tools ===
+.scannerwork/
+.sonar/
+sonarqube-quality-gate.json
+flutter-analyze.txt
+coverage/
+lcov.info
+*.lcov
+coverage.xml
+test-results.xml
+mypy-report.xml
+ruff-report.json
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Temp Files ===
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+todo
+
+# === Build Artifacts ===
+*.apk
+*.aab
+*.ipa
+*.app
+*.exe
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh

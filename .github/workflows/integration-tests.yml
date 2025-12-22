@@ -16,12 +16,12 @@ jobs:
 
       - name: Set up Docker Compose
         run: |
-          docker compose -f docker-compose.yml build backend
-          docker compose -f docker-compose.yml up -d backend db redis
+          docker compose -f config/docker/docker-compose.yml build backend
+          docker compose -f config/docker/docker-compose.yml up -d backend db redis
 
       - name: Wait for Backend Health
         run: |
-          timeout 120s bash -c 'until curl -sf http://localhost:8000/health; do echo "Waiting for backend..."; sleep 5; done' || (docker compose logs && exit 1)
+          timeout 120s bash -c 'until curl -sf http://localhost:8000/health; do echo "Waiting for backend..."; sleep 5; done' || (docker compose -f config/docker/docker-compose.yml logs && exit 1)
 
       - name: Set up Python for tests
         uses: actions/setup-python@v5
