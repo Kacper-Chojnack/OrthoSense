@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 from app.core.config import settings
 from app.main import app
@@ -43,17 +44,12 @@ def test_websocket_rejected_when_disabled():
     settings.enable_server_side_analysis = False
 
     try:
-        with (
-            client.websocket_connect(
+        with pytest.raises(WebSocketDisconnect):
+            with client.websocket_connect(
                 f"{settings.api_v1_prefix}/analysis/ws/test_client"
-            ) as websocket,
-            pytest.raises(Exception),
-        ):  # noqa: B017
-            # Should be closed immediately
-            websocket.receive_text()
-    except Exception:
-        # Expected connection close
-        pass
+            ) as websocket:
+                # Should be closed immediately
+                websocket.receive_text()
     finally:
         settings.enable_server_side_analysis = original_setting
 
