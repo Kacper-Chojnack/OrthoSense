@@ -43,8 +43,8 @@ async def list_exercise_videos(
         .where(ExerciseVideo.exercise_id == exercise_id)
         .where(ExerciseVideo.is_active == True)  # noqa: E712
         .order_by(
-            ExerciseVideo.is_primary.desc(),  # type: ignore[union-attr]
-            ExerciseVideo.sort_order,
+            ExerciseVideo.is_primary.desc(),  # type: ignore[attr-defined]
+            ExerciseVideo.sort_order,  # type: ignore[arg-type]
         )
         .offset(skip)
         .limit(limit)
