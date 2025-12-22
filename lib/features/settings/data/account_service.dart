@@ -76,10 +76,12 @@ class AccountService {
 
     // Share the file and ensure it is cleaned up afterwards
     try {
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        subject: 'OrthoSense Data Export',
-        text: 'Your OrthoSense data export (GDPR compliant)',
+      await SharePlus.instance.share(
+        ShareParams(
+          subject: 'OrthoSense Data Export',
+          text: 'Your OrthoSense data export (GDPR compliant)',
+          files: [XFile(file.path)],
+        ),
       );
     } finally {
       // Best-effort cleanup of the temporary export file
