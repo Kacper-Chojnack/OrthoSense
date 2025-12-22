@@ -73,8 +73,8 @@ class PoseEstimator:
             return True
 
         try:
-            from mediapipe.tasks import python as mp_tasks
-            from mediapipe.tasks.python import vision
+            from mediapipe.tasks import python as mp_tasks  # type: ignore
+            from mediapipe.tasks.python import vision  # type: ignore
 
             if not self._model_path.exists():
                 logger.error(
@@ -115,7 +115,7 @@ class PoseEstimator:
             return PoseResult()
 
         try:
-            import mediapipe as mp
+            import mediapipe as mp  # type: ignore
 
             # Convert BGR to RGB for MediaPipe
             rgb_frame = frame[..., ::-1].copy()

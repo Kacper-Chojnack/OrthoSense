@@ -1,0 +1,25 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Backend
+        run: docker build -t orthosense-backend backend/
+        
+      - name: Run Tests
+        # Run pytest inside the container
+        run: |
+          docker run --rm \
+          -e SECRET_KEY=test_secret \
+          -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
+          orthosense-backend \
+          pytest

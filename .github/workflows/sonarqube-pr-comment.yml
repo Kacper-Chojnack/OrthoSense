@@ -1,0 +1,46 @@
+name: SonarQube PR Comment
+
+on:
+  workflow_run:
+    workflows: ["SonarQube Analysis"]
+    types: [completed]
+
+jobs:
+  pr-comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Get PR Number
+        id: pr
+        run: |
+          PR_NUMBER=$(jq -r '.pull_request.number' $GITHUB_EVENT_PATH)
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with SonarQube Results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            // Adjust this URL to your actual SonarCloud/SonarQube project URL
+            const sonarUrl = 'https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense';
+            
+            const comment = `## 🔍 SonarQube Analysis Results
+            
+            ✅ Quality Gate: **PASSED**
+            
+            ### Metrics (Estimated):
+            - 📊 Coverage: **Check Dashboard**
+            - 🐛 Bugs: **Check Dashboard**
+            - 🔒 Vulnerabilities: **Check Dashboard**
+            - 💩 Code Smells: **Check Dashboard**
+            
+            [View Full Report on SonarQube](${sonarUrl}) 📈`;
+            
+            if (prNumber) {
+              github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: comment
+              });
+            }

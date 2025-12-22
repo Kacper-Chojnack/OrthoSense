@@ -258,10 +258,11 @@ class TestUserReadSchema:
             is_verified=False,
             created_at=datetime.now(UTC),
         )
+        assert user_read.email == "test@example.com"
 
         # Check that hashed_password is not in the model fields
-        assert "hashed_password" not in user_read.model_fields
-        assert "password" not in user_read.model_fields
+        assert "hashed_password" not in UserRead.model_fields
+        assert "password" not in UserRead.model_fields
 
 
 class TestUserUpdateSchema:

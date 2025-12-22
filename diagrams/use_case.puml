@@ -1,0 +1,23 @@
+@startuml
+left to right direction
+actor "Pacjent" as p
+actor "Fizjoterapeuta" as t
+
+package "OrthoSense App" {
+  usecase "Logowanie" as UC1
+  usecase "Wykonywanie ćwiczeń" as UC2
+  usecase "Podgląd postępów" as UC3
+  usecase "Zarządzanie planem ćwiczeń" as UC4
+  usecase "Analiza wideo AI" as UC5
+}
+
+p --> UC1
+p --> UC2
+p --> UC3
+
+t --> UC1
+t --> UC4
+t --> UC3
+
+UC2 ..> UC5 : include
+@enduml

@@ -6,13 +6,15 @@ Configures CORS, logging, database lifecycle, and WebSocket endpoints.
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.logging import get_logger, setup_logging
+from app.core.rate_limit import api_limiter
 
 setup_logging(
     json_logs=not settings.debug,
@@ -50,7 +52,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS for Flutter app - Secure configuration
+# 1. Trusted Host Middleware (Security)
+# Prevents HTTP Host header attacks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=settings.allowed_hosts,
+)
+
+# 2. CORS for Flutter app - Secure configuration
 # Note: allow_credentials=True requires specific origins, not wildcards
 app.add_middleware(
     CORSMiddleware,
@@ -59,6 +68,34 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
+
+
+# 3. Global Security Headers & Rate Limiting
+@app.middleware("http")
+async def security_and_rate_limit_middleware(request: Request, call_next):
+    """Add security headers and enforce global rate limits."""
+    # Global Rate Limiting (skip for health checks)
+    if request.url.path != "/health" and settings.rate_limit_enabled:
+        await api_limiter.check(request, "global")
+
+    response = await call_next(request)
+
+    # Security Headers (HTTPS Enforcement & Hardening)
+    # HSTS: Tell browser to only use HTTPS for next 2 years
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=63072000; includeSubDomains; preload"
+    )
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    # Enable XSS protection in older browsers
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    # Control referrer information
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    return response
+
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
 

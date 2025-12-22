@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+DEFAULT_FEEDBACK = "Good form!"
+
 
 class ExerciseType(Enum):
     """Supported exercise types for diagnostics."""
@@ -207,7 +209,7 @@ class DiagnosticsEngine:
             issues.append("Keep knees even")
             score -= 15
 
-        feedback = " | ".join(issues) if issues else "Good form!"
+        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
         voice_message = self._get_voice_message(issues)
 
         return DiagnosticResult(
@@ -238,7 +240,7 @@ class DiagnosticsEngine:
             issues.append("Keep your torso upright")
             score -= 20
 
-        feedback = " | ".join(issues) if issues else "Good form!"
+        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
         voice_message = self._get_voice_message(issues)
 
         return DiagnosticResult(
@@ -272,7 +274,7 @@ class DiagnosticsEngine:
             issues.append("Keep arms at same height")
             score -= 20
 
-        feedback = " | ".join(issues) if issues else "Good form!"
+        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
         voice_message = self._get_voice_message(issues)
 
         return DiagnosticResult(
