@@ -21,6 +21,8 @@ dependencies = [
 
 [project.optional-dependencies]
 ai-full = [
+    "mediapipe>=0.10.9",
+    "torch>=2.2.0",
 ]
 dev = [
     "pytest>=9.0.2",
