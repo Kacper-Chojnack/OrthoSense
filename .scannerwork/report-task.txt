@@ -2,5 +2,5 @@ projectKey=orthosense-frontend
 serverUrl=http://localhost:9000
 serverVersion=25.12.0.117093
 dashboardUrl=http://localhost:9000/dashboard?id=orthosense-frontend
-ceTaskId=a8ff2fef-474a-4d91-a761-c36f8600f35a
-ceTaskUrl=http://localhost:9000/api/ce/task?id=a8ff2fef-474a-4d91-a761-c36f8600f35a
+ceTaskId=4652da37-ffb8-43d0-9bbf-197c8168434e
+ceTaskUrl=http://localhost:9000/api/ce/task?id=4652da37-ffb8-43d0-9bbf-197c8168434e

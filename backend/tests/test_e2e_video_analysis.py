@@ -54,7 +54,9 @@ def test_e2e_video_analysis_websocket(video_filename):
     analyzed_count = 0
 
     # Determine exercise name from filename (simple heuristic)
-    exercise_name = "Deep Squat" if "Squat" in video_filename else "Standing Shoulder Abduction"
+    exercise_name = (
+        "Deep Squat" if "Squat" in video_filename else "Standing Shoulder Abduction"
+    )
 
     try:
         # Use a dummy client_id for the test
@@ -62,14 +64,10 @@ def test_e2e_video_analysis_websocket(video_filename):
         with client.websocket_connect(
             f"/api/v1/analysis/ws/{client_id}", headers={"Host": "localhost"}
         ) as websocket:
-            
             # 1. Send START command
-            start_payload = {
-                "action": "start",
-                "exercise": exercise_name
-            }
+            start_payload = {"action": "start", "exercise": exercise_name}
             websocket.send_text(json.dumps(start_payload))
-            
+
             # Receive start confirmation
             response = websocket.receive_json()
             assert response["status"] == "started"
@@ -84,7 +82,7 @@ def test_e2e_video_analysis_websocket(video_filename):
 
                 # Encode frame to JPEG
                 _, buffer = cv2.imencode(".jpg", frame)
-                
+
                 # Send BINARY frame
                 websocket.send_bytes(buffer.tobytes())
 
@@ -93,8 +91,8 @@ def test_e2e_video_analysis_websocket(video_filename):
 
                 # Basic validation of the response
                 if "error" in response:
-                     # If frame too large or invalid, we might get error
-                     pass
+                    # If frame too large or invalid, we might get error
+                    pass
                 else:
                     # Analysis result
                     assert "feedback" in response
@@ -105,7 +103,7 @@ def test_e2e_video_analysis_websocket(video_filename):
                 # 30 frames is enough to verify flow
                 if frame_count >= 30:
                     break
-            
+
             # Send STOP command
             stop_payload = {"action": "stop"}
             websocket.send_text(json.dumps(stop_payload))

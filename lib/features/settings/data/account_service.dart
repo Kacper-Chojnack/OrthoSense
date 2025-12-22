@@ -83,7 +83,6 @@ class AccountService {
           files: [XFile(file.path)],
         ),
       );
-      );
     } finally {
       // Best-effort cleanup of the temporary export file
       try {
