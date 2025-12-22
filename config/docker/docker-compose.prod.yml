@@ -8,8 +8,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.flutter
+      context: ../..
+      dockerfile: config/docker/Dockerfile.flutter
     ports:
       - "80:80"
     networks:
