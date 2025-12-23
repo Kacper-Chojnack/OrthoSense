@@ -30,8 +30,7 @@ jobs:
         with:
           languages: python
           # Only analyze backend Python code
-          paths:
-            - backend/
+          source-root: backend/
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4

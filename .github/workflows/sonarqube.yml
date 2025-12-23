@@ -77,3 +77,6 @@ jobs:
           args: >
             -Dsonar.projectKey=Kacper-Chojnack_OrthoSense
             -Dsonar.organization=kacper-chojnack-1
+            -Dsonar.c.file.suffixes=-
+            -Dsonar.cpp.file.suffixes=-
+            -Dsonar.objc.file.suffixes=-
