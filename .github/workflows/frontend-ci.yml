@@ -86,6 +86,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Install Dependencies
+        run: flutter pub get
+
       - name: Build APK
         run: flutter build apk --release
 
@@ -102,9 +105,21 @@ jobs:
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-      - run: flutter build web --release
-      - uses: actions/upload-artifact@v4
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Upload Web Build
+        uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: build/web
