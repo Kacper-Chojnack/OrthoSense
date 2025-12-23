@@ -1,109 +1,98 @@
 # OrthoSense 🏥
 
-**Digital Health Telerehabilitation Platform** — AI-powered exercise monitoring with clinical precision.
+> **🇵🇱 [Wersja polska poniżej](#-orthosense---wersja-polska)**
+
+---
+
+## 🇬🇧 English Version
+
+**Mobile telerehabilitation app** that uses on-device AI to analyze patient movements in real-time, helping them perform exercises correctly — all while keeping video data private on the device.
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
 [![Backend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions)
-[![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions)
+[![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg?branch=main)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
 
----
+### 🎓 About
 
-## 🚀 Quick Start
+This project is an **Engineering Thesis** developed at **Polish-Japanese Academy of Information Technology (PJATK), Gdańsk**.
 
-### Prerequisites
+> ⚠️ **Note:** The application interface is available **only in English**.
 
-- Flutter 3.24+
-- Python 3.13+
-- Docker & Docker Compose
+### 🔧 Tech Stack
 
-### Development Setup
+| Layer | Technology |
+|-------|------------|
+| Mobile | Flutter 3.24 + Riverpod |
+| Backend | FastAPI + SQLModel |
+| AI (Edge) | MediaPipe + TFLite (Bi-LSTM) |
+| Database | PostgreSQL / SQLite |
+
+### 🚀 Quick Start
 
 ```bash
-# Clone repository
+# Clone & setup
 git clone https://github.com/Kacper-Chojnack/OrthoSense.git
 cd OrthoSense
 
-# Setup environment
-./scripts/docker-setup.sh
-
-# Start backend (Docker)
+# Backend
 ./scripts/docker-dev.sh
 
-# In another terminal - run Flutter app
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter run
+# Frontend (new terminal)
+flutter pub get && flutter run
 ```
 
----
-
-## 📁 Project Structure
+### 📁 Structure
 
 ```
 OrthoSense/
-├── lib/                 # Flutter mobile app (Dart)
-├── backend/             # FastAPI backend (Python)
-├── config/              # Docker & SonarQube configs
-│   ├── docker/
-│   └── sonar/
-├── scripts/             # Build/deploy scripts
-├── docs/                # Documentation
-│   └── setup/
-├── test/                # Flutter tests
-└── assets/              # Images, fonts
+├── lib/          # Flutter app
+├── backend/      # FastAPI server
+├── config/       # Docker configs
+├── docs/         # Documentation
+└── scripts/      # Build scripts
 ```
 
 ---
 
-## 🔧 Tech Stack
+## 🇵🇱 OrthoSense — Wersja Polska
 
-| Layer      | Technology                     |
-|------------|--------------------------------|
-| Mobile     | Flutter 3.24 + Riverpod        |
-| Backend    | FastAPI + SQLModel             |
-| AI (Edge)  | MediaPipe + TFLite (Bi-LSTM)   |
-| Database   | PostgreSQL (prod) / SQLite (dev) |
-| Cache      | Redis                          |
+**Mobilna aplikacja do telerehablitacji**, która wykorzystuje AI działające na urządzeniu do analizy ruchów pacjenta w czasie rzeczywistym, pomagając mu poprawnie wykonywać ćwiczenia — przy pełnej prywatności, bez wysyłania nagrań do chmury.
 
----
+### 🎓 O Projekcie
 
-## 🔒 Privacy First
+Projekt jest **pracą inżynierską** realizowaną na **Polsko-Japońskiej Akademii Technik Komputerowych (PJATK), Gdańsk**.
 
-Video streams **never leave the device**. Only anonymized pose metadata JSON is synced to the cloud.
+> ⚠️ **Uwaga:** Interfejs aplikacji jest dostępny **wyłącznie w języku angielskim**.
 
----
+### 🔧 Technologie
 
-## 📖 Documentation
+| Warstwa | Technologia |
+|---------|-------------|
+| Mobilna | Flutter 3.24 + Riverpod |
+| Backend | FastAPI + SQLModel |
+| AI (Edge) | MediaPipe + TFLite (Bi-LSTM) |
+| Baza danych | PostgreSQL / SQLite |
 
-- [Docker Setup](docs/setup/DOCKER_SETUP.md)
-- [CI/CD Pipeline](docs/CI_CD.md)
-- [SonarQube Integration](docs/setup/SONARQUBE_SETUP.md)
-
----
-
-## 🧑‍💻 Development
-
-### Frontend (Flutter)
+### 🚀 Szybki Start
 
 ```bash
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter run
-flutter test
-```
+# Klonowanie i konfiguracja
+git clone https://github.com/Kacper-Chojnack/OrthoSense.git
+cd OrthoSense
 
-### Backend (Python)
+# Backend
+./scripts/docker-dev.sh
 
-```bash
-cd backend
-python -m venv venv && source venv/bin/activate
-pip install -e ".[dev]"
-uvicorn app.main:app --reload
-pytest
+# Frontend (nowy terminal)
+flutter pub get && flutter run
 ```
 
 ---
 
-## 📄 License
+## 📄 License / Licencja
 
-Proprietary — All Rights Reserved © 2025 Kacper Chojnacki
+Proprietary - All Rights Reserved © 2025
+
+**Authors / Autorzy:**
+- Kacper Chojnacki
+- Zofia Dekowska
