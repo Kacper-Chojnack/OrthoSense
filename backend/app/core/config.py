@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore",  # Ignore unknown env variables like SONAR_TOKEN
+        extra="ignore",  
     )
 
     # API Configuration
@@ -39,7 +39,8 @@ class Settings(BaseSettings):
         "127.0.0.1",
         "orthosense.app",
         "testserver",
-        "192.168.1.103",  # Local network for mobile testing
+        "192.168.1.103",  # Old local network IP
+        "192.168.0.23",  # Current local network IP for mobile testing
     ]
 
     # Privacy: Server-side video analysis is DISABLED by default.

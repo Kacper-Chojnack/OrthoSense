@@ -2,7 +2,7 @@
 name = "orthosense-backend"
 version = "0.1.0"
 description = "OrthoSense Telerehabilitation Backend API"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.125.0",
     "uvicorn[standard]>=0.38.0",
@@ -23,6 +23,7 @@ dependencies = [
 ai-full = [
     "mediapipe>=0.10.9",
     "torch>=2.2.0",
+    "scipy>=1.11.0",
 ]
 dev = [
     "pytest>=9.0.2",
@@ -42,7 +43,7 @@ build-backend = "hatchling.build"
 packages = ["app"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py312"
 line-length = 88
 
 [tool.ruff.lint]

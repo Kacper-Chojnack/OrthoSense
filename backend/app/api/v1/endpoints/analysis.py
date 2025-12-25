@@ -18,7 +18,7 @@ import numpy as np
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from starlette import status as ws_status
 
-from app.ai.core.config import EXERCISE_CLASSES
+from app.ai.core.config import EXERCISE_NAMES
 from app.core.ai_system import get_ai_system, is_ai_available
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -63,7 +63,7 @@ async def list_exercises() -> dict[str, Any]:
     """List available exercises for analysis."""
     return {
         "exercises": [
-            {"id": idx, "name": name} for idx, name in EXERCISE_CLASSES.items()
+            {"id": idx, "name": name} for idx, name in EXERCISE_NAMES.items()
         ],
         "ai_available": is_ai_available(),
     }
@@ -130,7 +130,7 @@ async def _handle_text_message(
                     client_id,
                     {
                         "error": f"Unknown exercise: {exercise}",
-                        "supported": list(EXERCISE_CLASSES.values()),
+                        "supported": list(EXERCISE_NAMES.values()),
                     },
                 )
 
