@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM python:3.13-slim as builder
+FROM python:3.12-slim as builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir ".[ai-full]"
 
 # Stage 2: Runtime
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code

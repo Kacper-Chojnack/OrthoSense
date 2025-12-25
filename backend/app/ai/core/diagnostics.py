@@ -1,304 +1,291 @@
-"""Real-time diagnostics engine for exercise form feedback."""
-
-from dataclasses import dataclass
-from enum import Enum
-from typing import TYPE_CHECKING
-
 import numpy as np
-
-from app.ai.core.config import AngleThresholds
-from app.core.logging import get_logger
-
-if TYPE_CHECKING:
-    from app.ai.core.pose_estimation import PoseResult
-
-logger = get_logger(__name__)
-
-DEFAULT_FEEDBACK = "Good form!"
+from collections import Counter
 
 
-class ExerciseType(Enum):
-    """Supported exercise types for diagnostics."""
+class MovementDiagnostician:
+    """
+    Diagnoses movement quality using MediaPipe 33 landmarks.
+    """
+    
+    def __init__(self):
+        self.MP = {
+            'NOSE': 0,
+            'LEFT_SHOULDER': 11, 'RIGHT_SHOULDER': 12,
+            'LEFT_ELBOW': 13, 'RIGHT_ELBOW': 14,
+            'LEFT_WRIST': 15, 'RIGHT_WRIST': 16,
+            'LEFT_HIP': 23, 'RIGHT_HIP': 24,
+            'LEFT_KNEE': 25, 'RIGHT_KNEE': 26,
+            'LEFT_ANKLE': 27, 'RIGHT_ANKLE': 28,
+        }
 
-    DEEP_SQUAT = 0
-    HURDLE_STEP = 1
-    SHOULDER_ABDUCTION = 2
+    def _get_coords(self, frame, joint_name):
+        return np.array(frame[self.MP[joint_name]])
 
-
-class LandmarkIndex:
-    """MediaPipe pose landmark indices."""
-
-    NOSE = 0
-    LEFT_SHOULDER = 11
-    RIGHT_SHOULDER = 12
-    LEFT_ELBOW = 13
-    RIGHT_ELBOW = 14
-    LEFT_WRIST = 15
-    RIGHT_WRIST = 16
-    LEFT_HIP = 23
-    RIGHT_HIP = 24
-    LEFT_KNEE = 25
-    RIGHT_KNEE = 26
-    LEFT_ANKLE = 27
-    RIGHT_ANKLE = 28
-
-
-@dataclass
-class DiagnosticResult:
-    """Result of form analysis for a single frame."""
-
-    feedback: str
-    voice_message: str
-    is_correct: bool
-    angles: dict[str, float]
-    score: float  # 0-100
-
-
-class DiagnosticsEngine:
-    """Analyzes exercise form and provides real-time feedback."""
-
-    def __init__(self, exercise_type: ExerciseType | None = None) -> None:
-        """Initialize diagnostics for specific exercise.
-
-        Args:
-            exercise_type: Type of exercise to analyze.
-        """
-        self._exercise_type = exercise_type or ExerciseType.DEEP_SQUAT
-        self._last_feedback = ""
-        self._feedback_cooldown = 0
-
-    def set_exercise(self, exercise_type: ExerciseType) -> None:
-        """Change the exercise being analyzed."""
-        self._exercise_type = exercise_type
-        self._last_feedback = ""
-        self._feedback_cooldown = 0
-
-    def analyze(self, pose_result: "PoseResult") -> DiagnosticResult:
-        """Analyze pose and generate feedback.
-
-        Args:
-            pose_result: Current frame pose landmarks.
-
-        Returns:
-            DiagnosticResult with feedback and scores.
-        """
-        if not pose_result.is_valid:
-            return DiagnosticResult(
-                feedback="No pose detected - ensure full body is visible",
-                voice_message="",
-                is_correct=False,
-                angles={},
-                score=0.0,
-            )
-
-        landmarks = pose_result.landmarks
-
-        # Calculate relevant angles
-        angles = self._calculate_angles(landmarks)
-
-        # Generate exercise-specific feedback
-        if self._exercise_type == ExerciseType.DEEP_SQUAT:
-            return self._analyze_squat(angles)
-        elif self._exercise_type == ExerciseType.HURDLE_STEP:
-            return self._analyze_hurdle_step(angles)
-        elif self._exercise_type == ExerciseType.SHOULDER_ABDUCTION:
-            return self._analyze_shoulder_abduction(angles)
-
-        return DiagnosticResult(
-            feedback="",
-            voice_message="",
-            is_correct=True,
-            angles=angles,
-            score=50.0,
-        )
-
-    def _calculate_angles(self, landmarks: list) -> dict[str, float]:
-        """Calculate joint angles from landmarks."""
-        angles: dict[str, float] = {}
-
-        try:
-            # Extract key points as numpy arrays
-            l_hip = self._get_point(landmarks, LandmarkIndex.LEFT_HIP)
-            r_hip = self._get_point(landmarks, LandmarkIndex.RIGHT_HIP)
-            l_knee = self._get_point(landmarks, LandmarkIndex.LEFT_KNEE)
-            r_knee = self._get_point(landmarks, LandmarkIndex.RIGHT_KNEE)
-            l_ankle = self._get_point(landmarks, LandmarkIndex.LEFT_ANKLE)
-            r_ankle = self._get_point(landmarks, LandmarkIndex.RIGHT_ANKLE)
-            l_shoulder = self._get_point(landmarks, LandmarkIndex.LEFT_SHOULDER)
-            r_shoulder = self._get_point(landmarks, LandmarkIndex.RIGHT_SHOULDER)
-            l_elbow = self._get_point(landmarks, LandmarkIndex.LEFT_ELBOW)
-            r_elbow = self._get_point(landmarks, LandmarkIndex.RIGHT_ELBOW)
-
-            # Knee flexion angles
-            angles["left_knee"] = self._calculate_angle(l_hip, l_knee, l_ankle)
-            angles["right_knee"] = self._calculate_angle(r_hip, r_knee, r_ankle)
-
-            # Hip flexion angles
-            angles["left_hip"] = self._calculate_angle(l_shoulder, l_hip, l_knee)
-            angles["right_hip"] = self._calculate_angle(r_shoulder, r_hip, r_knee)
-
-            # Shoulder abduction (arm raise)
-            hip_mid = (l_hip + r_hip) / 2
-            angles["left_shoulder_abduction"] = self._calculate_angle(
-                hip_mid, l_shoulder, l_elbow
-            )
-            angles["right_shoulder_abduction"] = self._calculate_angle(
-                hip_mid, r_shoulder, r_elbow
-            )
-
-            # Trunk lean (vertical alignment)
-            shoulder_mid = (l_shoulder + r_shoulder) / 2
-            vertical = shoulder_mid + np.array([0, -1, 0])
-            angles["trunk_lean"] = self._calculate_angle(
-                hip_mid, shoulder_mid, vertical
-            )
-
-        except (IndexError, TypeError) as e:
-            logger.debug("angle_calculation_error", error=str(e))
-
-        return angles
-
-    def _get_point(self, landmarks: list, index: int) -> np.ndarray:
-        """Extract 3D point from landmarks."""
-        lm = landmarks[index]
-        return np.array([lm.x, lm.y, lm.z])
-
-    def _calculate_angle(
-        self, point_a: np.ndarray, point_b: np.ndarray, point_c: np.ndarray
-    ) -> float:
-        """Calculate angle at point_b between vectors BA and BC."""
-        ba = point_a - point_b
-        bc = point_c - point_b
-
-        norm_ba = np.linalg.norm(ba)
-        norm_bc = np.linalg.norm(bc)
-
-        if norm_ba == 0 or norm_bc == 0:
+    @staticmethod
+    def calculate_angle(a, b, c):
+        a, b, c = np.array(a), np.array(b), np.array(c)
+        ba = a - b
+        bc = c - b
+        
+        denom = np.linalg.norm(ba) * np.linalg.norm(bc)
+        if denom == 0:
             return 0.0
+        
+        cosine = np.clip(np.dot(ba, bc) / denom, -1.0, 1.0)
+        return np.degrees(np.arccos(cosine))
 
-        cosine = np.dot(ba, bc) / (norm_ba * norm_bc + 1e-6)
-        angle = np.arccos(np.clip(cosine, -1.0, 1.0))
-        return float(np.degrees(angle))
+    @staticmethod
+    def calculate_distance(a, b):
+        return np.linalg.norm(np.array(a) - np.array(b))
 
-    def _analyze_squat(self, angles: dict[str, float]) -> DiagnosticResult:
-        """Analyze deep squat form."""
-        issues: list[str] = []
-        score = 100.0
+    @staticmethod
+    def calculate_projected_angle(a, b, c):
+        """
+        Calculates angle in 2D plane (ignoring depth) usually for Frontal Plane Projection Angle (FPPA).
+        Points are [x, y, z]. We use x, y.
+        """
+        a = np.array([a[0], a[1]])
+        b = np.array([b[0], b[1]])
+        c = np.array([c[0], c[1]])
+        
+        ba = a - b
+        bc = c - b
+        
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.degrees(np.arccos(np.clip(cosine_angle, -1.0, 1.0)))
+        return angle
 
-        left_knee = angles.get("left_knee", 180)
-        right_knee = angles.get("right_knee", 180)
-        trunk_lean = angles.get("trunk_lean", 0)
+    def diagnose(self, exercise_name, skeleton_data):
+        if skeleton_data is None or len(skeleton_data) == 0:
+            return True, "No data to analyze."
+        
+        if exercise_name == "Deep Squat":
+            return self._analyze_squat(skeleton_data)
+        
+        if exercise_name == "Standing Shoulder Abduction":
+            return self._analyze_shoulder_abduction(skeleton_data)
+        
+        if exercise_name == "Hurdle Step":
+            return self._analyze_hurdle_step(skeleton_data)
 
-        avg_knee = (left_knee + right_knee) / 2
+        return True, "Movement recorded."
 
-        # Check knee flexion
-        if avg_knee > AngleThresholds.SQUAT_KNEE_MAX:
-            issues.append("Go deeper - bend your knees more")
-            score -= 30
-        elif avg_knee < AngleThresholds.SQUAT_KNEE_MIN:
-            issues.append("Good depth!")
-
-        # Check trunk lean
-        if trunk_lean > AngleThresholds.SQUAT_BACK_MAX_LEAN:
-            issues.append("Keep your back more upright")
-            score -= 20
-
-        # Check knee symmetry
-        knee_diff = abs(left_knee - right_knee)
-        if knee_diff > 15:
-            issues.append("Keep knees even")
-            score -= 15
-
-        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
-        voice_message = self._get_voice_message(issues)
-
-        return DiagnosticResult(
-            feedback=feedback,
-            voice_message=voice_message,
-            is_correct=len(issues) == 0 or "Good" in feedback,
-            angles=angles,
-            score=max(0, score),
+    def _analyze_squat(self, skeleton_data):
+        """
+        Deep Squat Analysis based on:
+        1. Depth (Hip crease below knee top)
+        2. Dynamic Knee Valgus (FPPA) - Munro et al.
+        3. Trunk Flexion (Torso Lean)
+        """
+        errors = []
+        max_hip_y = float('-inf')
+        deepest_frame_idx = 0
+        
+        for i, frame in enumerate(skeleton_data):
+            hip_y = (frame[self.MP['LEFT_HIP']][1] + frame[self.MP['RIGHT_HIP']][1]) / 2
+            if hip_y > max_hip_y:
+                max_hip_y = hip_y
+                deepest_frame_idx = i
+                
+        deepest_frame = skeleton_data[deepest_frame_idx]
+        
+        knee_angle_l = self.calculate_angle(
+            self._get_coords(deepest_frame, 'LEFT_HIP'),
+            self._get_coords(deepest_frame, 'LEFT_KNEE'),
+            self._get_coords(deepest_frame, 'LEFT_ANKLE')
         )
-
-    def _analyze_hurdle_step(self, angles: dict[str, float]) -> DiagnosticResult:
-        """Analyze hurdle step form."""
-        issues: list[str] = []
-        score = 100.0
-
-        left_hip = angles.get("left_hip", 180)
-        right_hip = angles.get("right_hip", 180)
-
-        # Detect which leg is raised (lower hip angle = raised leg)
-        raised_hip = min(left_hip, right_hip)
-
-        if raised_hip > AngleThresholds.HURDLE_HIP_MIN:
-            issues.append("Lift your knee higher")
-            score -= 30
-
-        trunk_lean = angles.get("trunk_lean", 0)
-        if trunk_lean > 20:
-            issues.append("Keep your torso upright")
-            score -= 20
-
-        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
-        voice_message = self._get_voice_message(issues)
-
-        return DiagnosticResult(
-            feedback=feedback,
-            voice_message=voice_message,
-            is_correct=len(issues) == 0,
-            angles=angles,
-            score=max(0, score),
+        knee_angle_r = self.calculate_angle(
+            self._get_coords(deepest_frame, 'RIGHT_HIP'),
+            self._get_coords(deepest_frame, 'RIGHT_KNEE'),
+            self._get_coords(deepest_frame, 'RIGHT_ANKLE')
         )
+        
+        min_knee_angle = min(knee_angle_l, knee_angle_r)
 
-    def _analyze_shoulder_abduction(self, angles: dict[str, float]) -> DiagnosticResult:
-        """Analyze shoulder abduction form."""
-        issues: list[str] = []
-        score = 100.0
+        if min_knee_angle > 100: 
+            errors.append("Squat too shallow (hips not low enough).")
 
-        left_abd = angles.get("left_shoulder_abduction", 0)
-        right_abd = angles.get("right_shoulder_abduction", 0)
-
-        avg_abduction = (left_abd + right_abd) / 2
-
-        if avg_abduction < AngleThresholds.SHOULDER_ABDUCTION_MIN:
-            issues.append("Raise your arms higher")
-            score -= 30
-        elif avg_abduction > AngleThresholds.SHOULDER_ABDUCTION_MAX:
-            issues.append("Arms slightly too high")
-            score -= 10
-
-        # Check symmetry
-        abd_diff = abs(left_abd - right_abd)
-        if abd_diff > 15:
-            issues.append("Keep arms at same height")
-            score -= 20
-
-        feedback = " | ".join(issues) if issues else DEFAULT_FEEDBACK
-        voice_message = self._get_voice_message(issues)
-
-        return DiagnosticResult(
-            feedback=feedback,
-            voice_message=voice_message,
-            is_correct=len(issues) == 0,
-            angles=angles,
-            score=max(0, score),
+        #dynamic valgus
+        valgus_angle_l = self.calculate_projected_angle(
+            self._get_coords(deepest_frame, 'LEFT_HIP'),
+            self._get_coords(deepest_frame, 'LEFT_KNEE'),
+            self._get_coords(deepest_frame, 'LEFT_ANKLE')
         )
+        valgus_angle_r = self.calculate_projected_angle(
+            self._get_coords(deepest_frame, 'RIGHT_HIP'),
+            self._get_coords(deepest_frame, 'RIGHT_KNEE'),
+            self._get_coords(deepest_frame, 'RIGHT_ANKLE')
+        )
+        
+        if valgus_angle_l < 165 or valgus_angle_r < 165:
+            errors.append("Knee Valgus detected (knees caving in).")
 
-    def _get_voice_message(self, issues: list[str]) -> str:
-        """Generate voice message with cooldown to avoid spam."""
-        if not issues:
-            return ""
+        #torso lean
+        shoulder_mid = (self._get_coords(deepest_frame, 'LEFT_SHOULDER') + self._get_coords(deepest_frame, 'RIGHT_SHOULDER')) / 2
+        hip_mid = (self._get_coords(deepest_frame, 'LEFT_HIP') + self._get_coords(deepest_frame, 'RIGHT_HIP')) / 2
 
-        # Return first issue as voice feedback
-        message = issues[0]
+        spine_len = self.calculate_distance(shoulder_mid, hip_mid)
+        if spine_len > 0:
+            lean_ratio = abs(shoulder_mid[0] - hip_mid[0]) / spine_len #lateral shift
+            if lean_ratio > 0.15:
+                errors.append("Torso instability (lateral shift).")
 
-        # Avoid repeating same message
-        if message == self._last_feedback:
-            self._feedback_cooldown += 1
-            if self._feedback_cooldown < 10:  # ~1.5 seconds at 150ms per frame
-                return ""
-            self._feedback_cooldown = 0
+        if not errors:
+            return True, "Movement correct."
+        return False, f"ERRORS: {', '.join(set(errors))}"
 
-        self._last_feedback = message
-        return message
+    def _analyze_hurdle_step(self, skeleton_data):
+        """
+        Analyzes Hurdle Step at the point of maximum hip flexion (highest knee point).
+        Focuses on: Pelvic Stability (Trendelenburg) and Torso Stability.
+        """
+        errors = []
+        
+        min_knee_y = float('inf')
+        peak_frame_idx = 0
+        
+        for i, frame in enumerate(skeleton_data):
+            knee_l_y = frame[self.MP['LEFT_KNEE']][1]
+            knee_r_y = frame[self.MP['RIGHT_KNEE']][1]
+            current_min = min(knee_l_y, knee_r_y)
+            
+            if current_min < min_knee_y:
+                min_knee_y = current_min
+                peak_frame_idx = i
+        
+        peak_frame = skeleton_data[peak_frame_idx]
+        
+        hip_l = self._get_coords(peak_frame, 'LEFT_HIP')
+        hip_r = self._get_coords(peak_frame, 'RIGHT_HIP')
+        
+        #pelvic stability
+        pelvis_width = abs(hip_l[0] - hip_r[0])
+        if pelvis_width > 0:
+            tilt = abs(hip_l[1] - hip_r[1]) / pelvis_width
+            if tilt > 0.15: 
+                errors.append("Pelvic instability.")
+        
+        #torso lean
+        shoulder_mid = (self._get_coords(peak_frame, 'LEFT_SHOULDER') + self._get_coords(peak_frame, 'RIGHT_SHOULDER')) / 2
+        hip_mid = (hip_l + hip_r) / 2
+        spine_x_diff = abs(shoulder_mid[0] - hip_mid[0])
+        
+        if pelvis_width > 0:
+            if (spine_x_diff / pelvis_width) > 0.20: 
+                errors.append("Torso lean.")
+
+        if not errors:
+            return True, "Movement correct."
+        return False, f"ERRORS: {', '.join(set(errors))}"
+
+    def _analyze_shoulder_abduction(self, skeleton_data):
+        errors = []
+        error_counts = Counter()
+        frames_analyzed = 0
+        
+        for frame in skeleton_data:
+            wrist_l_y = frame[self.MP['LEFT_WRIST']][1]
+            elbow_l_y = frame[self.MP['LEFT_ELBOW']][1]
+            if wrist_l_y > elbow_l_y: 
+                continue
+                
+            frames_analyzed += 1
+            
+            nose = self._get_coords(frame, 'NOSE')
+            sh_l = self._get_coords(frame, 'LEFT_SHOULDER')
+            sh_r = self._get_coords(frame, 'RIGHT_SHOULDER')
+            hip_mid = (self._get_coords(frame, 'LEFT_HIP') + self._get_coords(frame, 'RIGHT_HIP')) / 2
+            sh_mid = (sh_l + sh_r) / 2
+            
+            #shrugging
+            shoulder_width = self.calculate_distance(sh_l, sh_r)
+            dist_nose_sh_l = self.calculate_distance(nose, sh_l)
+            dist_nose_sh_r = self.calculate_distance(nose, sh_r)
+            
+            if shoulder_width > 0:
+                if (dist_nose_sh_l / shoulder_width) < 0.40 or (dist_nose_sh_r / shoulder_width) < 0.40:
+                    error_counts["Shoulder elevation (Shrugging)"] += 1
+
+            #trunk compensation (lateral lean)
+            spine_vec = sh_mid - hip_mid
+            spine_vec_2d = spine_vec[:2]
+
+            vertical_vec = np.array([0, -1])
+            norm_spine = np.linalg.norm(spine_vec_2d)
+
+            if norm_spine > 0:
+                cosine = np.dot(spine_vec_2d, vertical_vec) / norm_spine
+                angle_trunk = np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0)))
+                
+                if angle_trunk > 15:
+                    error_counts["Excessive trunk lean"] += 1
+            
+            #arm asymmetry
+            wr_l = self._get_coords(frame, 'LEFT_WRIST')
+            wr_r = self._get_coords(frame, 'RIGHT_WRIST')
+            if abs(wr_l[1] - wr_r[1]) > 0.15 and wr_l[1] < sh_l[1]:
+                error_counts["Arm asymmetry"] += 1
+
+        threshold = frames_analyzed * 0.3
+        final_errors = [k for k, v in error_counts.items() if v > threshold]
+
+        if not final_errors:
+            return True, "Movement correct."
+        return False, f"ERRORS: {', '.join(final_errors)}"
+
+class ReportGenerator:
+    def generate_report(self, analysis_results):
+        if not analysis_results:
+            return "No exercise detected."
+
+        total_frames = len(analysis_results)
+        correct_frames = 0
+        all_feedbacks = []
+        exercises_detected = []
+
+        for res in analysis_results:
+            if res.get('exercise'):
+                exercises_detected.append(res['exercise'])
+            
+            if res['is_correct']:
+                correct_frames += 1
+            else:
+                raw_msg = res.get('feedback', "")
+                clean_msg = raw_msg.replace("ERRORS:", "").strip()
+                if clean_msg:
+                    all_feedbacks.append(clean_msg)
+
+        if total_frames == 0:
+            return "Insufficient data for analysis."
+
+        score_percent = (correct_frames / total_frames) * 100
+        
+        if exercises_detected:
+            main_exercise = Counter(exercises_detected).most_common(1)[0][0]
+        else:
+            main_exercise = "Unknown Exercise"
+
+        main_issue = None
+        if all_feedbacks:
+            issue_counts = Counter(all_feedbacks)
+            main_issue = issue_counts.most_common(1)[0][0]
+
+        report = f"Exercise Analysis: {main_exercise}\n"
+        report += f"Technique Score: {score_percent:.1f}% correct form.\n\n"
+
+        if score_percent > 90:
+            report += "Conclusion: Excellent form!"
+        elif score_percent > 60:
+            if main_issue:
+                report += f"Main Issue: '{main_issue}'.\n"
+                report += "Focus on stabilizing this element."
+            else:
+                report += "Good form with minor inconsistencies."
+        else:
+            if main_issue:
+                report += f"Primary Error: '{main_issue}'.\n"
+                report += "Lower intensity and practice the pattern."
+            else:
+                report += "Technique needs improvement."
+
+        return report

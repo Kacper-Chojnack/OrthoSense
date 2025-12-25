@@ -1,114 +1,102 @@
-"""Analysis engine for buffering frames and triggering LSTM classification."""
-
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
 import numpy as np
+import torch
+import torch.nn.functional as F
+from pathlib import Path
+from scipy.interpolate import interp1d
 
-from app.ai.core.config import (
-    CONFIDENCE_THRESHOLD,
-    EXERCISE_CLASSES,
-    SEQUENCE_LENGTH,
-)
-from app.core.logging import get_logger
+from app.ai.core.diagnostics import MovementDiagnostician
+from app.ai.core.model import Model
+import app.ai.core.config as config
 
-if TYPE_CHECKING:
-    from app.ai.core.model import LSTMModel
-    from app.ai.core.pose_estimation import PoseResult
-
-logger = get_logger(__name__)
+AI_DIR = Path(__file__).parent.parent 
+BASE_DIR = Path(__file__).parent.parent.parent.parent 
 
 
-@dataclass
-class AnalysisResult:
-    """Result of LSTM exercise classification."""
+class OrthoSensePredictor:
+    def __init__(self):
+        self.diagnostician = MovementDiagnostician()
+        self.device = torch.device('cpu')
+        self.model = Model(num_class=config.NUM_CLASSES, in_channels=config.IN_CHANNELS)
+        
+        possible_paths = [
+            AI_DIR / "models" / "lstm_best_model.pt",  
+            AI_DIR / config.WEIGHTS_PATH.replace("models/", ""),  
+            BASE_DIR / "app" / "ai" / "models" / "lstm_best_model.pt",  
+            BASE_DIR / config.WEIGHTS_PATH,
+            BASE_DIR / "models" / "lstm_best_model.pt",  
+            BASE_DIR / "models" / "lstm_best_fold_1.pt",  
+        ]
+        model_path = next((p for p in possible_paths if p.exists()), None)
+        
+        if model_path:
+            self._load_weights(model_path)
 
-    exercise_name: str
-    exercise_id: int
-    confidence: float
-    probabilities: dict[str, float]
-    is_confident: bool
+        self.model.to(self.device)
+        self.model.eval()
+        self.LABELS = config.EXERCISE_NAMES
 
-    @classmethod
-    def empty(cls) -> "AnalysisResult":
-        """Create empty result when analysis not ready."""
-        return cls(
-            exercise_name="",
-            exercise_id=-1,
-            confidence=0.0,
-            probabilities={},
-            is_confident=False,
-        )
+    def _load_weights(self, path: Path):
+        try:
+            weights = torch.load(path, map_location=self.device)
+            if isinstance(weights, dict) and "state_dict" in weights:
+                weights = weights["state_dict"]
+            clean_state = {k.replace("module.", ""): v for k, v in weights.items()}
+            self.model.load_state_dict(clean_state, strict=False)
+        except Exception as e:
+            print(f"Error loading weights: {e}")
 
+    def reset(self):
+        pass
 
-@dataclass
-class AnalysisEngine:
-    """Buffers frames and triggers LSTM classification when ready.
+    def preprocess_sequence(self, raw_data):
+        data = np.array(raw_data, dtype=np.float32)
+        T, V, C = data.shape
+        target_frames = config.MAX_FRAME
+        
+        hip_center = (data[:, 23:24, :] + data[:, 24:25, :]) / 2.0
+        data = data - hip_center
+        
+        if T != target_frames:
+            x_old = np.linspace(0, 1, T)
+            x_new = np.linspace(0, 1, target_frames)
+            new_data = np.zeros((target_frames, V, C), dtype=np.float32)
+            for v in range(V):
+                for c in range(C):
+                    f = interp1d(x_old, data[:, v, c], kind='linear')
+                    new_data[:, v, c] = f(x_new)
+            data = new_data
+        
+        data = np.transpose(data, (2, 0, 1))
+        data = data[np.newaxis, :, :, :, np.newaxis]
+        return torch.from_numpy(data).float()
 
-    Collects pose landmarks over SEQUENCE_LENGTH frames, then passes
-    the sequence to LSTM for exercise classification.
-    """
+    def analyze(self, raw_data, forced_exercise_name=None):
+        final_name = "No Exercise Detected"
+        final_conf = 0.0
+        
+        if forced_exercise_name:
+            final_name = forced_exercise_name
+            final_conf = 1.0
+        elif len(raw_data) > 10:
+            with torch.no_grad():
+                input_tensor = self.preprocess_sequence(raw_data).to(self.device)
+                output = self.model(input_tensor)
+                probs = F.softmax(output, dim=1)
+                conf, predicted_idx = torch.max(probs, 1)
+                
+                idx = predicted_idx.item()
+                final_conf = conf.item()
+                final_name = self.LABELS.get(idx, "Unknown")
 
-    model: "LSTMModel"
-    sequence_length: int = SEQUENCE_LENGTH
-    _buffer: list[np.ndarray] = field(default_factory=list)
+        is_correct = True
+        feedback = ""
+        
+        if final_name not in ["No Exercise Detected", "Unknown"]:
+            is_correct, feedback = self.diagnostician.diagnose(final_name, raw_data)
 
-    def add_frame(self, pose_result: "PoseResult") -> bool:
-        """Add pose landmarks to buffer.
-
-        Args:
-            pose_result: Pose estimation result for current frame.
-
-        Returns:
-            True if buffer is full and ready for analysis.
-        """
-        if not pose_result.is_valid:
-            return False
-
-        features = pose_result.to_flat_array()
-        self._buffer.append(features)
-
-        # Keep only last sequence_length frames
-        if len(self._buffer) > self.sequence_length:
-            self._buffer = self._buffer[-self.sequence_length :]
-
-        return len(self._buffer) >= self.sequence_length
-
-    def analyze(self) -> AnalysisResult:
-        """Run LSTM classification on buffered sequence.
-
-        Returns:
-            AnalysisResult with classification if buffer full,
-            empty result otherwise.
-        """
-        if len(self._buffer) < self.sequence_length:
-            return AnalysisResult.empty()
-
-        sequence = np.array(self._buffer[-self.sequence_length :])
-        predicted_class, confidence, probs = self.model.predict(sequence)
-
-        probabilities = {
-            EXERCISE_CLASSES[i]: float(probs[i]) for i in range(len(probs))
+        return {
+            "exercise": final_name,
+            "confidence": final_conf,
+            "is_correct": is_correct,
+            "feedback": feedback
         }
-
-        return AnalysisResult(
-            exercise_name=EXERCISE_CLASSES.get(predicted_class, "Unknown"),
-            exercise_id=predicted_class,
-            confidence=confidence,
-            probabilities=probabilities,
-            is_confident=confidence >= CONFIDENCE_THRESHOLD,
-        )
-
-    def reset(self) -> None:
-        """Clear the frame buffer."""
-        self._buffer.clear()
-
-    @property
-    def frames_buffered(self) -> int:
-        """Number of frames currently in buffer."""
-        return len(self._buffer)
-
-    @property
-    def frames_needed(self) -> int:
-        """Total frames needed for analysis."""
-        return self.sequence_length

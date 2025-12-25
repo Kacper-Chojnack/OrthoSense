@@ -8,7 +8,7 @@ DOCKER_DIR="$PROJECT_ROOT/config/docker"
 
 echo "🚀 Starting OrthoSense in PRODUCTION mode..."
 
-docker-compose \
+docker compose \
   -f "$DOCKER_DIR/docker-compose.yml" \
   -f "$DOCKER_DIR/docker-compose.prod.yml" \
   up -d --build

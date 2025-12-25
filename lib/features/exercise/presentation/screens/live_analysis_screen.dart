@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image/image.dart' as img;
 import 'package:orthosense/core/providers/tts_provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -149,7 +151,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   String _getWebSocketUrl() {
     const host = String.fromEnvironment(
       'WS_HOST',
-      defaultValue: '10.0.2.2',
+      defaultValue: '192.168.0.23',
     );
     const port = String.fromEnvironment(
       'WS_PORT',
@@ -217,18 +219,31 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   void _startAnalysis() {
     if (!_isInitialized || _isAnalyzing) return;
 
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+
     setState(() {
       _isAnalyzing = true;
       _feedback = 'Starting analysis...';
     });
 
-    _frameTimer = Timer.periodic(
-      const Duration(milliseconds: 150),
-      (_) => _captureAndSendFrame(),
-    );
+    DateTime? lastProcessed;
+    controller.startImageStream((CameraImage image) {
+      if (!_isAnalyzing || _isProcessingFrame) return;
+      
+      final now = DateTime.now();
+      if (lastProcessed != null && 
+          now.difference(lastProcessed!).inMilliseconds < 150) {
+        return; 
+      }
+      lastProcessed = now;
+      
+      _processImageStream(image);
+    });
   }
 
   void _stopAnalysis() {
+    _cameraController?.stopImageStream();
     _frameTimer?.cancel();
     _frameTimer = null;
 
@@ -239,26 +254,106 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     _sendCommand('stop');
   }
 
-  Future<void> _captureAndSendFrame() async {
-    final controller = _cameraController;
-    if (controller == null ||
-        !controller.value.isInitialized ||
-        _isProcessingFrame) {
-      return;
-    }
+  Future<void> _processImageStream(CameraImage image) async {
+    if (_isProcessingFrame || _channel == null) return;
 
     _isProcessingFrame = true;
 
     try {
-      final xFile = await controller.takePicture();
-      final bytes = await xFile.readAsBytes();
-
-      _channel?.sink.add(bytes);
+      final jpegBytes = await _convertImageToJpeg(image);
+      if (jpegBytes != null && jpegBytes.isNotEmpty) {
+        _channel?.sink.add(jpegBytes);
+      }
     } catch (e) {
-      debugPrint('Error capturing frame: $e');
+      debugPrint('Error processing image stream: $e');
     } finally {
       _isProcessingFrame = false;
     }
+  }
+
+  Future<Uint8List?> _convertImageToJpeg(CameraImage image) async {
+    try {
+      final img.Image? imgImage = _convertCameraImageToImage(image);
+      if (imgImage == null) return null;
+
+      final jpegBytes = Uint8List.fromList(img.encodeJpg(imgImage, quality: 85));
+      return jpegBytes;
+    } catch (e) {
+      debugPrint('Error converting image: $e');
+      return null;
+    }
+  }
+
+  img.Image? _convertCameraImageToImage(CameraImage cameraImage) {
+    try {
+      if (cameraImage.format.group == ImageFormatGroup.yuv420) {
+        return _convertYUV420ToImage(cameraImage);
+      } else if (cameraImage.format.group == ImageFormatGroup.bgra8888) {
+        return _convertBGRA8888ToImage(cameraImage);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error converting camera image: $e');
+      return null;
+    }
+  }
+
+  img.Image _convertYUV420ToImage(CameraImage cameraImage) {
+    final width = cameraImage.width;
+    final height = cameraImage.height;
+    final yBuffer = cameraImage.planes[0].bytes;
+    final uBuffer = cameraImage.planes[1].bytes;
+    final vBuffer = cameraImage.planes[2].bytes;
+
+    final yRowStride = cameraImage.planes[0].bytesPerRow;
+    final uvRowStride = cameraImage.planes[1].bytesPerRow;
+    final uvPixelStride = cameraImage.planes[1].bytesPerPixel ?? 1;
+
+    final image = img.Image(width: width, height: height);
+
+    for (int y = 0; y < height; y++) {
+      final yp = y * yRowStride;
+      final uvRowStart = (y ~/ 2) * uvRowStride;
+      
+      for (int x = 0; x < width; x++) {
+        final uvIndex = uvRowStart + (x ~/ 2) * uvPixelStride;
+        final yIndex = yp + x;
+
+        final yVal = yBuffer[yIndex];
+        final u = uBuffer[uvIndex];
+        final v = vBuffer[uvIndex];
+
+        final r = (yVal + 1.402 * (v - 128)).clamp(0, 255).toInt();
+        final g = (yVal - 0.344 * (u - 128) - 0.714 * (v - 128)).clamp(0, 255).toInt();
+        final b = (yVal + 1.772 * (u - 128)).clamp(0, 255).toInt();
+
+        image.setPixelRgba(x, y, r, g, b, 255);
+      }
+    }
+
+    return image;
+  }
+
+  img.Image _convertBGRA8888ToImage(CameraImage cameraImage) {
+    final width = cameraImage.width;
+    final height = cameraImage.height;
+    final buffer = cameraImage.planes[0].bytes;
+
+    final image = img.Image(width: width, height: height);
+
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        final index = (y * width + x) * 4;
+        final b = buffer[index];
+        final g = buffer[index + 1];
+        final r = buffer[index + 2];
+        final a = buffer[index + 3];
+
+        image.setPixelRgba(x, y, r, g, b, a);
+      }
+    }
+
+    return image;
   }
 
   void _showError(String message) {
@@ -290,8 +385,24 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           children: [
             if (_isInitialized && _cameraController != null)
               Positioned.fill(
-                child: CameraPreview(_cameraController!),
-              )
+                  child: _cameraController!.value.isInitialized
+                      ? LayoutBuilder(
+                          builder: (context, constraints) {
+                            final size = constraints.biggest;
+                            var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
+
+                            if (scale < 1) scale = 1 / scale;
+
+                            return Transform.scale(
+                              scale: scale,
+                              child: Center(
+                                child: CameraPreview(_cameraController!),
+                              ),
+                            );
+                          },
+                        )
+                      : const Center(child: CircularProgressIndicator()),
+                )
             else
               const Center(child: CircularProgressIndicator()),
             Positioned(
