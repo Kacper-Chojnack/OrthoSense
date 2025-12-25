@@ -26,6 +26,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     with WidgetsBindingObserver {
   CameraController? _cameraController;
   WebSocketChannel? _channel;
+  StreamSubscription<dynamic>? _wsSubscription;
   Timer? _frameTimer;
 
   bool _isInitialized = false;
@@ -110,10 +111,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       final wsUrl = _getWebSocketUrl();
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
-      _channel!.stream.listen(
+      _wsSubscription = _channel!.stream.listen(
         _handleWebSocketMessage,
         onError: (Object error) {
           debugPrint('WebSocket error: $error');
+          if (!mounted) return;
           setState(() {
             _connectionStatus = 'Connection error';
             _isConnected = false;
@@ -121,6 +123,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         },
         onDone: () {
           debugPrint('WebSocket closed');
+          if (!mounted) return;
           setState(() {
             _connectionStatus = 'Disconnected';
             _isConnected = false;
@@ -135,6 +138,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
       _sendCommand('start', {'exercise': widget.exerciseName});
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _connectionStatus = 'Failed to connect';
       });
@@ -268,6 +272,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _frameTimer?.cancel();
+    _wsSubscription?.cancel();
     _cameraController?.dispose();
     _channel?.sink.close();
     super.dispose();
