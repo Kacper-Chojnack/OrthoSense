@@ -39,12 +39,13 @@ class Settings(BaseSettings):
         "127.0.0.1",
         "orthosense.app",
         "testserver",
+        "192.168.1.103",  # Local network for mobile testing
     ]
 
     # Privacy: Server-side video analysis is DISABLED by default.
     # Edge AI on mobile is the primary architecture (video never leaves device).
     # Enable ONLY for internal testing with explicit consent.
-    enable_server_side_analysis: bool = False
+    enable_server_side_analysis: bool = True  # Enabled for local testing
 
     # Rate Limiting (Redis)
     redis_url: str = "redis://localhost:6379"
