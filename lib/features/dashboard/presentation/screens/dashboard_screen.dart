@@ -5,6 +5,7 @@ import 'package:orthosense/features/auth/presentation/providers/auth_notifier.da
 import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
 /// Asset path constants
@@ -107,7 +108,7 @@ class DashboardScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Select Camera',
+              'Select Input Source',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 24),
@@ -147,6 +148,22 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const GalleryAnalysisScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.video_library_outlined),
+                label: const Text('Analyze from Gallery'),
+              ),
             ),
           ],
         ),

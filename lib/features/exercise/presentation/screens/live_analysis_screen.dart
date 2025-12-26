@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
 import 'package:orthosense/core/providers/tts_provider.dart';
+import 'package:orthosense/infrastructure/networking/dio_provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Real-time exercise analysis screen with camera feed and AI feedback.
@@ -41,8 +42,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   bool _isCorrect = true;
   int _framesBuffered = 0;
   int _framesNeeded = 30;
-
-  String _connectionStatus = 'Connecting...';
 
   @override
   void initState() {
@@ -119,7 +118,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           debugPrint('WebSocket error: $error');
           if (!mounted) return;
           setState(() {
-            _connectionStatus = 'Connection error';
             _isConnected = false;
           });
         },
@@ -127,14 +125,12 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           debugPrint('WebSocket closed');
           if (!mounted) return;
           setState(() {
-            _connectionStatus = 'Disconnected';
             _isConnected = false;
           });
         },
       );
 
       setState(() {
-        _connectionStatus = 'Connected';
         _isConnected = true;
       });
 
@@ -144,25 +140,17 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       _sendCommand('start', exerciseData);
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _connectionStatus = 'Failed to connect';
-      });
       _showError('WebSocket connection failed: $e');
     }
   }
 
   String _getWebSocketUrl() {
-    const host = String.fromEnvironment(
-      'WS_HOST',
-      defaultValue: '192.168.0.23',
-    );
-    const port = String.fromEnvironment(
-      'WS_PORT',
-      defaultValue: '8000',
-    );
+    final dio = ref.read(dioProvider);
+    final baseUrl = dio.options.baseUrl;
+    final wsBaseUrl = baseUrl.replaceFirst('http', 'ws');
 
     final clientId = DateTime.now().millisecondsSinceEpoch.toString();
-    return 'ws://$host:$port/api/v1/analysis/ws/$clientId';
+    return '$wsBaseUrl/api/v1/analysis/ws/$clientId';
   }
 
   void _handleWebSocketMessage(dynamic message) {
@@ -456,58 +444,40 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       child: Row(
         children: [
           IconButton(
-            icon: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () {
               _stopAnalysis();
               Navigator.of(context).pop();
             },
           ),
-          Expanded(
-            child: Column(
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
               children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _isConnected ? Colors.green : Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  widget.exerciseName ?? 'Detecting Exercise...',
+                  _isConnected ? 'LIVE' : 'OFFLINE',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _isConnected ? Colors.green : Colors.red,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _connectionStatus,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
-          ),
-          IconButton(
-            icon: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
-              color: Colors.white,
-            ),
-            onPressed: null,
           ),
         ],
       ),
@@ -533,9 +503,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       ),
       child: Row(
         children: [
-          Image.asset(
-            'assets/images/logo.png',
-            height: 28,
+          Icon(
+            _isCorrect ? Icons.check_circle_outline : Icons.info_outline,
+            size: 28,
             color: Colors.white,
           ),
           const SizedBox(width: 12),
@@ -597,6 +567,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             children: [
               _buildControlButton(
                 label: 'Audio',
+                icon: Icons.volume_up,
                 onPressed: () {
                   final tts = ref.read(ttsServiceProvider);
                   final isMuted = tts.state.value.isMuted;
@@ -606,6 +577,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               _buildMainButton(colorScheme),
               _buildControlButton(
                 label: 'Guide',
+                icon: Icons.help_outline,
                 onPressed: _showInstructions,
               ),
             ],
@@ -617,15 +589,16 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
   Widget _buildControlButton({
     required String label,
+    required IconData icon,
     required VoidCallback onPressed,
   }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: Image.asset(
-            'assets/images/logo.png',
-            height: 28,
+          icon: Icon(
+            icon,
+            size: 28,
             color: Colors.white,
           ),
           onPressed: onPressed,
@@ -662,9 +635,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             ),
           ],
         ),
-        child: Image.asset(
-          'assets/images/logo.png',
-          height: 40,
+        child: Icon(
+          _isAnalyzing ? Icons.stop_rounded : Icons.play_arrow_rounded,
+          size: 48,
           color: Colors.white,
         ),
       ),
@@ -690,21 +663,21 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               ),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
-              title: const Text('Make sure your full body is visible'),
+            const ListTile(
+              leading: Icon(Icons.accessibility_new, size: 24),
+              title: Text('Make sure your full body is visible'),
             ),
-            ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
-              title: const Text('Good lighting helps AI detection'),
+            const ListTile(
+              leading: Icon(Icons.light_mode, size: 24),
+              title: Text('Good lighting helps AI detection'),
             ),
-            ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
-              title: const Text('Stand 2-3 meters from the camera'),
+            const ListTile(
+              leading: Icon(Icons.straighten, size: 24),
+              title: Text('Stand 2-3 meters from the camera'),
             ),
-            ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
-              title: const Text('Wear fitted clothing for better tracking'),
+            const ListTile(
+              leading: Icon(Icons.checkroom, size: 24),
+              title: Text('Wear fitted clothing for better tracking'),
             ),
             const SizedBox(height: 16),
             SizedBox(
