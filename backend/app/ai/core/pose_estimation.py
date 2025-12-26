@@ -48,16 +48,6 @@ class VideoProcessor:
         print(f"[VideoProcessor] Using model: {model_path}")
 
         base_options = python.BaseOptions(model_asset_path=model_path)
-        options = vision.PoseLandmarkerOptions(
-            base_options=base_options,
-            output_segmentation_masks=False,
-            min_pose_detection_confidence=0.5,
-            min_pose_presence_confidence=0.5,
-            min_tracking_confidence=0.5,
-            running_mode=vision.RunningMode.VIDEO,
-        )
-        self.landmarker = vision.PoseLandmarker.create_from_options(options)
-
         image_options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             output_segmentation_masks=False,
@@ -161,47 +151,59 @@ class VideoProcessor:
         needs_rotation = False
         self.frame_timestamp_ms = 0
 
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
+        # Create a fresh landmarker for this video to ensure clean state and timestamps
+        base_options = python.BaseOptions(model_asset_path=self.model_path)
+        options = vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            output_segmentation_masks=False,
+            min_pose_detection_confidence=0.5,
+            min_pose_presence_confidence=0.5,
+            min_tracking_confidence=0.5,
+            running_mode=vision.RunningMode.VIDEO,
+        )
+        
+        with vision.PoseLandmarker.create_from_options(options) as landmarker:
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
 
-            if not rotation_checked and auto_rotate:
-                h, w = frame.shape[:2]
-                if w > h:
-                    needs_rotation = self._check_orientation(frame)
-                    if needs_rotation:
-                        print("[WARN] Auto-rotation will be applied.")
-                rotation_checked = True
+                if not rotation_checked and auto_rotate:
+                    h, w = frame.shape[:2]
+                    if w > h:
+                        needs_rotation = self._check_orientation(frame)
+                        if needs_rotation:
+                            print("[WARN] Auto-rotation will be applied.")
+                    rotation_checked = True
 
-            if needs_rotation and auto_rotate:
-                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+                if needs_rotation and auto_rotate:
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
-            frame = cv2.resize(frame, (640, 480))
-            image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame = cv2.resize(frame, (640, 480))
+                image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            mp_image = mp.Image(image_format=ImageFormat.SRGB, data=image_rgb)
+                mp_image = mp.Image(image_format=ImageFormat.SRGB, data=image_rgb)
 
-            results = self.landmarker.detect_for_video(
-                mp_image, self.frame_timestamp_ms
-            )
-            self.frame_timestamp_ms += frame_duration_ms
-
-            if results.pose_world_landmarks and len(results.pose_world_landmarks) > 0:
-                skeleton = self.get_raw_landmarks(results.pose_world_landmarks[0])
-                last_valid_skeleton = skeleton
-
-                pose_landmarks = (
-                    results.pose_landmarks[0] if results.pose_landmarks else None
+                results = landmarker.detect_for_video(
+                    mp_image, self.frame_timestamp_ms
                 )
-                is_visible, _, _ = self.check_visibility(pose_landmarks)
+                self.frame_timestamp_ms += frame_duration_ms
 
-                yield skeleton, is_visible
-            else:
-                if last_valid_skeleton is not None:
-                    yield last_valid_skeleton, False
+                if results.pose_world_landmarks and len(results.pose_world_landmarks) > 0:
+                    skeleton = self.get_raw_landmarks(results.pose_world_landmarks[0])
+                    last_valid_skeleton = skeleton
+
+                    pose_landmarks = (
+                        results.pose_landmarks[0] if results.pose_landmarks else None
+                    )
+                    is_visible, _, _ = self.check_visibility(pose_landmarks)
+
+                    yield skeleton, is_visible
                 else:
-                    yield np.zeros((33, 3), dtype=np.float32), False
+                    if last_valid_skeleton is not None:
+                        yield last_valid_skeleton, False
+                    else:
+                        yield np.zeros((33, 3), dtype=np.float32), False
 
         cap.release()
 

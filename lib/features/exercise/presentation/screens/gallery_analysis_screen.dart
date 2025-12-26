@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:orthosense/core/theme/app_colors.dart';
+import 'package:orthosense/infrastructure/networking/dio_provider.dart';
 import 'package:video_player/video_player.dart';
 
 /// Screen for analyzing pre-recorded videos from device gallery.
@@ -62,14 +63,7 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
     });
 
     try {
-      // TODO(kacperchojnacki): Replace with configured base URL from environment/provider
-      final dio = Dio(
-        BaseOptions(
-          baseUrl: 'http://192.168.0.23:8000',
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(minutes: 5),
-        ),
-      );
+      final dio = ref.read(dioProvider);
 
       final fileName = _selectedVideo!.path.split('/').last;
       final formData = FormData.fromMap({
@@ -82,6 +76,10 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       final response = await dio.post<Map<String, dynamic>>(
         '/api/v1/analysis/video',
         data: formData,
+        options: Options(
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
         onSendProgress: (sent, total) {
           if (mounted) {
             setState(() {

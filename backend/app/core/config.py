@@ -40,7 +40,7 @@ class Settings(BaseSettings):
         "orthosense.app",
         "testserver",
         "192.168.1.103",  # Old local network IP
-        "192.168.0.23",  # Current local network IP for mobile testing
+        "192.168.1.103",  # Current local network IP for mobile testing
     ]
 
     # Rate Limiting (Redis)
