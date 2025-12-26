@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore",  
+        extra="ignore",
     )
 
     # API Configuration
@@ -42,11 +42,6 @@ class Settings(BaseSettings):
         "192.168.1.103",  # Old local network IP
         "192.168.0.23",  # Current local network IP for mobile testing
     ]
-
-    # Privacy: Server-side video analysis is DISABLED by default.
-    # Edge AI on mobile is the primary architecture (video never leaves device).
-    # Enable ONLY for internal testing with explicit consent.
-    enable_server_side_analysis: bool = True  # Enabled for local testing
 
     # Rate Limiting (Redis)
     redis_url: str = "redis://localhost:6379"

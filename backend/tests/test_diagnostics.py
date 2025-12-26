@@ -1,98 +1,69 @@
+"""Tests for movement diagnostics module."""
+
 import numpy as np
 
-from app.ai.core.diagnostics import DiagnosticResult, DiagnosticsEngine, ExerciseType
-from app.ai.core.pose_estimation import Landmark, PoseResult
+from app.ai.core.diagnostics import MovementDiagnostician
 
 
-def create_mock_pose(points_map=None):
-    """Create a PoseResult with specific points set."""
-    landmarks = [Landmark(0, 0, 0, 0) for _ in range(33)]
-    if points_map:
-        for idx, (x, y, z) in points_map.items():
-            landmarks[idx] = Landmark(x, y, z, 1.0)
-    return PoseResult(landmarks=landmarks)
+def create_mock_skeleton_frame(joint_positions: dict | None = None) -> np.ndarray:
+    """Create a mock skeleton frame with 33 landmarks × 3 coords."""
+    frame = np.zeros((33, 3), dtype=np.float32)
+    if joint_positions:
+        for idx, (x, y, z) in joint_positions.items():
+            frame[idx] = [x, y, z]
+    return frame
 
 
-def test_diagnostics_init():
-    """Test initialization and exercise setting."""
-    engine = DiagnosticsEngine()
-    assert engine._exercise_type == ExerciseType.DEEP_SQUAT
-
-    engine.set_exercise(ExerciseType.HURDLE_STEP)
-    assert engine._exercise_type == ExerciseType.HURDLE_STEP
-    assert engine._last_feedback == ""
+def test_diagnostician_init():
+    """Test initialization of MovementDiagnostician."""
+    diag = MovementDiagnostician()
+    assert diag.MP is not None
+    assert "LEFT_HIP" in diag.MP
+    assert "RIGHT_KNEE" in diag.MP
 
 
-def test_analyze_no_pose():
-    """Test analysis with invalid pose."""
-    engine = DiagnosticsEngine()
-    res = engine.analyze(PoseResult())
-    assert not res.is_correct
-    assert "No pose detected" in res.feedback
-
-
-def test_calculate_angle():
-    """Test vector angle calculation."""
-    engine = DiagnosticsEngine()
-
+def test_calculate_angle_90_degrees():
+    """Test angle calculation for 90 degree angle."""
     # 90 degree angle
     a = np.array([1, 0, 0])
     b = np.array([0, 0, 0])  # Vertex
     c = np.array([0, 1, 0])
 
-    angle = engine._calculate_angle(a, b, c)
+    angle = MovementDiagnostician.calculate_angle(a, b, c)
     assert abs(angle - 90.0) < 0.1
 
-    # 180 degree angle
+
+def test_calculate_angle_180_degrees():
+    """Test angle calculation for straight line (180 degrees)."""
     a = np.array([1, 0, 0])
     b = np.array([0, 0, 0])
     c = np.array([-1, 0, 0])
-    angle = engine._calculate_angle(a, b, c)
+
+    angle = MovementDiagnostician.calculate_angle(a, b, c)
     assert abs(angle - 180.0) < 0.1
 
 
-def test_analyze_squat_good():
-    """Test squat analysis with good form."""
-    engine = DiagnosticsEngine(ExerciseType.DEEP_SQUAT)
+def test_calculate_distance():
+    """Test distance calculation between two points."""
+    a = np.array([0, 0, 0])
+    b = np.array([3, 4, 0])
 
-    # Mock landmarks for a good squat (knees bent ~90 deg)
-    # Hip (23, 24), Knee (25, 26), Ankle (27, 28)
-    # Simple 2D coordinates for 90 deg knee
-    points = {
-        23: (0, 1, 0),  # Hip
-        25: (1, 1, 0),  # Knee
-        27: (1, 0, 0),  # Ankle
-        24: (0, 1, 0),  # R Hip
-        26: (1, 1, 0),  # R Knee
-        28: (1, 0, 0),  # R Ankle
-        11: (0, 2, 0),  # L Shoulder (upright)
-        12: (0, 2, 0),  # R Shoulder
-    }
-
-    pose = create_mock_pose(points)
-    res = engine.analyze(pose)
-
-    # Note: The exact angle calculation depends on 3D vectors,
-    # but this setup should produce valid angles.
-    assert res.angles
-    # We just check it runs without error and produces a result
-    assert isinstance(res, DiagnosticResult)
+    distance = MovementDiagnostician.calculate_distance(a, b)
+    assert abs(distance - 5.0) < 0.01
 
 
-def test_voice_message_cooldown():
-    """Test that voice messages don't spam."""
-    engine = DiagnosticsEngine()
-    issues = ["Fix your back"]
+def test_diagnose_empty_data():
+    """Test diagnosis with empty skeleton data."""
+    diag = MovementDiagnostician()
+    is_correct, feedback = diag.diagnose("Deep Squat", None)
+    assert is_correct is True
+    assert "No data" in feedback
 
-    # First time
-    msg1 = engine._get_voice_message(issues)
-    assert msg1 == "Fix your back"
 
-    # Immediate second time (should be silenced)
-    msg2 = engine._get_voice_message(issues)
-    assert msg2 == ""
-
-    # After cooldown
-    engine._feedback_cooldown = 100
-    msg3 = engine._get_voice_message(issues)
-    assert msg3 == "Fix your back"
+def test_diagnose_unknown_exercise():
+    """Test diagnosis with unknown exercise returns generic feedback."""
+    diag = MovementDiagnostician()
+    skeleton_data = [create_mock_skeleton_frame()]
+    is_correct, feedback = diag.diagnose("Unknown Exercise", skeleton_data)
+    assert is_correct is True
+    assert "recorded" in feedback.lower()

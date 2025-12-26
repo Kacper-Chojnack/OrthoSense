@@ -1,33 +1,34 @@
+from pathlib import Path
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from pathlib import Path
 from scipy.interpolate import interp1d
 
+import app.ai.core.config as config
 from app.ai.core.diagnostics import MovementDiagnostician
 from app.ai.core.model import Model
-import app.ai.core.config as config
 
-AI_DIR = Path(__file__).parent.parent 
-BASE_DIR = Path(__file__).parent.parent.parent.parent 
+AI_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent.parent
 
 
 class OrthoSensePredictor:
     def __init__(self):
         self.diagnostician = MovementDiagnostician()
-        self.device = torch.device('cpu')
+        self.device = torch.device("cpu")
         self.model = Model(num_class=config.NUM_CLASSES, in_channels=config.IN_CHANNELS)
-        
+
         possible_paths = [
-            AI_DIR / "models" / "lstm_best_model.pt",  
-            AI_DIR / config.WEIGHTS_PATH.replace("models/", ""),  
-            BASE_DIR / "app" / "ai" / "models" / "lstm_best_model.pt",  
+            AI_DIR / "models" / "lstm_best_model.pt",
+            AI_DIR / config.WEIGHTS_PATH.replace("models/", ""),
+            BASE_DIR / "app" / "ai" / "models" / "lstm_best_model.pt",
             BASE_DIR / config.WEIGHTS_PATH,
-            BASE_DIR / "models" / "lstm_best_model.pt",  
-            BASE_DIR / "models" / "lstm_best_fold_1.pt",  
+            BASE_DIR / "models" / "lstm_best_model.pt",
+            BASE_DIR / "models" / "lstm_best_fold_1.pt",
         ]
         model_path = next((p for p in possible_paths if p.exists()), None)
-        
+
         if model_path:
             self._load_weights(model_path)
 
@@ -52,20 +53,20 @@ class OrthoSensePredictor:
         data = np.array(raw_data, dtype=np.float32)
         T, V, C = data.shape
         target_frames = config.MAX_FRAME
-        
+
         hip_center = (data[:, 23:24, :] + data[:, 24:25, :]) / 2.0
         data = data - hip_center
-        
-        if T != target_frames:
+
+        if target_frames != T:
             x_old = np.linspace(0, 1, T)
             x_new = np.linspace(0, 1, target_frames)
             new_data = np.zeros((target_frames, V, C), dtype=np.float32)
             for v in range(V):
                 for c in range(C):
-                    f = interp1d(x_old, data[:, v, c], kind='linear')
+                    f = interp1d(x_old, data[:, v, c], kind="linear")
                     new_data[:, v, c] = f(x_new)
             data = new_data
-        
+
         data = np.transpose(data, (2, 0, 1))
         data = data[np.newaxis, :, :, :, np.newaxis]
         return torch.from_numpy(data).float()
@@ -73,7 +74,7 @@ class OrthoSensePredictor:
     def analyze(self, raw_data, forced_exercise_name=None):
         final_name = "No Exercise Detected"
         final_conf = 0.0
-        
+
         if forced_exercise_name:
             final_name = forced_exercise_name
             final_conf = 1.0
@@ -83,14 +84,14 @@ class OrthoSensePredictor:
                 output = self.model(input_tensor)
                 probs = F.softmax(output, dim=1)
                 conf, predicted_idx = torch.max(probs, 1)
-                
+
                 idx = predicted_idx.item()
                 final_conf = conf.item()
                 final_name = self.LABELS.get(idx, "Unknown")
 
         is_correct = True
         feedback = ""
-        
+
         if final_name not in ["No Exercise Detected", "Unknown"]:
             is_correct, feedback = self.diagnostician.diagnose(final_name, raw_data)
 
@@ -98,5 +99,5 @@ class OrthoSensePredictor:
             "exercise": final_name,
             "confidence": final_conf,
             "is_correct": is_correct,
-            "feedback": feedback
+            "feedback": feedback,
         }

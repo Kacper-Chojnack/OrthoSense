@@ -4,7 +4,8 @@ import 'package:orthosense/features/auth/domain/models/user_model.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
-import 'package:orthosense/features/exercise/presentation/screens/exercise_selection_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
 /// Main dashboard screen with analytics overview and quick actions.
 class DashboardScreen extends ConsumerWidget {
@@ -19,13 +20,18 @@ class DashboardScreen extends ConsumerWidget {
         title: const Text('OrthoSense'),
         centerTitle: true,
         leading: IconButton(
-          icon: Image.asset('assets/images/logo.png', height: 24),
+          icon: const Icon(Icons.person_outline_rounded),
           tooltip: 'Profile',
           onPressed: () => _openProfile(context),
         ),
         actions: [
           IconButton(
-            icon: Image.asset('assets/images/logo.png', height: 24),
+            icon: const Icon(Icons.menu_book),
+            tooltip: 'Exercise Catalog',
+            onPressed: () => _openExerciseCatalog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
             tooltip: 'Activity Log',
             onPressed: () => _openActivityLog(context),
           ),
@@ -83,15 +89,71 @@ class DashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _startSession(context),
-        icon: Image.asset('assets/images/logo.png', height: 24),
+        icon: const Icon(Icons.play_arrow_rounded),
         label: const Text('Start Session'),
       ),
     );
   }
 
   void _startSession(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select Camera',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LiveAnalysisScreen(
+                            useFrontCamera: true,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.camera_front),
+                    label: const Text('Front'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const LiveAnalysisScreen(
+                            useFrontCamera: false,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.camera_rear),
+                    label: const Text('Back'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openExerciseCatalog(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ExerciseSelectionScreen()),
+      MaterialPageRoute<void>(builder: (_) => const ExerciseCatalogScreen()),
     );
   }
 
@@ -199,24 +261,28 @@ class _StatsGrid extends StatelessWidget {
           value: '12',
           trend: '+3 this week',
           color: Colors.blue,
+          icon: Icons.fitness_center_rounded,
         ),
         _StatCard(
           label: 'Avg Score',
           value: '87%',
           trend: '+5% vs last week',
           color: Colors.green,
+          icon: Icons.trending_up_rounded,
         ),
         _StatCard(
           label: 'Active Streak',
           value: '3',
           trend: 'days',
           color: Colors.orange,
+          icon: Icons.local_fire_department_rounded,
         ),
         _StatCard(
           label: 'Total Time',
           value: '4h 20m',
           trend: 'this month',
           color: Colors.purple,
+          icon: Icons.timer_outlined,
         ),
       ],
     );
@@ -229,12 +295,14 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.trend,
     required this.color,
+    required this.icon,
   });
 
   final String label;
   final String value;
   final String trend;
   final Color color;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +314,7 @@ class _StatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset('assets/images/logo.png', height: 20, color: color),
+            Icon(icon, size: 20, color: color),
             const SizedBox(height: 4),
             Flexible(
               child: FittedBox(

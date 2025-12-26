@@ -22,12 +22,12 @@ class ProfileScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
+              leading: const Icon(Icons.camera_alt_outlined),
               title: const Text('Take a photo'),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: Image.asset('assets/images/logo.png', height: 24),
+              leading: const Icon(Icons.photo_library_outlined),
               title: const Text('Choose from gallery'),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
@@ -62,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
-            icon: Image.asset('assets/images/logo.png', height: 24),
+            icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
@@ -84,10 +84,15 @@ class ProfileScreen extends ConsumerWidget {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: colorScheme.primaryContainer,
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: 60,
-                            width: 60,
+                          child: Text(
+                            user.fullName.isNotEmpty
+                                ? user.fullName[0].toUpperCase()
+                                : user.email[0].toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onPrimaryContainer,
+                            ),
                           ),
                         ),
                       ),

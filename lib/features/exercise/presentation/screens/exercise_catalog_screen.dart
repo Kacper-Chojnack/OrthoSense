@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/widgets/exercise_demo_video_sheet.dart';
 
-/// Screen for selecting an exercise to perform with real-time analysis.
-class ExerciseSelectionScreen extends ConsumerWidget {
-  const ExerciseSelectionScreen({super.key});
+/// Screen for browsing exercises (Catalog) - read about exercises and watch demos.
+class ExerciseCatalogScreen extends ConsumerWidget {
+  const ExerciseCatalogScreen({super.key});
 
   static const List<ExerciseInfo> _exercises = [
     ExerciseInfo(
@@ -78,8 +79,21 @@ class ExerciseSelectionScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Exercise'),
+        title: const Text('Exercise Catalog'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.video_library),
+            tooltip: 'Analyze from Gallery',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const GalleryAnalysisScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
