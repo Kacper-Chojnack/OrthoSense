@@ -223,7 +223,7 @@ class VideoProcessor:
             pose_landmarks = (
                 results.pose_landmarks[0] if results.pose_landmarks else None
             )
-            is_visible, visible_count, total_key = self.check_visibility(pose_landmarks)
+            is_visible, _, _ = self.check_visibility(pose_landmarks)
 
             return world_landmarks, image_landmarks, is_visible
 

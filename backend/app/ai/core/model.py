@@ -78,7 +78,7 @@ class SkeletonLSTMLight(nn.Module):
         self.fc = nn.Linear(hidden_size * 2, num_class)
 
     def forward(self, x):
-        N, C, T, V, M = x.size()
+        N, C, T, V, _ = x.size()
 
         x = x[:, :, :, :, 0]
         x = x.permute(0, 2, 3, 1)
