@@ -3,8 +3,6 @@ services:
     restart: unless-stopped
     environment:
       - DEBUG=false
-      # In prod, we might want to disable server-side analysis for privacy/perf
-      - ENABLE_SERVER_SIDE_ANALYSIS=false
 
   frontend:
     build:

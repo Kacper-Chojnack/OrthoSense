@@ -136,13 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       hint: 'Enter your email',
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 24,
-                        ),
-                      ),
+                      prefixIcon: const Icon(Icons.email_outlined),
                       autofillHints: const [AutofillHints.email],
                       validator: _validateEmail,
                       enabled: !isLoading,
@@ -156,18 +150,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       hint: 'Enter your password',
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          height: 24,
-                        ),
-                      ),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       autofillHints: const [AutofillHints.password],
                       suffixIcon: IconButton(
-                        icon: Image.asset(
-                          'assets/images/logo.png',
-                          height: 24,
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
                           setState(() => _obscurePassword = !_obscurePassword);

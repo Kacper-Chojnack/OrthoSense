@@ -29,7 +29,8 @@ class _TherapistDashboardScreenState
         title: const Text('Therapist Dashboard'),
         actions: [
           IconButton(
-            icon: Image.asset('assets/images/logo.png', height: 24),
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Logout',
             onPressed: () {
               ref.read(authProvider.notifier).logout();
             },
@@ -46,18 +47,21 @@ class _TherapistDashboardScreenState
               });
             },
             labelType: NavigationRailLabelType.all,
-            destinations: [
+            destinations: const [
               NavigationRailDestination(
-                icon: Image.asset('assets/images/logo.png', height: 24),
-                label: const Text('Patients'),
+                icon: Icon(Icons.group_outlined),
+                selectedIcon: Icon(Icons.group_rounded),
+                label: Text('Patients'),
               ),
               NavigationRailDestination(
-                icon: Image.asset('assets/images/logo.png', height: 24),
-                label: const Text('Protocols'),
+                icon: Icon(Icons.assignment_outlined),
+                selectedIcon: Icon(Icons.assignment_rounded),
+                label: Text('Protocols'),
               ),
               NavigationRailDestination(
-                icon: Image.asset('assets/images/logo.png', height: 24),
-                label: const Text('Analytics'),
+                icon: Icon(Icons.analytics_outlined),
+                selectedIcon: Icon(Icons.analytics_rounded),
+                label: Text('Analytics'),
               ),
             ],
           ),

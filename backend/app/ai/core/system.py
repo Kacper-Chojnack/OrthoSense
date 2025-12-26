@@ -1,18 +1,20 @@
-import numpy as np
 import os
 import time
-from pathlib import Path
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from uuid import uuid4
 
-from app.ai.core.pose_estimation import VideoProcessor
-from app.ai.core.engine import OrthoSensePredictor
+import numpy as np
+
 from app.ai.core.diagnostics import ReportGenerator
+from app.ai.core.engine import OrthoSensePredictor
+from app.ai.core.pose_estimation import VideoProcessor
 
 
 @dataclass
 class FrameAnalysisResult:
     """Compatibility wrapper for frame analysis results."""
+
     feedback: str
     voice_message: str
     is_correct: bool
@@ -23,7 +25,7 @@ class FrameAnalysisResult:
     frames_needed: int = 60
     pose_detected: bool = False
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """Convert to JSON-serializable dictionary."""
         result = {
             "feedback": self.feedback,
@@ -40,52 +42,102 @@ class FrameAnalysisResult:
         return result
 
 
-class OrthoSenseSystem:
-    _instance = None
+@dataclass
+class AnalysisSession:
+    """
+    Holds state for a single analysis session (User/WebSocket connection).
 
-    def __new__(cls):
+    Decouples per-user state from the Singleton AI System, enabling concurrent
+    multi-user support without race conditions.
+    """
+
+    session_id: str = field(default_factory=lambda: str(uuid4()))
+    frame_buffer: list = field(default_factory=list)
+    visibility_buffer: list = field(default_factory=list)
+    calibration_votes: list = field(default_factory=list)
+    start_time: float = field(default_factory=time.time)
+    frame_count: int = 0
+    locked_exercise: str | None = None
+    current_exercise: str = "Deep Squat"
+
+    def reset(self) -> None:
+        """Reset session state for a new analysis."""
+        self.frame_buffer = []
+        self.visibility_buffer = []
+        self.calibration_votes = []
+        self.start_time = time.time()
+        self.frame_count = 0
+        self.locked_exercise = None
+
+
+class OrthoSenseSystem:
+    """
+    OrthoSense AI System Coordinator (Singleton).
+
+    Architecture:
+    - Manages heavy shared resources (ML models) as a Singleton.
+    - All analysis methods require an `AnalysisSession` context for state.
+    - Enables concurrent multi-user support without race conditions.
+    """
+
+    _instance: "OrthoSenseSystem | None" = None
+
+    # Phase timing constants
+    TIME_SETUP = 5.0
+    TIME_CALIBRATION = 10.0
+    PREDICTION_INTERVAL = 5
+
+    # Instance attributes (initialized in __new__)
+    processor: "VideoProcessor"
+    engine: "OrthoSensePredictor"
+    reporter: "ReportGenerator"
+    _initialized: bool
+
+    def __new__(cls) -> "OrthoSenseSystem":
         if cls._instance is None:
-            cls._instance = super(OrthoSenseSystem, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
+            # Shared heavy resources (loaded once)
             cls._instance.processor = VideoProcessor(complexity=0)
             cls._instance.engine = OrthoSensePredictor()
             cls._instance.reporter = ReportGenerator()
             cls._instance._initialized = False
-            cls._instance._current_exercise = "Deep Squat"
-            cls._instance._frame_buffer = []
-            cls._instance._session_start_time = None
-            cls._instance._locked_exercise = None
-            cls._instance._calibration_votes = []
-            cls._instance._frame_count = 0
-            cls._instance.TIME_SETUP = 5.0
-            cls._instance.TIME_CALIBRATION = 10.0  
-            cls._instance.PREDICTION_INTERVAL = 5 
         return cls._instance
 
-    def initialize(self):
-        """Initialize the system."""
+    def initialize(self) -> bool:
+        """Initialize the system resources."""
         self._initialized = True
         return True
 
-    def set_exercise(self, exercise_name: str) -> bool:
-        """Set the current exercise."""
+    def create_session(self, exercise: str = "Deep Squat") -> AnalysisSession:
+        """Factory method to create a new isolated session for a user."""
+        return AnalysisSession(current_exercise=exercise)
+
+    def set_exercise(self, session: AnalysisSession, exercise_name: str) -> bool:
+        """Set the current exercise for a specific session."""
         from app.ai.core.config import EXERCISE_NAMES
+
         if exercise_name in EXERCISE_NAMES.values():
-            self._current_exercise = exercise_name
+            session.current_exercise = exercise_name
+            session.reset()
             return True
         return False
 
-    def analyze_frame(self, frame: np.ndarray):
-        """Analyze a single frame for WebSocket endpoint.
+    def analyze_frame(
+        self, frame: np.ndarray, session: AnalysisSession
+    ) -> FrameAnalysisResult:
         """
-        if self._session_start_time is None:
-            self._session_start_time = time.time()
-            self._locked_exercise = None
-            self._calibration_votes = []
-            self._frame_count = 0
-        
-        frame_rgb = frame[..., ::-1].copy() 
-        world_landmarks, image_landmarks, is_visible = self.processor.process_frame(frame_rgb)
-        
+        Analyze a single frame within a specific session context.
+
+        Args:
+            frame: BGR image frame from camera/video.
+            session: User-specific session holding state.
+
+        Returns:
+            FrameAnalysisResult with feedback and classification.
+        """
+        frame_rgb = frame[..., ::-1].copy()
+        world_landmarks, _, is_visible = self.processor.process_frame(frame_rgb)
+
         if world_landmarks is None:
             return FrameAnalysisResult(
                 feedback="No pose detected - ensure full body is visible",
@@ -95,179 +147,250 @@ class OrthoSenseSystem:
                 angles={},
                 pose_detected=False,
             )
-        
-        if not hasattr(self, '_visibility_buffer'):
-            self._visibility_buffer = []
-        
-        self._frame_buffer.append(world_landmarks)
-        self._visibility_buffer.append(is_visible)
-        self._frame_count += 1
-        
-        if len(self._frame_buffer) > 60:
-            self._frame_buffer = self._frame_buffer[-60:]
-            self._visibility_buffer = self._visibility_buffer[-60:]
-        
-        elapsed_time = time.time() - self._session_start_time
+
+        # Update session buffers
+        session.frame_buffer.append(world_landmarks)
+        session.visibility_buffer.append(is_visible)
+        session.frame_count += 1
+
+        # Maintain buffer size
+        if len(session.frame_buffer) > 60:
+            session.frame_buffer = session.frame_buffer[-60:]
+            session.visibility_buffer = session.visibility_buffer[-60:]
+
+        elapsed_time = time.time() - session.start_time
+
+        # Phase 1: Setup
         if elapsed_time < self.TIME_SETUP:
-            phase = "SETUP"
-            
             return FrameAnalysisResult(
                 feedback="Get ready",
                 voice_message="Get ready",
                 is_correct=True,
                 score=50.0,
                 angles={},
-                frames_buffered=len(self._frame_buffer),
+                frames_buffered=len(session.frame_buffer),
                 frames_needed=60,
                 pose_detected=True,
             )
-        elif elapsed_time < self.TIME_CALIBRATION:
-            phase = "CALIBRATION"
-            
-            if len(self._frame_buffer) >= 30 and self._frame_count % self.PREDICTION_INTERVAL == 0:
-                visible_count = sum(self._visibility_buffer[-30:])
-                visibility_ratio = visible_count / 30.0
-                
-                if visibility_ratio >= 0.7 and is_visible:
-                    result = self.engine.analyze(np.array(self._frame_buffer[-30:]), forced_exercise_name=None)
-                    ex_name = result.get('exercise', '')
-                    if ex_name != "No Exercise Detected" and result.get('confidence', 0.0) > 0.0:
-                        self._calibration_votes.append(ex_name)
-            
+
+        # Phase 2: Calibration / Auto-detection
+        if elapsed_time < self.TIME_CALIBRATION:
+            self._run_calibration(session, is_visible)
             return FrameAnalysisResult(
                 feedback="Analyzing",
                 voice_message="Analyzing exercise",
                 is_correct=True,
                 score=50.0,
                 angles={},
-                frames_buffered=len(self._frame_buffer),
+                frames_buffered=len(session.frame_buffer),
                 frames_needed=60,
                 pose_detected=True,
             )
-        else:
-            phase = "TRAINING"
-            
-            if self._locked_exercise is None:
-                if self._calibration_votes:
-                    most_common = Counter(self._calibration_votes).most_common(1)
-                    if most_common:
-                        self._locked_exercise = most_common[0][0]
-                else:
-                    self._session_start_time = time.time() - self.TIME_SETUP
-                    self._calibration_votes = []
 
-                    elapsed_time = time.time() - self._session_start_time
-                    if elapsed_time < self.TIME_CALIBRATION:
-                        return FrameAnalysisResult(
-                            feedback="Analyzing",
-                            voice_message="Please perform an exercise",
-                            is_correct=True,
-                            score=50.0,
-                            angles={},
-                            frames_buffered=len(self._frame_buffer),
-                            frames_needed=30,
-                            pose_detected=True,
-                        )
-            
-            if len(self._frame_buffer) >= 30:
-                visible_count = sum(self._visibility_buffer[-30:])
-                visibility_ratio = visible_count / 30.0
-                
-                if visibility_ratio < 0.7:
-                    return FrameAnalysisResult(
-                        feedback="Insufficient body visibility - ensure full body is visible",
-                        voice_message="Position yourself so your full body is visible",
-                        is_correct=False,
-                        score=0.0,
-                        angles={},
-                        frames_buffered=len(self._frame_buffer),
-                        frames_needed=30,
-                        pose_detected=True,
-                    )
-                
+        # Phase 3: Active Training
+        return self._run_training_phase(session)
+
+    def _run_calibration(self, session: AnalysisSession, is_visible: bool) -> None:
+        """Run calibration phase to auto-detect exercise type."""
+        if (
+            len(session.frame_buffer) >= 30
+            and session.frame_count % self.PREDICTION_INTERVAL == 0
+        ):
+            visible_count = sum(session.visibility_buffer[-30:])
+            visibility_ratio = visible_count / 30.0
+
+            if visibility_ratio >= 0.7 and is_visible:
                 result = self.engine.analyze(
-                    np.array(self._frame_buffer[-30:]), 
-                    forced_exercise_name=self._locked_exercise
+                    np.array(session.frame_buffer[-30:]), forced_exercise_name=None
                 )
-                
-                return FrameAnalysisResult(
-                    feedback=result.get('feedback', ''),
-                    voice_message=result.get('feedback', ''),
-                    is_correct=result.get('is_correct', True),
-                    score=100.0 if result.get('is_correct', True) else 50.0,
-                    angles={},
-                    classification={
-                        "exercise_name": self._locked_exercise,
-                        "confidence": 1.0,
-                    },
-                    frames_buffered=len(self._frame_buffer),
-                    frames_needed=30,
-                    pose_detected=True,
-                )
+                ex_name = result.get("exercise", "")
+                if (
+                    ex_name != "No Exercise Detected"
+                    and result.get("confidence", 0.0) > 0.0
+                ):
+                    session.calibration_votes.append(ex_name)
+
+    def _run_training_phase(self, session: AnalysisSession) -> FrameAnalysisResult:
+        """Run training phase with locked exercise."""
+        # Lock exercise if not locked
+        if session.locked_exercise is None:
+            if session.calibration_votes:
+                most_common = Counter(session.calibration_votes).most_common(1)
+                if most_common:
+                    session.locked_exercise = most_common[0][0]
             else:
+                # Extend calibration phase
+                session.start_time = time.time() - self.TIME_SETUP
+                session.calibration_votes = []
                 return FrameAnalysisResult(
-                    feedback=f"Collecting frames... {len(self._frame_buffer)}/30",
-                    voice_message="",
+                    feedback="Analyzing",
+                    voice_message="Please perform an exercise",
                     is_correct=True,
                     score=50.0,
                     angles={},
-                    frames_buffered=len(self._frame_buffer),
+                    frames_buffered=len(session.frame_buffer),
                     frames_needed=30,
                     pose_detected=True,
                 )
 
-    def reset(self):
-        """Reset analysis state."""
-        self._frame_buffer = []
-        if hasattr(self, '_visibility_buffer'):
-            self._visibility_buffer = []
-        self._session_start_time = None
-        self._locked_exercise = None
-        self._calibration_votes = []
-        self._frame_count = 0
+        if len(session.frame_buffer) < 30:
+            return FrameAnalysisResult(
+                feedback=f"Collecting frames... {len(session.frame_buffer)}/30",
+                voice_message="",
+                is_correct=True,
+                score=50.0,
+                angles={},
+                frames_buffered=len(session.frame_buffer),
+                frames_needed=30,
+                pose_detected=True,
+            )
 
-    def close(self):
+        # Check visibility
+        visible_count = sum(session.visibility_buffer[-30:])
+        visibility_ratio = visible_count / 30.0
+
+        if visibility_ratio < 0.7:
+            return FrameAnalysisResult(
+                feedback="Insufficient body visibility - ensure full body is visible",
+                voice_message="Position yourself so your full body is visible",
+                is_correct=False,
+                score=0.0,
+                angles={},
+                frames_buffered=len(session.frame_buffer),
+                frames_needed=30,
+                pose_detected=True,
+            )
+
+        # Run inference
+        result = self.engine.analyze(
+            np.array(session.frame_buffer[-30:]),
+            forced_exercise_name=session.locked_exercise,
+        )
+
+        return FrameAnalysisResult(
+            feedback=result.get("feedback", ""),
+            voice_message=result.get("feedback", ""),
+            is_correct=result.get("is_correct", True),
+            score=100.0 if result.get("is_correct", True) else 50.0,
+            angles={},
+            classification={
+                "exercise_name": session.locked_exercise,
+                "confidence": 1.0,
+            },
+            frames_buffered=len(session.frame_buffer),
+            frames_needed=30,
+            pose_detected=True,
+        )
+
+    def reset(self) -> None:
+        """Legacy reset - no-op since state is now in sessions."""
+        pass
+
+    def close(self) -> None:
         """Release resources."""
         self._initialized = False
-        self._frame_buffer = []
 
     @property
     def is_initialized(self) -> bool:
         """Check if system is initialized."""
         return self._initialized
 
-    @property
-    def current_exercise(self) -> str:
-        """Get currently selected exercise."""
-        return self._current_exercise
-
-    def analyze_live_frame(self, frame_sequence, forced_exercise=None):
+    def analyze_live_frame(
+        self, frame_sequence: list, forced_exercise: str | None = None
+    ) -> dict:
         """
-        Analyze a single sliding window of frames from the live camera stream.
-        """
+        Analyze a single sliding window of frames (stateless).
 
+        For direct inference without session management.
+        """
         raw_array = np.array(frame_sequence)
-        result = self.engine.analyze(raw_array, forced_exercise_name=forced_exercise)
-        return result
+        return self.engine.analyze(raw_array, forced_exercise_name=forced_exercise)
 
-    def analyze_video_file(self, video_path):        
+    def analyze_video_file(self, video_path: str) -> dict:
         """
-        Analyze a full video file using a sliding window over the entire recording.
-        """
+        Analyze a full video file using a sliding window approach.
 
+        This method is stateless - creates an isolated context for video analysis
+        without affecting any active real-time sessions.
+
+        Args:
+            video_path: Path to the video file.
+
+        Returns:
+            Analysis result dict with exercise, confidence, feedback, and report.
+        """
         if not os.path.exists(video_path):
             return {"error": "File not found"}
 
         self.engine.reset()
-        
-        data_generator = self.processor.process_video_file(video_path, auto_rotate=False)
+
+        # Extract landmarks from video
+        data_generator = self.processor.process_video_file(
+            video_path, auto_rotate=False
+        )
         raw_data_with_visibility = list(data_generator)
-        
-        if not raw_data_with_visibility or len(raw_data_with_visibility) == 0:
+
+        if not raw_data_with_visibility:
             return {"error": "No person detected"}
-        
+
+        # Separate landmarks and visibility flags
+        raw_data, visibility_flags = self._extract_landmarks_and_visibility(
+            raw_data_with_visibility
+        )
+
+        if not raw_data:
+            return {"error": "No person detected"}
+
+        # Create sliding windows
+        windows, window_visibility = self._create_sliding_windows(
+            raw_data, visibility_flags
+        )
+
+        if not windows:
+            return {"error": "Video too short or processing failed"}
+
+        # Phase 1: Classification voting
+        votes = self._classify_windows(windows, window_visibility)
+
+        if not votes:
+            return {"error": "No exercise detected with sufficient confidence."}
+
+        # Determine winner by majority vote
+        vote_counts = Counter(votes)
+        winner_exercise, winner_count = vote_counts.most_common(1)[0]
+        voting_confidence = winner_count / len(votes)
+
+        # Phase 2: Detailed analysis with locked exercise
+        detailed_results = self._analyze_windows_detailed(
+            windows, window_visibility, winner_exercise, raw_data
+        )
+
+        if not detailed_results:
+            return {"error": "Analysis failed"}
+
+        # Generate report
+        text_report = self.reporter.generate_report(detailed_results)
+
+        final_result = {
+            "exercise": winner_exercise,
+            "confidence": voting_confidence,
+            "text_report": text_report,
+            "is_correct": detailed_results[-1]["is_correct"],
+            "feedback": detailed_results[-1]["feedback"],
+        }
+
+        serialized = self._make_serializable(final_result)
+        if isinstance(serialized, dict):
+            return serialized
+        return final_result
+
+    def _extract_landmarks_and_visibility(
+        self, raw_data_with_visibility: list
+    ) -> tuple[list, list]:
+        """Extract landmarks and visibility flags from processor output."""
         raw_data = []
         visibility_flags = []
+
         for item in raw_data_with_visibility:
             if isinstance(item, tuple) and len(item) == 2:
                 landmarks, is_visible = item
@@ -276,115 +399,94 @@ class OrthoSenseSystem:
             else:
                 raw_data.append(item)
                 visibility_flags.append(True)
-        
-        if not raw_data or len(raw_data) == 0:
-            return {"error": "No person detected"}
-        
-        WINDOW_SIZE = 60
-        STEP = 15 
-        
+
+        return raw_data, visibility_flags
+
+    def _create_sliding_windows(
+        self,
+        raw_data: list,
+        visibility_flags: list,
+        window_size: int = 60,
+        step: int = 15,
+    ) -> tuple[list, list]:
+        """Create sliding windows from landmark data."""
         windows = []
         window_visibility = []
-        
-        if len(raw_data) < WINDOW_SIZE:
-             windows.append(np.array(raw_data))
-             window_vis = sum(visibility_flags) >= len(visibility_flags) * 0.7
-             window_visibility.append(window_vis)
+
+        if len(raw_data) < window_size:
+            windows.append(np.array(raw_data))
+            window_vis = sum(visibility_flags) >= len(visibility_flags) * 0.7
+            window_visibility.append(window_vis)
         else:
-            for i in range(0, len(raw_data) - WINDOW_SIZE, STEP):
-                chunk = raw_data[i : i + WINDOW_SIZE]
+            for i in range(0, len(raw_data) - window_size, step):
+                chunk = raw_data[i : i + window_size]
                 windows.append(np.array(chunk))
-                chunk_vis_flags = visibility_flags[i : i + WINDOW_SIZE]
+                chunk_vis_flags = visibility_flags[i : i + window_size]
                 window_vis = sum(chunk_vis_flags) >= len(chunk_vis_flags) * 0.7
                 window_visibility.append(window_vis)
 
-        if not windows:
-            return {"error": "Video too short or processing failed"}
+        return windows, window_visibility
 
+    def _classify_windows(self, windows: list, window_visibility: list) -> list[str]:
+        """Classify windows and collect votes for exercise detection."""
         votes = []
-        window_results = []
-        skipped_windows = 0
-        
+
         for idx, window_array in enumerate(windows):
-            is_visible = window_visibility[idx] if idx < len(window_visibility) else True
-            
+            is_visible = (
+                window_visibility[idx] if idx < len(window_visibility) else True
+            )
+
             if not is_visible:
-                skipped_windows += 1
-                window_results.append((idx, "SKIPPED", 0.0))
                 continue
-            
+
             res = self.engine.analyze(window_array)
-            window_results.append((idx, res['exercise'], res['confidence']))
-            
-            if res['confidence'] > 0.50 and res['exercise'] != "No Exercise Detected":
-                votes.append(res['exercise'])
 
-        print(f"\n[DEBUG] All window predictions ({len(windows)} windows, {skipped_windows} skipped):")
-        for idx, ex, conf in window_results:
-            if ex == "SKIPPED":
-                print(f"  Window {idx+1}: SKIPPED [Insufficient body visibility]")
-            else:
-                status = "OK" if conf > 0.50 and ex != "No Exercise Detected" else "REJECTED"
-                print(f"  Window {idx+1}: {ex} ({conf*100:.1f}%) [{status}]")
-        
-        if not votes:
-            return {"error": "No exercise detected with sufficient confidence."}
+            if res["confidence"] > 0.50 and res["exercise"] != "No Exercise Detected":
+                votes.append(res["exercise"])
 
-        vote_counts = Counter(votes)
-        print(f"\n[DEBUG] Vote summary:")
-        for ex, count in vote_counts.most_common():
-            print(f"  {ex}: {count} votes ({count/len(votes)*100:.1f}%)")
-        
-        top_result = vote_counts.most_common(1)[0]
-        
-        winner_exercise = top_result[0]     
-        winner_count = top_result[1]        
-        total_valid_votes = len(votes)      
-        
-        voting_confidence = winner_count / total_valid_votes
-        print(f"\n[DEBUG] Winner: {winner_exercise} ({voting_confidence*100:.1f}% of votes)")
+        return votes
 
+    def _analyze_windows_detailed(
+        self,
+        windows: list,
+        window_visibility: list,
+        winner_exercise: str,
+        raw_data: list,
+    ) -> list[dict]:
+        """Analyze windows with forced exercise for detailed feedback."""
         detailed_results = []
-        
+
         for idx, window_array in enumerate(windows):
-            is_visible = window_visibility[idx] if idx < len(window_visibility) else True
+            is_visible = (
+                window_visibility[idx] if idx < len(window_visibility) else True
+            )
             if not is_visible:
                 continue
-                
-            res = self.engine.analyze(window_array, forced_exercise_name=winner_exercise)
+
+            res = self.engine.analyze(
+                window_array, forced_exercise_name=winner_exercise
+            )
             detailed_results.append(res)
-        
+
+        # Fallback for very short videos
         if not detailed_results and len(raw_data) > 0:
-             res = self.engine.analyze(np.array(raw_data), forced_exercise_name=winner_exercise)
-             detailed_results.append(res)
+            res = self.engine.analyze(
+                np.array(raw_data), forced_exercise_name=winner_exercise
+            )
+            detailed_results.append(res)
 
-        if not detailed_results:
-             return {"error": "Analysis failed"}
+        return detailed_results
 
-        text_report = self.reporter.generate_report(detailed_results)
-        
-        final_result = {
-            "exercise": winner_exercise,
-            "confidence": voting_confidence, 
-            "text_report": text_report,
-            "is_correct": detailed_results[-1]['is_correct'], 
-            "feedback": detailed_results[-1]['feedback']
-        }
-        
-        return self._make_serializable(final_result)
-
-    def _make_serializable(self, obj):
-        """Helper to convert NumPy types to plain Python types."""
-        
+    def _make_serializable(self, obj: object) -> dict | list | int | float | object:
+        """Convert NumPy types to JSON-serializable Python types."""
         if isinstance(obj, dict):
             return {k: self._make_serializable(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             return [self._make_serializable(v) for v in obj]
-        elif isinstance(obj, np.integer):
+        if isinstance(obj, np.integer):
             return int(obj)
-        elif isinstance(obj, np.floating):
+        if isinstance(obj, np.floating):
             return float(obj)
-        elif isinstance(obj, np.ndarray):
+        if isinstance(obj, np.ndarray):
             return obj.tolist()
-        else:
-            return obj
+        return obj

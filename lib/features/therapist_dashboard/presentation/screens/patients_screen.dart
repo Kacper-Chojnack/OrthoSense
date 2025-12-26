@@ -30,17 +30,15 @@ class PatientsScreen extends ConsumerWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   leading: CircleAvatar(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      height: 24,
+                    child: Text(
+                      patient.fullName.isNotEmpty
+                          ? patient.fullName[0].toUpperCase()
+                          : '?',
                     ),
                   ),
                   title: Text(patient.fullName),
                   subtitle: Text(patient.email),
-                  trailing: Image.asset(
-                    'assets/images/logo.png',
-                    height: 24,
-                  ),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -64,7 +62,7 @@ class PatientsScreen extends ConsumerWidget {
             const SnackBar(content: Text('Invite Patient feature coming soon')),
           );
         },
-        child: Image.asset('assets/images/logo.png', height: 24),
+        child: const Icon(Icons.person_add_rounded),
       ),
     );
   }

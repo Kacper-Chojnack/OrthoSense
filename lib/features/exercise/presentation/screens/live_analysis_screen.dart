@@ -12,12 +12,12 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 /// Real-time exercise analysis screen with camera feed and AI feedback.
 class LiveAnalysisScreen extends ConsumerStatefulWidget {
   const LiveAnalysisScreen({
-    required this.exerciseName,
     required this.useFrontCamera,
+    this.exerciseName,
     super.key,
   });
 
-  final String exerciseName;
+  final String? exerciseName;
   final bool useFrontCamera;
 
   @override
@@ -138,7 +138,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         _isConnected = true;
       });
 
-      _sendCommand('start', {'exercise': widget.exerciseName});
+      final exerciseData = widget.exerciseName != null
+          ? {'exercise': widget.exerciseName}
+          : <String, dynamic>{};
+      _sendCommand('start', exerciseData);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -194,7 +197,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         } else if (status == 'no_pose') {
           _feedback = 'Position yourself in the camera view';
         } else if (status == 'started') {
-          _feedback = 'Get ready to perform ${widget.exerciseName}';
+          final exerciseText = widget.exerciseName ?? 'your exercise';
+          _feedback = 'Get ready to perform $exerciseText';
         }
       });
 
@@ -230,14 +234,14 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     DateTime? lastProcessed;
     controller.startImageStream((CameraImage image) {
       if (!_isAnalyzing || _isProcessingFrame) return;
-      
+
       final now = DateTime.now();
-      if (lastProcessed != null && 
+      if (lastProcessed != null &&
           now.difference(lastProcessed!).inMilliseconds < 150) {
-        return; 
+        return;
       }
       lastProcessed = now;
-      
+
       _processImageStream(image);
     });
   }
@@ -276,7 +280,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       final img.Image? imgImage = _convertCameraImageToImage(image);
       if (imgImage == null) return null;
 
-      final jpegBytes = Uint8List.fromList(img.encodeJpg(imgImage, quality: 85));
+      final jpegBytes = Uint8List.fromList(
+        img.encodeJpg(imgImage, quality: 85),
+      );
       return jpegBytes;
     } catch (e) {
       debugPrint('Error converting image: $e');
@@ -314,7 +320,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     for (int y = 0; y < height; y++) {
       final yp = y * yRowStride;
       final uvRowStart = (y ~/ 2) * uvRowStride;
-      
+
       for (int x = 0; x < width; x++) {
         final uvIndex = uvRowStart + (x ~/ 2) * uvPixelStride;
         final yIndex = yp + x;
@@ -324,7 +330,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         final v = vBuffer[uvIndex];
 
         final r = (yVal + 1.402 * (v - 128)).clamp(0, 255).toInt();
-        final g = (yVal - 0.344 * (u - 128) - 0.714 * (v - 128)).clamp(0, 255).toInt();
+        final g = (yVal - 0.344 * (u - 128) - 0.714 * (v - 128))
+            .clamp(0, 255)
+            .toInt();
         final b = (yVal + 1.772 * (u - 128)).clamp(0, 255).toInt();
 
         image.setPixelRgba(x, y, r, g, b, 255);
@@ -385,24 +393,26 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           children: [
             if (_isInitialized && _cameraController != null)
               Positioned.fill(
-                  child: _cameraController!.value.isInitialized
-                      ? LayoutBuilder(
-                          builder: (context, constraints) {
-                            final size = constraints.biggest;
-                            var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
+                child: _cameraController!.value.isInitialized
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          final size = constraints.biggest;
+                          var scale =
+                              size.aspectRatio *
+                              _cameraController!.value.aspectRatio;
 
-                            if (scale < 1) scale = 1 / scale;
+                          if (scale < 1) scale = 1 / scale;
 
-                            return Transform.scale(
-                              scale: scale,
-                              child: Center(
-                                child: CameraPreview(_cameraController!),
-                              ),
-                            );
-                          },
-                        )
-                      : const Center(child: CircularProgressIndicator()),
-                )
+                          return Transform.scale(
+                            scale: scale,
+                            child: Center(
+                              child: CameraPreview(_cameraController!),
+                            ),
+                          );
+                        },
+                      )
+                    : const Center(child: CircularProgressIndicator()),
+              )
             else
               const Center(child: CircularProgressIndicator()),
             Positioned(
@@ -460,7 +470,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
             child: Column(
               children: [
                 Text(
-                  widget.exerciseName,
+                  widget.exerciseName ?? 'Detecting Exercise...',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -662,6 +672,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   void _showInstructions() {
+    final exerciseTitle = widget.exerciseName != null
+        ? 'Tips for ${widget.exerciseName}'
+        : 'General Tips';
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -671,7 +684,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tips for ${widget.exerciseName}',
+              exerciseTitle,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

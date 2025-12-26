@@ -95,10 +95,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hint: 'Enter your email',
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset('assets/images/logo.png', height: 24),
-                    ),
+                    prefixIcon: const Icon(Icons.email_outlined),
                     autofillHints: const [AutofillHints.email],
                     validator: _validateEmail,
                     enabled: !isLoading,
@@ -112,15 +109,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hint: 'Create a password',
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.next,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset('assets/images/logo.png', height: 24),
-                    ),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     autofillHints: const [AutofillHints.newPassword],
                     suffixIcon: IconButton(
-                      icon: Image.asset(
-                        'assets/images/logo.png',
-                        height: 24,
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -138,14 +133,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     hint: 'Re-enter your password',
                     obscureText: _obscureConfirmPassword,
                     textInputAction: TextInputAction.done,
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset('assets/images/logo.png', height: 24),
-                    ),
+                    prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
-                      icon: Image.asset(
-                        'assets/images/logo.png',
-                        height: 24,
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                       onPressed: () {
                         setState(() {
