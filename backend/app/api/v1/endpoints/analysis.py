@@ -67,7 +67,11 @@ async def analyze_video_file(
 
     os.makedirs(settings.upload_temp_dir, exist_ok=True)
 
-    temp_path = os.path.join(settings.upload_temp_dir, f"temp_{file.filename}")
+    # Sanitize filename to prevent path traversal attacks
+    import uuid
+
+    safe_filename = f"temp_{uuid.uuid4().hex}{file_ext}"
+    temp_path = os.path.join(settings.upload_temp_dir, safe_filename)
 
     try:
         async with aiofiles.open(temp_path, "wb") as buffer:

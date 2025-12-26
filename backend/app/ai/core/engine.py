@@ -12,6 +12,9 @@ from app.ai.core.model import Model
 AI_DIR = Path(__file__).parent.parent
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 
+# Model filename constant
+DEFAULT_MODEL_FILENAME = "lstm_best_model.pt"
+
 
 class OrthoSensePredictor:
     def __init__(self):
@@ -20,11 +23,11 @@ class OrthoSensePredictor:
         self.model = Model(num_class=config.NUM_CLASSES, in_channels=config.IN_CHANNELS)
 
         possible_paths = [
-            AI_DIR / "models" / "lstm_best_model.pt",
+            AI_DIR / "models" / DEFAULT_MODEL_FILENAME,
             AI_DIR / config.WEIGHTS_PATH.replace("models/", ""),
-            BASE_DIR / "app" / "ai" / "models" / "lstm_best_model.pt",
+            BASE_DIR / "app" / "ai" / "models" / DEFAULT_MODEL_FILENAME,
             BASE_DIR / config.WEIGHTS_PATH,
-            BASE_DIR / "models" / "lstm_best_model.pt",
+            BASE_DIR / "models" / DEFAULT_MODEL_FILENAME,
             BASE_DIR / "models" / "lstm_best_fold_1.pt",
         ]
         model_path = next((p for p in possible_paths if p.exists()), None)
@@ -47,7 +50,7 @@ class OrthoSensePredictor:
             print(f"Error loading weights: {e}")
 
     def reset(self):
-        pass
+        """Reset predictor state. Currently a no-op as model is stateless."""
 
     def preprocess_sequence(self, raw_data):
         data = np.array(raw_data, dtype=np.float32)

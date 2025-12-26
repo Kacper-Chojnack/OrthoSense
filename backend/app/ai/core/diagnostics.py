@@ -2,6 +2,9 @@ from collections import Counter
 
 import numpy as np
 
+# Constants for feedback messages
+MOVEMENT_CORRECT = "Movement correct."
+
 
 class MovementDiagnostician:
     """
@@ -144,7 +147,7 @@ class MovementDiagnostician:
                 errors.append("Torso instability (lateral shift).")
 
         if not errors:
-            return True, "Movement correct."
+            return True, MOVEMENT_CORRECT
         return False, f"ERRORS: {', '.join(set(errors))}"
 
     def _analyze_hurdle_step(self, skeleton_data):
@@ -190,7 +193,7 @@ class MovementDiagnostician:
             errors.append("Torso lean.")
 
         if not errors:
-            return True, "Movement correct."
+            return True, MOVEMENT_CORRECT
         return False, f"ERRORS: {', '.join(set(errors))}"
 
     def _analyze_shoulder_abduction(self, skeleton_data):
@@ -249,7 +252,7 @@ class MovementDiagnostician:
         final_errors = [k for k, v in error_counts.items() if v > threshold]
 
         if not final_errors:
-            return True, "Movement correct."
+            return True, MOVEMENT_CORRECT
         return False, f"ERRORS: {', '.join(final_errors)}"
 
 

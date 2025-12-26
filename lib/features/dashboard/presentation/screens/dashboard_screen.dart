@@ -7,6 +7,9 @@ import 'package:orthosense/features/dashboard/presentation/screens/activity_log_
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
+/// Asset path constants
+const String _kLogoAssetPath = 'assets/images/logo.png';
+
 /// Main dashboard screen with analytics overview and quick actions.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -419,7 +422,7 @@ class _TrendChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo.png',
+                  _kLogoAssetPath,
                   height: 20,
                   color: Colors.green,
                 ),
@@ -512,13 +515,13 @@ class _RecentSessionTile extends StatelessWidget {
             ? Tooltip(
                 message: 'Pending sync',
                 child: Image.asset(
-                  'assets/images/logo.png',
+                  _kLogoAssetPath,
                   height: 20,
                   color: Theme.of(context).colorScheme.error,
                 ),
               )
             : Image.asset(
-                'assets/images/logo.png',
+                _kLogoAssetPath,
                 height: 24,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
