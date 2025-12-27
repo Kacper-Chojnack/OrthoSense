@@ -52,26 +52,48 @@ async def analyze_video_file(
     Accepts video formats: MP4, MOV, AVI, MKV.
     Returns exercise classification, correctness assessment, and feedback.
     """
+    import uuid
+    from pathlib import Path
+
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No filename provided"
         )
 
-    allowed_extensions = {".mp4", ".mov", ".avi", ".mkv"}
-    file_ext = os.path.splitext(file.filename)[1].lower()
-    if file_ext not in allowed_extensions:
+    # Whitelist mapping - use hardcoded extension values (not user input)
+    allowed_extensions: dict[str, str] = {
+        ".mp4": ".mp4",
+        ".mov": ".mov",
+        ".avi": ".avi",
+        ".mkv": ".mkv",
+    }
+
+    # Extract and normalize extension from filename
+    _, raw_ext = os.path.splitext(file.filename)
+    normalized_ext = raw_ext.lower()
+
+    # Get safe extension from whitelist (prevents tainted data flow)
+    safe_ext = allowed_extensions.get(normalized_ext)
+    if safe_ext is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions)}",
+            detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions.keys())}",
         )
 
-    os.makedirs(settings.upload_temp_dir, exist_ok=True)
+    # Create upload directory
+    upload_dir = Path(settings.upload_temp_dir).resolve()
+    upload_dir.mkdir(parents=True, exist_ok=True)
 
-    # Sanitize filename to prevent path traversal attacks
-    import uuid
+    # Generate safe filename using UUID (no user input in path)
+    safe_filename = f"temp_{uuid.uuid4().hex}{safe_ext}"
+    temp_path = (upload_dir / safe_filename).resolve()
 
-    safe_filename = f"temp_{uuid.uuid4().hex}{file_ext}"
-    temp_path = os.path.join(settings.upload_temp_dir, safe_filename)
+    # Defense in depth: verify path is within allowed directory
+    if not temp_path.is_relative_to(upload_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file path",
+        )
 
     try:
         async with aiofiles.open(temp_path, "wb") as buffer:
@@ -79,7 +101,7 @@ async def analyze_video_file(
             await buffer.write(content)
 
         system = OrthoSenseSystem()
-        result = system.analyze_video_file(temp_path)
+        result = system.analyze_video_file(str(temp_path))
 
         if "error" in result:
             raise HTTPException(
@@ -97,8 +119,8 @@ async def analyze_video_file(
             detail=f"Analysis failed: {e!s}",
         ) from e
     finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 @router.websocket("/ws/{client_id}")
