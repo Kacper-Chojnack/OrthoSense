@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from app.core.logging import get_logger
 
 if TYPE_CHECKING:
-    from app.ai.core.system import AnalysisSession, OrthoSenseSystem
+    from app.ai.core.system import OrthoSenseSystem
 
 logger = get_logger(__name__)
 
@@ -69,22 +69,6 @@ def get_ai_system() -> "OrthoSenseSystem":
         logger.info("ai_system_singleton_created")
 
     return _ai_instance
-
-
-def create_analysis_session(exercise: str = "Deep Squat") -> "AnalysisSession":
-    """Create a new analysis session for a user.
-
-    Args:
-        exercise: Initial exercise for the session.
-
-    Returns:
-        New isolated AnalysisSession instance.
-
-    Raises:
-        RuntimeError: If AI dependencies are not available.
-    """
-    system = get_ai_system()
-    return system.create_session(exercise=exercise)
 
 
 def reset_ai_system() -> None:

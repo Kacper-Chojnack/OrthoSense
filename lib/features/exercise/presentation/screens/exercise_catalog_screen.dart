@@ -83,6 +83,17 @@ class ExerciseCatalogScreen extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.camera_alt),
+            tooltip: 'Live Analysis',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const LiveAnalysisScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.video_library),
             tooltip: 'Analyze from Gallery',
             onPressed: () {
@@ -324,39 +335,70 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                       );
                     }),
                     const SizedBox(height: 24),
-                    Text(
-                      'Camera Position',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    // Real-time analysis unavailable notice
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.tertiaryContainer.withValues(
+                          alpha: 0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.tertiary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.construction_rounded,
+                            color: colorScheme.tertiary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Real-Time Analysis Coming Soon',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.onTertiaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Use Gallery Analysis to analyze recorded '
+                                  'videos.',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onTertiaryContainer
+                                        .withValues(alpha: 0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _CameraOptionButton(
-                            label: 'Front Camera',
-                            onPressed: () => _startAnalysis(
-                              context,
-                              ref,
-                              exercise,
-                              useFrontCamera: true,
+                    // Gallery Analysis Button (Primary action)
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const GalleryAnalysisScreen(),
                             ),
-                          ),
+                          );
+                        },
+                        icon: const Icon(Icons.video_library),
+                        label: const Text('Analyze from Gallery'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _CameraOptionButton(
-                            label: 'Back Camera',
-                            onPressed: () => _startAnalysis(
-                              context,
-                              ref,
-                              exercise,
-                              useFrontCamera: false,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -365,76 +407,6 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-
-  Future<void> _startAnalysis(
-    BuildContext context,
-    WidgetRef ref,
-    ExerciseInfo exercise, {
-    required bool useFrontCamera,
-  }) async {
-    // Close the exercise details sheet first
-    Navigator.of(context).pop();
-
-    // Show demo video if available and user hasn't opted to skip
-    if (exercise.demoVideo != null) {
-      final shouldProceed = await ExerciseDemoVideoSheet.showIfNeeded(
-        context: context,
-        ref: ref,
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        demoVideo: exercise.demoVideo,
-        onContinue: () {
-          // This is called after user clicks "Start Exercise"
-        },
-      );
-
-      if (!shouldProceed) {
-        return; // User cancelled
-      }
-    }
-
-    // Navigate to live analysis screen
-    if (context.mounted) {
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => LiveAnalysisScreen(
-            exerciseName: exercise.name,
-            useFrontCamera: useFrontCamera,
-          ),
-        ),
-      );
-    }
-  }
-}
-
-class _CameraOptionButton extends StatelessWidget {
-  const _CameraOptionButton({
-    required this.label,
-    required this.onPressed,
-  });
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Column(
-        children: [
-          Image.asset('assets/images/logo.png', height: 32),
-          const SizedBox(height: 8),
-          Text(label),
-        ],
-      ),
     );
   }
 }

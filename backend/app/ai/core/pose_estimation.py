@@ -47,17 +47,6 @@ class VideoProcessor:
 
         print(f"[VideoProcessor] Using model: {model_path}")
 
-        base_options = python.BaseOptions(model_asset_path=model_path)
-        image_options = vision.PoseLandmarkerOptions(
-            base_options=base_options,
-            output_segmentation_masks=False,
-            min_pose_detection_confidence=0.5,
-            min_pose_presence_confidence=0.5,
-            min_tracking_confidence=0.5,
-            running_mode=vision.RunningMode.IMAGE,
-        )
-        self.image_landmarker = vision.PoseLandmarker.create_from_options(image_options)
-
         self.model_path = model_path
         self.frame_timestamp_ms = 0
 
@@ -208,26 +197,3 @@ class VideoProcessor:
 
         cap.release()
 
-    def process_frame(self, frame_rgb):
-        """
-        Process a single frame (for live camera).
-        Uses pre-initialized landmarker for better performance.
-        """
-
-        mp_image = mp.Image(image_format=ImageFormat.SRGB, data=frame_rgb)
-        results = self.image_landmarker.detect(mp_image)
-
-        if results.pose_world_landmarks and len(results.pose_world_landmarks) > 0:
-            world_landmarks = self.get_raw_landmarks(results.pose_world_landmarks[0])
-            image_landmarks = (
-                results.pose_landmarks[0] if results.pose_landmarks else None
-            )
-
-            pose_landmarks = (
-                results.pose_landmarks[0] if results.pose_landmarks else None
-            )
-            is_visible, _, _ = self.check_visibility(pose_landmarks)
-
-            return world_landmarks, image_landmarks, is_visible
-
-        return None, None, False
