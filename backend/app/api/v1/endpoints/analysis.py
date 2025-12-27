@@ -1,29 +1,23 @@
 """Exercise analysis endpoints.
 
-Provides metadata about supported exercises, video file analysis,
-and real-time WebSocket analysis with session-based architecture.
+Provides metadata about supported exercises and video file analysis.
+Real-time WebSocket analysis is currently disabled for reimplementation.
 """
 
-import contextlib
-import json
 import os
 from typing import Any
 
 import aiofiles
-import cv2
-import numpy as np
 from fastapi import (
     APIRouter,
     File,
     HTTPException,
     UploadFile,
-    WebSocket,
-    WebSocketDisconnect,
     status,
 )
 
 from app.ai.core.config import EXERCISE_NAMES
-from app.ai.core.system import AnalysisSession, OrthoSenseSystem
+from app.ai.core.system import OrthoSenseSystem
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -123,99 +117,11 @@ async def analyze_video_file(
             temp_path.unlink()
 
 
-@router.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str) -> None:
-    """
-    Real-time exercise analysis WebSocket endpoint.
-
-    Architecture:
-    - Creates a unique AnalysisSession for each connection.
-    - Uses the shared OrthoSenseSystem for inference.
-    - Ensures isolation between concurrent users (no race conditions).
-
-    Protocol:
-    - Send JSON: {"action": "start", "exercise": "Deep Squat"} to begin session
-    - Send binary: JPEG/PNG encoded frame for analysis
-    - Send JSON: {"action": "stop"} to end session
-
-    Receives:
-    - JSON: Analysis results with feedback and classification
-    """
-    await websocket.accept()
-
-    system = OrthoSenseSystem()
-    if not system.is_initialized:
-        system.initialize()
-
-    # Create isolated session for this user
-    session: AnalysisSession = system.create_session()
-    session.session_id = client_id
-
-    logger.info("websocket_connected", client_id=client_id)
-
-    try:
-        while True:
-            message = await websocket.receive()
-
-            # Handle text commands
-            if "text" in message and message["text"]:
-                await _handle_text_command(websocket, system, session, message["text"])
-
-            # Handle binary frame data
-            elif "bytes" in message and message["bytes"]:
-                await _handle_frame(websocket, system, session, message["bytes"])
-
-    except WebSocketDisconnect:
-        logger.info("websocket_disconnected", client_id=client_id)
-    except Exception as e:
-        logger.error("websocket_error", client_id=client_id, error=str(e))
-        with contextlib.suppress(Exception):
-            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
-
-
-async def _handle_text_command(
-    websocket: WebSocket,
-    system: OrthoSenseSystem,
-    session: AnalysisSession,
-    text: str,
-) -> None:
-    """Handle JSON control commands from WebSocket."""
-    try:
-        data = json.loads(text)
-        action = data.get("action")
-
-        if action == "start":
-            exercise = data.get("exercise", "Deep Squat")
-            system.set_exercise(session, exercise)
-            await websocket.send_json(
-                {
-                    "status": "started",
-                    "exercise": exercise,
-                    "message": "Session initialized",
-                }
-            )
-
-        elif action == "stop":
-            session.reset()
-            await websocket.send_json({"status": "stopped"})
-
-    except json.JSONDecodeError:
-        await websocket.send_json({"error": "Invalid JSON"})
-
-
-async def _handle_frame(
-    websocket: WebSocket,
-    system: OrthoSenseSystem,
-    session: AnalysisSession,
-    frame_bytes: bytes,
-) -> None:
-    """Handle binary frame data from WebSocket."""
-    nparr = np.frombuffer(frame_bytes, np.uint8)
-    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    if frame is None:
-        await websocket.send_json({"error": "Invalid frame data"})
-        return
-
-    result = system.analyze_frame(frame, session)
-    await websocket.send_json(result.to_dict())
+@router.get("/realtime/status")
+async def realtime_status() -> dict[str, Any]:
+    """Check if real-time analysis is available."""
+    return {
+        "available": False,
+        "message": "Real-time analysis is currently being reimplemented. "
+        "Please use video file analysis instead.",
+    }

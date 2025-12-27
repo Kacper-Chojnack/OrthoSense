@@ -6,7 +6,6 @@ import 'package:orthosense/features/auth/presentation/screens/profile_screen.dar
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
-import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
 /// Asset path constants
 const String _kLogoAssetPath = 'assets/images/logo.png';
@@ -108,51 +107,14 @@ class DashboardScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Select Input Source',
+              'Select Analysis Method',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const LiveAnalysisScreen(
-                            useFrontCamera: true,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.camera_front),
-                    label: const Text('Front'),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const LiveAnalysisScreen(
-                            useFrontCamera: false,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.camera_rear),
-                    label: const Text('Back'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            // Gallery Analysis - Primary option
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: FilledButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.of(context).push(
@@ -161,8 +123,42 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                icon: const Icon(Icons.video_library_outlined),
+                icon: const Icon(Icons.video_library),
                 label: const Text('Analyze from Gallery'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Real-time analysis unavailable notice
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.construction_rounded,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Live Camera Analysis - Coming Soon',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

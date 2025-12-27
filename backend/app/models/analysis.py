@@ -19,40 +19,6 @@ class AnalysisStatus(str, Enum):
     FAILED = "failed"
 
 
-class FrameAnalysisRequest(BaseModel):
-    """Request model for single frame analysis."""
-
-    session_id: UUID | None = Field(
-        default=None,
-        description="Optional session ID to associate with the analysis",
-    )
-    exercise_hint: str | None = Field(
-        default=None,
-        description="Optional hint for expected exercise type",
-    )
-
-
-class FrameAnalysisResponse(BaseModel):
-    """Response model for single frame analysis."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    timestamp: float = Field(description="Timestamp of the analysis")
-    exercise: str = Field(description="Detected exercise type")
-    confidence: float = Field(ge=0.0, le=1.0, description="Detection confidence")
-    is_correct: bool = Field(description="Whether the exercise form is correct")
-    feedback: list[str] = Field(
-        default_factory=list, description="List of feedback messages"
-    )
-    landmarks_detected: bool = Field(
-        default=True, description="Whether pose landmarks were detected"
-    )
-    metrics: dict = Field(
-        default_factory=dict,
-        description="Additional metrics from analysis",
-    )
-
-
 class VideoAnalysisRequest(BaseModel):
     """Request model for video upload analysis."""
 
