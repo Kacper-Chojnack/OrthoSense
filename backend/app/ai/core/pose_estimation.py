@@ -161,7 +161,7 @@ class VideoProcessor:
             min_tracking_confidence=0.5,
             running_mode=vision.RunningMode.VIDEO,
         )
-        
+
         with vision.PoseLandmarker.create_from_options(options) as landmarker:
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -184,12 +184,13 @@ class VideoProcessor:
 
                 mp_image = mp.Image(image_format=ImageFormat.SRGB, data=image_rgb)
 
-                results = landmarker.detect_for_video(
-                    mp_image, self.frame_timestamp_ms
-                )
+                results = landmarker.detect_for_video(mp_image, self.frame_timestamp_ms)
                 self.frame_timestamp_ms += frame_duration_ms
 
-                if results.pose_world_landmarks and len(results.pose_world_landmarks) > 0:
+                if (
+                    results.pose_world_landmarks
+                    and len(results.pose_world_landmarks) > 0
+                ):
                     skeleton = self.get_raw_landmarks(results.pose_world_landmarks[0])
                     last_valid_skeleton = skeleton
 

@@ -24,7 +24,7 @@ String _getBaseUrl() {
 
   // iOS Simulator, Linux, Windows
   // Using local IP for physical device debugging
-  return 'http://192.168.1.103:8000';
+  return 'http://172.20.10.12:8000';
 }
 
 /// Provides configured [Dio] instance for API calls.
