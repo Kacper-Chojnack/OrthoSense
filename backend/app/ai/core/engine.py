@@ -93,10 +93,13 @@ class OrthoSensePredictor:
                 final_name = self.LABELS.get(idx, "Unknown")
 
         is_correct = True
-        feedback = ""
+        feedback = {}
 
         if final_name not in ["No Exercise Detected", "Unknown"]:
             is_correct, feedback = self.diagnostician.diagnose(final_name, raw_data)
+
+            if not isinstance(feedback, dict):
+                feedback = {"System": feedback} if feedback else {}
 
         return {
             "exercise": final_name,

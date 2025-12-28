@@ -431,7 +431,25 @@ class _ResultCard extends StatelessWidget {
     final isCorrect = result['is_correct'] == true;
     final confidence = (result['confidence'] as num? ?? 0) * 100;
     final exercise = result['exercise'] as String? ?? 'Unknown Exercise';
-    final feedback = result['feedback'] as String? ?? 'No feedback available';
+    
+    final feedbackRaw = result['feedback'];
+    final String feedback;
+    if (feedbackRaw is Map<String, dynamic>) {
+      if (feedbackRaw.isEmpty) {
+        feedback = 'No feedback available';
+      } else {
+        feedback = feedbackRaw.entries
+            .map((e) => e.value == true 
+                ? e.key 
+                : '${e.key}: ${e.value}')
+            .join('\n');
+      }
+    } else if (feedbackRaw is String) {
+      feedback = feedbackRaw;
+    } else {
+      feedback = 'No feedback available';
+    }
+    
     final textReport = result['text_report'] as String?;
 
     return Card(
