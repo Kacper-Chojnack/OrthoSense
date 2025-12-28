@@ -58,9 +58,9 @@ class AnalysisResult(BaseModel):
     exercise: str = Field(description="Detected exercise type")
     confidence: float = Field(ge=0.0, le=1.0, description="Overall confidence")
     is_correct: bool = Field(description="Whether exercise form was correct")
-    feedback: list[str] = Field(
-        default_factory=list,
-        description="Feedback messages for improvement",
+    feedback: dict[str, str | bool] = Field(
+        default_factory=dict,
+        description="Feedback dictionary with error names as keys and details as values",
     )
     text_report: str | None = Field(
         default=None,

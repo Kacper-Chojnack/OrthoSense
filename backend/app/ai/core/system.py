@@ -121,15 +121,17 @@ class OrthoSenseSystem:
         if not detailed_results:
             return {"error": "Analysis failed"}
 
-        # Generate report
-        text_report = self.reporter.generate_report(detailed_results)
+
+        last_result = detailed_results[-1]
+        analysis_tuple = (last_result["is_correct"], last_result["feedback"])
+        text_report = self.reporter.generate_report(analysis_tuple, winner_exercise)
 
         final_result = {
             "exercise": winner_exercise,
             "confidence": voting_confidence,
             "text_report": text_report,
-            "is_correct": detailed_results[-1]["is_correct"],
-            "feedback": detailed_results[-1]["feedback"],
+            "is_correct": last_result["is_correct"],
+            "feedback": last_result["feedback"],
         }
 
         serialized = self._make_serializable(final_result)

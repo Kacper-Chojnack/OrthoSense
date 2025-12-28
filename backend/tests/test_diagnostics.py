@@ -56,8 +56,10 @@ def test_diagnose_empty_data():
     """Test diagnosis with empty skeleton data."""
     diag = MovementDiagnostician()
     is_correct, feedback = diag.diagnose("Deep Squat", None)
-    assert is_correct is True
-    assert "No data" in feedback
+    assert is_correct is False
+    assert isinstance(feedback, dict)
+    assert "System" in feedback
+    assert "No data" in feedback["System"]
 
 
 def test_diagnose_unknown_exercise():
@@ -66,4 +68,6 @@ def test_diagnose_unknown_exercise():
     skeleton_data = [create_mock_skeleton_frame()]
     is_correct, feedback = diag.diagnose("Unknown Exercise", skeleton_data)
     assert is_correct is True
-    assert "recorded" in feedback.lower()
+    assert isinstance(feedback, dict)
+    assert "System" in feedback
+    assert "analysis" in feedback["System"].lower()
