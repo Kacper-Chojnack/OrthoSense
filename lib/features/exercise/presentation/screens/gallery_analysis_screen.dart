@@ -1,14 +1,14 @@
 import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:orthosense/core/providers/exercise_classifier_provider.dart';
+import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
+import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/theme/app_colors.dart';
-import 'package:orthosense/infrastructure/networking/dio_provider.dart';
+import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:video_player/video_player.dart';
 
-/// Screen for analyzing pre-recorded videos from device gallery.
 class GalleryAnalysisScreen extends ConsumerStatefulWidget {
   const GalleryAnalysisScreen({super.key});
 
@@ -21,9 +21,11 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
   File? _selectedVideo;
   VideoPlayerController? _videoController;
   bool _isAnalyzing = false;
+  bool _isExtractingLandmarks = false;
   Map<String, dynamic>? _result;
   String? _error;
-  double _uploadProgress = 0;
+  double _extractionProgress = 0;
+  PoseLandmarks? _extractedLandmarks;
 
   @override
   void dispose() {
@@ -48,7 +50,8 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         _videoController = controller;
         _result = null;
         _error = null;
-        _uploadProgress = 0;
+        _extractionProgress = 0;
+        _extractedLandmarks = null;
       });
     }
   }
@@ -58,53 +61,66 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
 
     setState(() {
       _isAnalyzing = true;
+      _isExtractingLandmarks = true;
       _error = null;
-      _uploadProgress = 0;
+      _extractionProgress = 0;
+      _extractedLandmarks = null;
+      _result = null;
     });
 
     try {
-      final dio = ref.read(dioProvider);
-
-      final fileName = _selectedVideo!.path.split('/').last;
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          _selectedVideo!.path,
-          filename: fileName,
-        ),
-      });
-
-      final response = await dio.post<Map<String, dynamic>>(
-        '/api/v1/analysis/video',
-        data: formData,
-        options: Options(
-          sendTimeout: const Duration(minutes: 5),
-          receiveTimeout: const Duration(minutes: 5),
-        ),
-        onSendProgress: (sent, total) {
+      final poseService = ref.read(poseDetectionServiceProvider);
+      
+      final landmarks = await poseService.extractLandmarksFromVideo(
+        _selectedVideo!,
+        onProgress: (progress) {
           if (mounted) {
             setState(() {
-              _uploadProgress = sent / total;
+              _extractionProgress = progress;
             });
           }
         },
       );
 
+      if (landmarks.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _error = 'No pose detected in the video or video is too short.';
+            _isAnalyzing = false;
+            _isExtractingLandmarks = false;
+          });
+        }
+        return;
+      }
+
       if (mounted) {
         setState(() {
-          _result = response.data;
+          _isExtractingLandmarks = false;
+          _extractedLandmarks = landmarks;
         });
       }
-    } on DioException catch (e) {
+
+      // Step 2: Classify exercise using TFLite
+      final classifier = ref.read(exerciseClassifierServiceProvider);
+      final classification = await classifier.classify(landmarks);
+
+      // Step 3: Diagnose movement quality
+      final diagnostics = ref.read(movementDiagnosticsServiceProvider);
+      final diagnosticsResult = diagnostics.diagnose(classification.exercise, landmarks);
+
+      // Step 4: Generate report
+      final textReport = diagnostics.generateReport(diagnosticsResult, classification.exercise);
+
+      // Format result to match expected structure
       if (mounted) {
-        String message = 'Analysis failed';
-        final responseData = e.response?.data;
-        if (responseData is Map<String, dynamic>) {
-          message = responseData['detail'] as String? ?? e.message ?? message;
-        } else {
-          message = e.message ?? message;
-        }
         setState(() {
-          _error = message;
+          _result = {
+            'exercise': classification.exercise,
+            'confidence': classification.confidence,
+            'is_correct': diagnosticsResult.isCorrect,
+            'feedback': diagnosticsResult.feedback,
+            'text_report': textReport,
+          };
         });
       }
     } catch (e) {
@@ -117,6 +133,7 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       if (mounted) {
         setState(() {
           _isAnalyzing = false;
+          _isExtractingLandmarks = false;
         });
       }
     }
@@ -129,7 +146,7 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       _videoController = null;
       _result = null;
       _error = null;
-      _uploadProgress = 0;
+      _extractionProgress = 0;
     });
   }
 
@@ -165,7 +182,8 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
             _ActionButtons(
               selectedVideo: _selectedVideo,
               isAnalyzing: _isAnalyzing,
-              uploadProgress: _uploadProgress,
+              isExtractingLandmarks: _isExtractingLandmarks,
+              extractionProgress: _extractionProgress,
               onPickVideo: _pickVideo,
               onAnalyze: _analyzeVideo,
             ),
@@ -328,14 +346,16 @@ class _ActionButtons extends StatelessWidget {
   const _ActionButtons({
     required this.selectedVideo,
     required this.isAnalyzing,
-    required this.uploadProgress,
+    required this.isExtractingLandmarks,
+    required this.extractionProgress,
     required this.onPickVideo,
     required this.onAnalyze,
   });
 
   final File? selectedVideo;
   final bool isAnalyzing;
-  final double uploadProgress;
+  final bool isExtractingLandmarks;
+  final double extractionProgress;
   final VoidCallback onPickVideo;
   final VoidCallback onAnalyze;
 
@@ -375,12 +395,21 @@ class _ActionButtons extends StatelessWidget {
             ),
           ],
         ),
-        if (isAnalyzing && uploadProgress < 1.0) ...[
+        if (isExtractingLandmarks && extractionProgress < 1.0) ...[
           const SizedBox(height: 12),
-          LinearProgressIndicator(value: uploadProgress),
+          LinearProgressIndicator(value: extractionProgress),
           const SizedBox(height: 4),
           Text(
-            'Uploading: ${(uploadProgress * 100).toStringAsFixed(0)}%',
+            'Analysing: ${(extractionProgress * 100).toStringAsFixed(0)}%',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        if (isAnalyzing && !isExtractingLandmarks) ...[
+          const SizedBox(height: 12),
+          const LinearProgressIndicator(),
+          const SizedBox(height: 4),
+          Text(
+            'Classifying exercise and analyzing movement...',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

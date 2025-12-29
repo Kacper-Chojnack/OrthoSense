@@ -30,7 +30,6 @@ router = APIRouter()
 logger = get_logger(__name__)
 
 
-# --- Helper Functions (Reduce Cognitive Complexity) ---
 
 
 async def _get_protocol_or_404(
@@ -95,7 +94,6 @@ async def list_protocols(
     """List protocols. Patients see only published templates."""
     statement = select(Protocol)
 
-    # Patients can only see published templates
     if current_user.role == UserRole.PATIENT:
         statement = statement.where(
             Protocol.status == ProtocolStatus.PUBLISHED,
@@ -215,8 +213,6 @@ async def delete_protocol(
         archived_by=str(current_user.id),
     )
 
-
-# --- Protocol Exercise Management ---
 
 
 @router.post(

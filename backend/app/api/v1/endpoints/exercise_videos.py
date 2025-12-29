@@ -93,7 +93,6 @@ async def create_video(
     current_user: TherapistUser,
 ) -> ExerciseVideo:
     """Create a new demo video (Therapist/Admin only)."""
-    # Verify exercise exists
     exercise = await session.get(Exercise, data.exercise_id)
     if not exercise:
         raise HTTPException(
@@ -101,7 +100,6 @@ async def create_video(
             detail=_EXERCISE_NOT_FOUND,
         )
 
-    # If marking as primary, unset other primary videos
     if data.is_primary:
         await _unset_primary_videos(session, data.exercise_id)
 
@@ -137,7 +135,6 @@ async def update_video(
 
     update_data = data.model_dump(exclude_unset=True)
 
-    # If marking as primary, unset other primary videos
     if update_data.get("is_primary"):
         await _unset_primary_videos(session, video.exercise_id, exclude_id=video_id)
 

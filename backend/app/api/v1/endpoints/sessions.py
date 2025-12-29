@@ -48,7 +48,6 @@ async def list_sessions(
     if current_user.role == UserRole.PATIENT:
         statement = select(Session).where(Session.patient_id == current_user.id)
     else:
-        # Therapists see sessions from their patients
         plan_ids_stmt = select(TreatmentPlan.id).where(
             TreatmentPlan.therapist_id == current_user.id
         )
@@ -93,7 +92,6 @@ async def get_session_detail(
             detail=SESSION_NOT_FOUND,
         )
 
-    # Check access
     if current_user.role == UserRole.PATIENT:
         if exercise_session.patient_id != current_user.id:
             raise HTTPException(
@@ -101,7 +99,6 @@ async def get_session_detail(
                 detail=ACCESS_DENIED,
             )
     else:
-        # Check if therapist owns the plan
         plan = await session.get(TreatmentPlan, exercise_session.treatment_plan_id)
         if plan and plan.therapist_id != current_user.id:
             raise HTTPException(
@@ -119,7 +116,6 @@ async def create_session(
     current_user: ActiveUser,
 ) -> Session:
     """Create a new session (scheduled or ad-hoc)."""
-    # Verify plan access
     plan = await session.get(TreatmentPlan, data.treatment_plan_id)
     if not plan:
         raise HTTPException(
@@ -225,12 +221,10 @@ async def complete_session(
     exercise_session.pain_level_after = data.pain_level_after
     exercise_session.notes = data.notes
 
-    # Calculate duration
     if exercise_session.started_at:
         duration = exercise_session.completed_at - exercise_session.started_at
         exercise_session.duration_seconds = int(duration.total_seconds())
 
-    # Calculate overall score from exercise results
     statement = select(SessionExerciseResult).where(
         SessionExerciseResult.session_id == session_id
     )
@@ -286,7 +280,6 @@ async def skip_session(
     return exercise_session
 
 
-# --- Exercise Results ---
 
 
 @router.post(
@@ -314,7 +307,6 @@ async def submit_exercise_result(
             detail=ACCESS_DENIED,
         )
 
-    # Verify exercise exists
     from app.models.exercise import Exercise
 
     exercise = await session.get(Exercise, data.exercise_id)

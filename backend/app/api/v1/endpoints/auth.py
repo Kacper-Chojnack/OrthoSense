@@ -58,7 +58,6 @@ async def register(
     """
     await auth_limiter.check(request, "register")
 
-    # Check if email already exists
     statement = select(User).where(User.email == data.email)
     result = await session.execute(statement)
     existing_user = result.scalar_one_or_none()
@@ -69,7 +68,6 @@ async def register(
             detail="Email already registered",
         )
 
-    # Create user with hashed password
     user = User(
         email=data.email,
         hashed_password=hash_password(data.password),
@@ -104,7 +102,6 @@ async def login(
     """
     await auth_limiter.check(request, "login")
 
-    # Find user by email
     statement = select(User).where(User.email == form_data.username)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()
@@ -202,7 +199,6 @@ async def forgot_password(
             email=str(user.email),
         )
 
-    # Always return success to prevent email enumeration
     return {"message": "If the email exists, a reset link has been sent"}
 
 
@@ -301,7 +297,6 @@ async def update_current_user_profile(
 
     GDPR: Users can update their personal data.
     """
-    # Check if new email is already taken
     if data.email and data.email != current_user.email:
         stmt = select(User).where(User.email == data.email)
         result = await session.execute(stmt)
@@ -311,7 +306,7 @@ async def update_current_user_profile(
                 detail="Email already in use",
             )
         current_user.email = data.email
-        current_user.is_verified = False  # Re-verify after email change
+        current_user.is_verified = False  
 
     if data.full_name is not None:
         current_user.full_name = data.full_name
@@ -349,34 +344,29 @@ async def delete_current_user_account(
 
     user_id = current_user.id
 
-    # Delete sessions where user is patient
     sessions_stmt = select(Session).where(Session.patient_id == user_id)
     sessions_result = await session.execute(sessions_stmt)
     for sess in sessions_result.scalars().all():
         await session.delete(sess)
 
-    # Delete treatment plans where user is patient
     plans_stmt = select(TreatmentPlan).where(TreatmentPlan.patient_id == user_id)
     plans_result = await session.execute(plans_stmt)
     for plan in plans_result.scalars().all():
         await session.delete(plan)
 
-    # Nullify therapist_id in plans where user is therapist (preserve plan for patient)
     therapist_plans_stmt = select(TreatmentPlan).where(
         TreatmentPlan.therapist_id == user_id
     )
     therapist_plans_result = await session.execute(therapist_plans_stmt)
     for plan in therapist_plans_result.scalars().all():
-        plan.therapist_id = None  # type: ignore[assignment]
+        plan.therapist_id = None  
         session.add(plan)
 
-    # Delete protocols created by user
     protocols_stmt = select(Protocol).where(Protocol.created_by == user_id)
     protocols_result = await session.execute(protocols_stmt)
     for protocol in protocols_result.scalars().all():
         await session.delete(protocol)
 
-    # Finally delete the user
     await session.delete(current_user)
     await session.commit()
 
@@ -402,7 +392,6 @@ async def export_user_data(
 
     user_id = current_user.id
 
-    # Get treatment plans
     plans_stmt = select(TreatmentPlan).where(
         (TreatmentPlan.patient_id == user_id) | (TreatmentPlan.therapist_id == user_id)
     )
@@ -422,12 +411,10 @@ async def export_user_data(
         for p in plans_result.scalars().all()
     ]
 
-    # Get sessions
     sessions_stmt = select(Session).where(Session.patient_id == user_id)
     sessions_result = await session.execute(sessions_stmt)
     sessions_data = []
     for sess in sessions_result.scalars().all():
-        # Get exercise results for each session
         results_stmt = select(SessionExerciseResult).where(
             SessionExerciseResult.session_id == sess.id
         )
@@ -460,7 +447,6 @@ async def export_user_data(
             }
         )
 
-    # Get protocols created
     protocols_stmt = select(Protocol).where(Protocol.created_by == user_id)
     protocols_result = await session.execute(protocols_stmt)
     protocols_data = [

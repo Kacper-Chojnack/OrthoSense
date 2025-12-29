@@ -98,7 +98,6 @@ async def get_plan(
             detail="Access denied",
         )
 
-    # Calculate stats
     sessions_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
         Session.treatment_plan_id == plan.id
     )
@@ -143,7 +142,6 @@ async def create_plan(
     current_user: TherapistUser,
 ) -> TreatmentPlan:
     """Create a treatment plan for a patient (Therapist only)."""
-    # Verify patient exists
     from app.models.user import User
 
     patient = await session.get(User, data.patient_id)
@@ -153,7 +151,6 @@ async def create_plan(
             detail="Patient not found",
         )
 
-    # Verify protocol if provided
     if data.protocol_id:
         from app.models.protocol import Protocol
 
@@ -196,7 +193,6 @@ async def update_plan(
             detail=_TREATMENT_PLAN_NOT_FOUND,
         )
 
-    # Check ownership
     if plan.therapist_id != current_user.id and current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

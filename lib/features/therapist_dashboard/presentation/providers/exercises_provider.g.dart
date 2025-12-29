@@ -220,7 +220,7 @@ final class ExercisesNotifierProvider
   ExercisesNotifier create() => ExercisesNotifier();
 }
 
-String _$exercisesNotifierHash() => r'eb04e1de5ed7682080c767754b810992accb6dd3';
+String _$exercisesNotifierHash() => r'441ff75708a470d5cd06a6f440fa90bf22c45065';
 
 /// Notifier for exercise management.
 

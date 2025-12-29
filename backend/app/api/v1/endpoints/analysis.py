@@ -20,6 +20,7 @@ from app.ai.core.config import EXERCISE_NAMES
 from app.ai.core.system import OrthoSenseSystem
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.models.analysis import LandmarksAnalysisRequest
 
 router = APIRouter()
 logger = get_logger(__name__)
@@ -54,7 +55,6 @@ async def analyze_video_file(
             status_code=status.HTTP_400_BAD_REQUEST, detail="No filename provided"
         )
 
-    # Whitelist mapping - use hardcoded extension values (not user input)
     allowed_extensions: dict[str, str] = {
         ".mp4": ".mp4",
         ".mov": ".mov",
@@ -62,11 +62,9 @@ async def analyze_video_file(
         ".mkv": ".mkv",
     }
 
-    # Extract and normalize extension from filename
     _, raw_ext = os.path.splitext(file.filename)
     normalized_ext = raw_ext.lower()
 
-    # Get safe extension from whitelist (prevents tainted data flow)
     safe_ext = allowed_extensions.get(normalized_ext)
     if safe_ext is None:
         raise HTTPException(
@@ -74,15 +72,12 @@ async def analyze_video_file(
             detail=f"Unsupported file format. Allowed: {', '.join(allowed_extensions.keys())}",
         )
 
-    # Create upload directory
     upload_dir = Path(settings.upload_temp_dir).resolve()
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    # Generate safe filename using UUID (no user input in path)
     safe_filename = f"temp_{uuid.uuid4().hex}{safe_ext}"
     temp_path = (upload_dir / safe_filename).resolve()
 
-    # Defense in depth: verify path is within allowed directory
     if not temp_path.is_relative_to(upload_dir):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -115,6 +110,56 @@ async def analyze_video_file(
     finally:
         if temp_path.exists():
             temp_path.unlink()
+
+
+@router.post("/landmarks", status_code=status.HTTP_200_OK)
+async def analyze_landmarks(
+    request: LandmarksAnalysisRequest,
+) -> dict[str, Any]:
+    """
+    Analyze exercise from pre-extracted pose landmarks (Edge AI mode).
+
+    This endpoint receives landmarks extracted on the client device using ML Kit,
+    eliminating the need to upload video files. Only anonymous pose data is sent.
+    """
+    try:
+        if not request.landmarks:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No landmarks provided",
+            )
+
+        for i, frame in enumerate(request.landmarks):
+            if len(frame) != 33:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Frame {i} has {len(frame)} joints, expected 33",
+                )
+            for j, joint in enumerate(frame):
+                if len(joint) != 3:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Frame {i}, joint {j} has {len(joint)} coordinates, expected 3 [x, y, z]",
+                    )
+
+        system = OrthoSenseSystem()
+        result = system.analyze_landmarks(request.landmarks)
+
+        if "error" in result:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"]
+            )
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("landmarks_analysis_failed", error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Analysis failed: {e!s}",
+        ) from e
 
 
 @router.get("/realtime/status")

@@ -6,6 +6,7 @@ import 'package:orthosense/features/auth/presentation/screens/profile_screen.dar
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
 /// Asset path constants
 const String _kLogoAssetPath = 'assets/images/logo.png';
@@ -119,7 +120,7 @@ class DashboardScreen extends ConsumerWidget {
                   Navigator.pop(context);
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const GalleryAnalysisScreen(),
+                      builder: (_) => GalleryAnalysisScreen(),
                     ),
                   );
                 },
@@ -131,34 +132,22 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Real-time analysis unavailable notice
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.tertiaryContainer.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.construction_rounded,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Live Camera Analysis - Coming Soon',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onTertiaryContainer,
-                      ),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LiveAnalysisScreen(),
                     ),
-                  ),
-                ],
+                  );
+                },
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Live Camera Analysis'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
           ],
