@@ -104,3 +104,17 @@ class TaskStatusResponse(BaseModel):
     result: AnalysisResult | None = Field(
         default=None, description="Result if completed"
     )
+
+
+class LandmarksAnalysisRequest(BaseModel):
+    """Request model for landmarks-based analysis (Edge AI)."""
+
+    landmarks: list[list[list[float]]] = Field(
+        description="Pose landmarks: frames × 33 joints × 3 coordinates [x, y, z]"
+    )
+    fps: float = Field(
+        default=30.0,
+        ge=1.0,
+        le=120.0,
+        description="Video frames per second",
+    )

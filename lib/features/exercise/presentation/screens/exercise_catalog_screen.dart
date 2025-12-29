@@ -99,7 +99,7 @@ class ExerciseCatalogScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const GalleryAnalysisScreen(),
+                  builder: (_) => GalleryAnalysisScreen(),
                 ),
               );
             },
@@ -389,7 +389,7 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                           Navigator.of(context).pop();
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
-                              builder: (_) => const GalleryAnalysisScreen(),
+                              builder: (_) => GalleryAnalysisScreen(),
                             ),
                           );
                         },

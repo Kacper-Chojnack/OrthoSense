@@ -26,11 +26,9 @@ class OrthoSenseSystem:
 
     _instance: "OrthoSenseSystem | None" = None
 
-    # Video analysis parameters
-    WINDOW_SIZE = 60  # Frames for sliding window analysis
+    WINDOW_SIZE = 60  
 
-    # Instance attributes (initialized in __new__)
-    processor: "VideoProcessor"
+    processor: "VideoProcessor | None"
     engine: "OrthoSensePredictor"
     reporter: "ReportGenerator"
     _initialized: bool
@@ -38,8 +36,7 @@ class OrthoSenseSystem:
     def __new__(cls) -> "OrthoSenseSystem":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            # Shared heavy resources (loaded once)
-            cls._instance.processor = VideoProcessor(complexity=0)
+            cls._instance.processor = None  # Lazy initialization - only for /video endpoint
             cls._instance.engine = OrthoSensePredictor()
             cls._instance.reporter = ReportGenerator()
             cls._instance._initialized = False
@@ -75,9 +72,12 @@ class OrthoSenseSystem:
         if not os.path.exists(video_path):
             return {"error": "File not found"}
 
+        # Lazy initialization of VideoProcessor (only for /video endpoint)
+        if self.processor is None:
+            self.processor = VideoProcessor(complexity=0)
+
         self.engine.reset()
 
-        # Extract landmarks from video
         data_generator = self.processor.process_video_file(
             video_path, auto_rotate=False
         )
@@ -86,7 +86,6 @@ class OrthoSenseSystem:
         if not raw_data_with_visibility:
             return {"error": "No person detected"}
 
-        # Separate landmarks and visibility flags
         raw_data, visibility_flags = self._extract_landmarks_and_visibility(
             raw_data_with_visibility
         )
@@ -94,7 +93,6 @@ class OrthoSenseSystem:
         if not raw_data:
             return {"error": "No person detected"}
 
-        # Create sliding windows
         windows, window_visibility = self._create_sliding_windows(
             raw_data, visibility_flags
         )
@@ -102,18 +100,15 @@ class OrthoSenseSystem:
         if not windows:
             return {"error": "Video too short or processing failed"}
 
-        # Phase 1: Classification voting
         votes = self._classify_windows(windows, window_visibility)
 
         if not votes:
             return {"error": "No exercise detected with sufficient confidence."}
 
-        # Determine winner by majority vote
         vote_counts = Counter(votes)
         winner_exercise, winner_count = vote_counts.most_common(1)[0]
         voting_confidence = winner_count / len(votes)
 
-        # Phase 2: Detailed analysis with locked exercise
         detailed_results = self._analyze_windows_detailed(
             windows, window_visibility, winner_exercise, raw_data
         )
@@ -121,6 +116,81 @@ class OrthoSenseSystem:
         if not detailed_results:
             return {"error": "Analysis failed"}
 
+
+        last_result = detailed_results[-1]
+        analysis_tuple = (last_result["is_correct"], last_result["feedback"])
+        text_report = self.reporter.generate_report(analysis_tuple, winner_exercise)
+
+        final_result = {
+            "exercise": winner_exercise,
+            "confidence": voting_confidence,
+            "text_report": text_report,
+            "is_correct": last_result["is_correct"],
+            "feedback": last_result["feedback"],
+        }
+
+        serialized = self._make_serializable(final_result)
+        if isinstance(serialized, dict):
+            return serialized
+        return final_result
+
+    def analyze_landmarks(self, landmarks: list[list[list[float]]]) -> dict:
+        """
+        Analyze pose landmarks directly (Edge AI mode).
+
+        This method receives pre-extracted landmarks from the client device,
+        eliminating the need for video processing on the server.
+
+        Args:
+            landmarks: List of frames, each containing 33 joints with [x, y, z] coordinates.
+                     Format: frames × 33 joints × 3 coords
+
+        Returns:
+            Analysis result dict with exercise, confidence, feedback, and report.
+        """
+        if not landmarks:
+            return {"error": "No landmarks provided"}
+
+        self.engine.reset()
+
+        raw_data = []
+        visibility_flags = []
+
+        for frame in landmarks:
+            if len(frame) != 33:
+                visibility_flags.append(False)
+                continue
+
+            frame_array = np.array(frame, dtype=np.float32)
+            raw_data.append(frame_array)
+
+            visibility_flags.append(True)
+
+        if not raw_data:
+            return {"error": "No valid landmarks detected"}
+
+        windows, window_visibility = self._create_sliding_windows(
+            raw_data, visibility_flags
+        )
+
+        if not windows:
+            return {"error": "Video too short or processing failed"}
+
+        votes = self._classify_windows(windows, window_visibility)
+
+        if not votes:
+            return {"error": "No exercise detected with sufficient confidence."}
+
+        vote_counts = Counter(votes)
+        winner_exercise, winner_count = vote_counts.most_common(1)[0]
+        voting_confidence = winner_count / len(votes)
+
+        detailed_results = self._analyze_windows_detailed(
+            windows, window_visibility, winner_exercise, raw_data
+        )
+
+        if not detailed_results:
+            return {"error": "Analysis failed"}
 
         last_result = detailed_results[-1]
         analysis_tuple = (last_result["is_correct"], last_result["feedback"])

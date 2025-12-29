@@ -86,7 +86,6 @@ async def list_patients(
     limit: int = Query(50, ge=1, le=100),
 ) -> list[User]:
     """List patients assigned to the current therapist."""
-    # Get unique patient IDs from treatment plans
     subquery = (
         select(TreatmentPlan.patient_id)
         .where(TreatmentPlan.therapist_id == current_user.id)
@@ -116,7 +115,6 @@ async def get_patient(
     current_user: TherapistUser,
 ) -> User:
     """Get a specific patient's details."""
-    # Verify therapist has access to this patient
     statement = select(TreatmentPlan).where(
         TreatmentPlan.therapist_id == current_user.id,
         TreatmentPlan.patient_id == patient_id,
@@ -146,7 +144,6 @@ async def get_patient_plans(
     status_filter: PlanStatus | None = None,
 ) -> list[TreatmentPlanReadWithDetails]:
     """Get all treatment plans for a patient."""
-    # Base query with relationships
     statement = (
         select(TreatmentPlan)
         .where(
@@ -168,10 +165,8 @@ async def get_patient_plans(
     result = await session.execute(statement)
     plans = result.scalars().all()
 
-    # Enrich with stats
     enriched_plans = []
     for plan in plans:
-        # Count sessions
         sessions_stmt = select(func.count(Session.id)).where(  # type: ignore[arg-type]
             Session.treatment_plan_id == plan.id
         )
@@ -325,7 +320,6 @@ async def get_patient_sessions(
 
     summaries = []
     for s in sessions:
-        # Count exercises (would need protocol exercises count for total)
         exercises_completed = len(
             [r for r in s.exercise_results if r.score is not None]
         )

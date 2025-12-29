@@ -42,6 +42,8 @@ Thumbs.db
 **/ios/Flutter/app.flx
 **/ios/Pods/
 **/ios/.symlinks/
+**/ios/build/
+
 
 # === Android ===
 /android/app/debug
