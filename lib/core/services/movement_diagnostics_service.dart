@@ -30,7 +30,7 @@ class MovementDiagnosticsService {
   static const int _leftFootIndex = 31;
   static const int _rightFootIndex = 32;
 
-  DiagnosticsResult diagnose(String exerciseName, PoseLandmarks landmarks) {
+  DiagnosticsResult diagnose(String exerciseName, PoseLandmarks landmarks, {String? forcedVariant}) {
     if (landmarks.isEmpty) {
       return const DiagnosticsResult(
         isCorrect: false,
@@ -42,19 +42,72 @@ class MovementDiagnosticsService {
         .map((frame) => frame.landmarks.map((lm) => [lm.x, lm.y, lm.z]).toList())
         .toList();
 
+    String? variant = forcedVariant;
+    if (variant == null && (exerciseName == 'Standing Shoulder Abduction' || exerciseName == 'Hurdle Step')) {
+      variant = detectVariant(exerciseName, skeletonData);
+    }
+
     switch (exerciseName) {
       case 'Deep Squat':
         return _analyzeSquat(skeletonData);
       case 'Hurdle Step':
-        return _analyzeHurdleStep(skeletonData);
+        return _analyzeHurdleStep(skeletonData, variant: variant);
       case 'Standing Shoulder Abduction':
-        return _analyzeShoulderAbduction(skeletonData);
+        return _analyzeShoulderAbduction(skeletonData, variant: variant);
       default:
         return const DiagnosticsResult(
           isCorrect: true,
           feedback: {'System': 'No specific analysis available for this exercise'},
         );
     }
+  }
+
+  String detectVariant(String exerciseName, List<List<List<double>>> bufferData) {
+    if (bufferData.isEmpty) {
+      return 'BOTH';
+    }
+
+    if (exerciseName == 'Standing Shoulder Abduction') {
+      double minL = double.infinity;
+      double minR = double.infinity;
+      double refL = double.infinity;
+      double refR = double.infinity;
+
+      for (final frame in bufferData) {
+        final ly = frame[_leftWrist][1];
+        final ry = frame[_rightWrist][1];
+        final ls = frame[_leftShoulder][1];
+        final rs = frame[_rightShoulder][1];
+        
+        if (ly < minL) minL = ly;
+        if (ry < minR) minR = ry;
+        if (ls < refL) refL = ls;
+        if (rs < refR) refR = rs;
+      }
+
+      final lActive = minL < refL;
+      final rActive = minR < refR;
+
+      if (lActive && rActive) return 'BOTH';
+      if (lActive) return 'LEFT';
+      if (rActive) return 'RIGHT';
+      return 'BOTH';
+    } else if (exerciseName == 'Hurdle Step') {
+      double minLKnee = double.infinity;
+      double minRKnee = double.infinity;
+      
+      for (final frame in bufferData) {
+        final ly = frame[_leftKnee][1];
+        final ry = frame[_rightKnee][1];
+        if (ly < minLKnee) minLKnee = ly;
+        if (ry < minRKnee) minRKnee = ry;
+      }
+      
+      if (minLKnee < minRKnee) return 'LEFT';
+      return 'RIGHT';
+    }
+
+    return 'BOTH';
   }
 
   DiagnosticsResult _analyzeSquat(List<List<List<double>>> skeletonData) {
@@ -143,54 +196,127 @@ class MovementDiagnosticsService {
     return DiagnosticsResult(isCorrect: false, feedback: errors);
   }
 
-  DiagnosticsResult _analyzeHurdleStep(List<List<List<double>>> skeletonData) {
+  DiagnosticsResult _analyzeHurdleStep(List<List<List<double>>> skeletonData, {String? variant}) {
     final errors = <String, dynamic>{};
 
-    double maxKneeY = double.negativeInfinity;
-    List<List<double>>? highestFrame;
+    // Use variant if provided, otherwise detect from movement
+    final activeVariant = variant ?? _detectHurdleVariant(skeletonData);
 
-    for (final frame in skeletonData) {
-      final kneeY = math.max(frame[_leftKnee][1], frame[_rightKnee][1]);
-      if (kneeY > maxKneeY) {
-        maxKneeY = kneeY;
-        highestFrame = frame;
+    double minKneeY = double.infinity;
+    List<List<double>>? peakFrame;
+
+    if (activeVariant == 'LEFT') {
+      for (final frame in skeletonData) {
+        final kneeY = frame[_leftKnee][1];
+        if (kneeY < minKneeY) {
+          minKneeY = kneeY;
+          peakFrame = frame;
+        }
+      }
+    } else {
+      for (final frame in skeletonData) {
+        final kneeY = frame[_rightKnee][1];
+        if (kneeY < minKneeY) {
+          minKneeY = kneeY;
+          peakFrame = frame;
+        }
       }
     }
 
-    if (highestFrame == null) {
+    if (peakFrame == null) {
       return const DiagnosticsResult(
         isCorrect: false,
         feedback: {'System': 'No movement detected'},
       );
     }
 
-    final hipL = highestFrame[_leftHip];
-    final hipR = highestFrame[_rightHip];
-    final kneeL = highestFrame[_leftKnee];
-    final kneeR = highestFrame[_rightKnee];
-    final ankleL = highestFrame[_leftAnkle];
-    final ankleR = highestFrame[_rightAnkle];
+    final movingKneeIdx = activeVariant == 'LEFT' ? _leftKnee : _rightKnee;
+    final movingHipIdx = activeVariant == 'LEFT' ? _leftHip : _rightHip;
+    final movingAnkleIdx = activeVariant == 'LEFT' ? _leftAnkle : _rightAnkle;
+    final movingFootIdx = activeVariant == 'LEFT' ? _leftFootIndex : _rightFootIndex;
+    
+    final stanceKneeIdx = activeVariant == 'LEFT' ? _rightKnee : _leftKnee;
+    final stanceHipIdx = activeVariant == 'LEFT' ? _rightHip : _leftHip;
+    final stanceAnkleIdx = activeVariant == 'LEFT' ? _rightAnkle : _leftAnkle;
 
-    final leftKneeHigher = kneeL[1] > kneeR[1];
-    final liftedHip = leftKneeHigher ? hipL : hipR;
-    final supportHip = leftKneeHigher ? hipR : hipL;
-    final liftedKnee = leftKneeHigher ? kneeL : kneeR;
-    final supportAnkle = leftKneeHigher ? ankleR : ankleL;
+    final sHip = peakFrame[stanceHipIdx];
+    final sKnee = peakFrame[stanceKneeIdx];
+    final sAnkle = peakFrame[stanceAnkleIdx];
+    
+    final mHip = peakFrame[movingHipIdx];
+    final mKnee = peakFrame[movingKneeIdx];
+    final mAnkle = peakFrame[movingAnkleIdx];
+    final mFoot = peakFrame[movingFootIdx];
 
-    final hipHeightDiff = (liftedHip[1] - supportHip[1]).abs();
-    if (hipHeightDiff > 0.05) {
-      errors['Pelvic Hike (Compensation)'] = true;
+    final shL = peakFrame[_leftShoulder];
+    final shR = peakFrame[_rightShoulder];
+    final shMid = [(shL[0] + shR[0]) / 2, (shL[1] + shR[1]) / 2, (shL[2] + shR[2]) / 2];
+    final hipMid = [(sHip[0] + mHip[0]) / 2, (sHip[1] + mHip[1]) / 2, (sHip[2] + mHip[2]) / 2];
+
+    // Pelvic stability
+    final pelvisVec = [mHip[0] - sHip[0], mHip[1] - sHip[1], mHip[2] - sHip[2]];
+    final pelvisWidth = (pelvisVec[0]).abs();
+    if (pelvisWidth > 0) {
+      final tiltRatio = (sHip[1] - mHip[1]) / pelvisWidth;
+      if (tiltRatio > 0.15) {
+        errors['Pelvic Hike (Compensation)'] = true;
+      } else if (tiltRatio < -0.15) {
+        errors['Pelvic Drop (Instability)'] = true;
+      }
     }
 
-    final supportHeel = leftKneeHigher ? highestFrame[_rightHeel] : highestFrame[_leftHeel];
-    final supportFoot = leftKneeHigher ? highestFrame[_rightFootIndex] : highestFrame[_leftFootIndex];
-    final footAngle = _getFootAngle(supportHeel, supportFoot);
-    if (footAngle > 30) {
-      errors['Foot External Rotation'] = true;
+    // Knee valgus (stance leg)
+    final ankleHipDiff = (sAnkle[1] - sHip[1]).abs();
+    if (ankleHipDiff > 0) {
+      final ratioY = (sKnee[1] - sHip[1]) / (sAnkle[1] - sHip[1]);
+      final expectedKneeX = sHip[0] + ratioY * (sAnkle[0] - sHip[0]);
+      
+      final diff = sKnee[0] - expectedKneeX;
+      double valgusDev = 0.0;
+      
+      if (activeVariant == 'LEFT') {
+        if (diff < -0.03) valgusDev = diff.abs();
+      } else {
+        if (diff > 0.03) valgusDev = diff.abs();
+      }
+      
+      if (valgusDev > 0) {
+        errors['Knee Valgus'] = true;
+      }
     }
 
-    final ankleKneeAngle = _calculateAngle(supportAnkle, supportHip, liftedKnee);
-    if (ankleKneeAngle < 80) {
+    // Torso lean
+    final spineVec = [shMid[0] - hipMid[0], shMid[1] - hipMid[1], shMid[2] - hipMid[2]];
+    final spineVec2D = [spineVec[0], spineVec[1]];
+    final normSpine = _vectorNorm2D(spineVec2D);
+    if (normSpine > 0) {
+      final vertical = [0.0, -1.0];
+      final dot = spineVec2D[0] * vertical[0] + spineVec2D[1] * vertical[1];
+      final cosine = (dot / normSpine).clamp(-1.0, 1.0);
+      final angleTrunk = math.acos(cosine) * 180 / math.pi;
+      if (angleTrunk > 10) {
+        errors['Torso Instability'] = '${angleTrunk.toInt()}°';
+      }
+    }
+
+    // Clearance check
+    if (mAnkle[1] > (sKnee[1] + 0.02)) {
+      errors['Step too low'] = true;
+    }
+
+    // Foot alignment
+    if (activeVariant == 'LEFT') {
+      if (mAnkle[0] > (mKnee[0] + 0.04)) {
+        errors['Foot External Rotation'] = true;
+      }
+    } else {
+      if (mAnkle[0] < (mKnee[0] - 0.04)) {
+        errors['Foot External Rotation'] = true;
+      }
+    }
+
+    // Dorsiflexion check
+    if (mFoot[1] > (mAnkle[1] + 0.02)) {
       errors['Lack of Dorsiflexion (Toes down)'] = true;
     }
 
@@ -204,43 +330,209 @@ class MovementDiagnosticsService {
     return DiagnosticsResult(isCorrect: false, feedback: errors);
   }
 
-  DiagnosticsResult _analyzeShoulderAbduction(List<List<List<double>>> skeletonData) {
-    final errors = <String, dynamic>{};
+  String _detectHurdleVariant(List<List<List<double>>> skeletonData) {
+    double minLKnee = double.infinity;
+    double minRKnee = double.infinity;
+    
+    for (final frame in skeletonData) {
+      final ly = frame[_leftKnee][1];
+      final ry = frame[_rightKnee][1];
+      if (ly < minLKnee) minLKnee = ly;
+      if (ry < minRKnee) minRKnee = ry;
+    }
+    
+    if (minLKnee < minRKnee) return 'LEFT';
+    return 'RIGHT';
+  }
 
-    double maxWristY = double.negativeInfinity;
-    List<List<double>>? highestFrame;
+  DiagnosticsResult _analyzeShoulderAbduction(List<List<List<double>>> skeletonData, {String? variant}) {
+    final errors = <String, dynamic>{};
+    
+    // Use variant if provided, otherwise default to BOTH
+    final activeVariant = variant ?? 'BOTH';
+    
+    final checkLeft = activeVariant == 'LEFT' || activeVariant == 'BOTH';
+    final checkRight = activeVariant == 'RIGHT' || activeVariant == 'BOTH';
+
+    double maxAngleL = 0;
+    double maxAngleR = 0;
+    double maxTrunkAngle = 0;
+    final errorCounts = <String, int>{};
+
+    int framesAnalyzed = 0;
 
     for (final frame in skeletonData) {
-      final wristY = math.min(frame[_leftWrist][1], frame[_rightWrist][1]);
-      if (wristY < maxWristY || maxWristY == double.negativeInfinity) {
-        maxWristY = wristY;
-        highestFrame = frame;
+      final wristLY = frame[_leftWrist][1];
+      final elbowLY = frame[_leftElbow][1];
+      final wristRY = frame[_rightWrist][1];
+      final elbowRY = frame[_rightElbow][1];
+
+      bool isActive = false;
+      if (activeVariant == 'LEFT') {
+        if (wristLY < elbowLY) isActive = true;
+      } else if (activeVariant == 'RIGHT') {
+        if (wristRY < elbowRY) isActive = true;
+      } else if (activeVariant == 'BOTH') {
+        if (wristLY < elbowLY && wristRY < elbowRY) isActive = true;
+      }
+
+      if (!isActive) continue;
+
+      framesAnalyzed++;
+
+      final nose = frame[_nose];
+      final shL = frame[_leftShoulder];
+      final shR = frame[_rightShoulder];
+      final hipMid = [
+        (frame[_leftHip][0] + frame[_rightHip][0]) / 2,
+        (frame[_leftHip][1] + frame[_rightHip][1]) / 2,
+        (frame[_leftHip][2] + frame[_rightHip][2]) / 2,
+      ];
+      final shMid = [
+        (shL[0] + shR[0]) / 2,
+        (shL[1] + shR[1]) / 2,
+        (shL[2] + shR[2]) / 2,
+      ];
+      final shoulderWidth = _calculateDistance(shL, shR);
+
+      // Shrugging
+      if (shoulderWidth > 0) {
+        final distRatioLeft = _calculateDistance(nose, shL) / shoulderWidth;
+        final distRatioRight = _calculateDistance(nose, shR) / shoulderWidth;
+        if (checkLeft && distRatioLeft < 0.40) {
+          errorCounts['Shoulder elevation (Shrugging)'] = (errorCounts['Shoulder elevation (Shrugging)'] ?? 0) + 1;
+        }
+        if (checkRight && distRatioRight < 0.40) {
+          errorCounts['Shoulder elevation (Shrugging)'] = (errorCounts['Shoulder elevation (Shrugging)'] ?? 0) + 1;
+        }
+      }
+
+      // Trunk lean
+      final spineVec = [shMid[0] - hipMid[0], shMid[1] - hipMid[1], shMid[2] - hipMid[2]];
+      final spineVec2D = [spineVec[0], spineVec[1]];
+      final normSpine = _vectorNorm2D(spineVec2D);
+      if (normSpine > 0) {
+        final vertical = [0.0, -1.0];
+        final dot = spineVec2D[0] * vertical[0] + spineVec2D[1] * vertical[1];
+        final cosine = (dot / normSpine).clamp(-1.0, 1.0);
+        final angleTrunk = math.acos(cosine) * 180 / math.pi;
+        
+        if (angleTrunk > maxTrunkAngle) {
+          maxTrunkAngle = angleTrunk;
+        }
+        
+        if (angleTrunk > 15) {
+          errorCounts['Excessive trunk lean'] = (errorCounts['Excessive trunk lean'] ?? 0) + 1;
+        }
+      }
+
+      // Non-working arm movement
+      if (activeVariant == 'LEFT' && wristRY < elbowRY) {
+        errorCounts['Unstable non-working arm'] = (errorCounts['Unstable non-working arm'] ?? 0) + 1;
+      } else if (activeVariant == 'RIGHT' && wristLY < elbowLY) {
+        errorCounts['Unstable non-working arm'] = (errorCounts['Unstable non-working arm'] ?? 0) + 1;
+      }
+
+      // Arm asymmetry
+      if (activeVariant == 'BOTH') {
+        final wrL = frame[_leftWrist];
+        final wrR = frame[_rightWrist];
+        if ((wrL[1] - wrR[1]).abs() > 0.15) {
+          errorCounts['Arm asymmetry'] = (errorCounts['Arm asymmetry'] ?? 0) + 1;
+        }
+      }
+
+      // Range of motion safety check
+      final verticalDown = [0.0, 1.0];
+
+      if (checkLeft) {
+        final armVecL = [frame[_leftElbow][0] - shL[0], frame[_leftElbow][1] - shL[1], frame[_leftElbow][2] - shL[2]];
+        final normL = _vectorNorm2D([armVecL[0], armVecL[1]]);
+        if (normL > 0) {
+          final cosL = (armVecL[0] * verticalDown[0] + armVecL[1] * verticalDown[1]) / normL;
+          final angleL = math.acos(cosL.clamp(-1.0, 1.0)) * 180 / math.pi;
+          
+          if (angleL > maxAngleL) {
+            maxAngleL = angleL;
+          }
+          
+          if (angleL > 100) {
+            errorCounts['Arm raised too high (>100°)'] = (errorCounts['Arm raised too high (>100°)'] ?? 0) + 1;
+          }
+        }
+      }
+
+      if (checkRight) {
+        final armVecR = [frame[_rightElbow][0] - shR[0], frame[_rightElbow][1] - shR[1], frame[_rightElbow][2] - shR[2]];
+        final normR = _vectorNorm2D([armVecR[0], armVecR[1]]);
+        if (normR > 0) {
+          final cosR = (armVecR[0] * verticalDown[0] + armVecR[1] * verticalDown[1]) / normR;
+          final angleR = math.acos(cosR.clamp(-1.0, 1.0)) * 180 / math.pi;
+          
+          if (angleR > maxAngleR) {
+            maxAngleR = angleR;
+          }
+          
+          if (angleR > 100) {
+            errorCounts['Arm raised too high (>100°)'] = (errorCounts['Arm raised too high (>100°)'] ?? 0) + 1;
+          }
+        }
       }
     }
 
-    if (highestFrame == null) {
+    if (framesAnalyzed == 0) {
       return const DiagnosticsResult(
         isCorrect: false,
         feedback: {'System': 'No movement detected'},
       );
     }
 
-    final shL = highestFrame[_leftShoulder];
-    final shR = highestFrame[_rightShoulder];
-    final elbowL = highestFrame[_leftElbow];
-    final elbowR = highestFrame[_rightElbow];
-    final wristL = highestFrame[_leftWrist];
-    final wristR = highestFrame[_rightWrist];
+    final threshold = framesAnalyzed * 0.3;
 
-    final angleL = _calculateAngle(shL, elbowL, wristL);
-    final angleR = _calculateAngle(shR, elbowR, wristR);
+    if ((errorCounts['Shoulder elevation (Shrugging)'] ?? 0) > threshold) {
+      errors['Shoulder elevation (Shrugging)'] = true;
+    }
 
-    final shallowMsgs = <String>[];
-    if (angleL < 80) shallowMsgs.add('L:${angleL.toInt()}°');
-    if (angleR < 80) shallowMsgs.add('R:${angleR.toInt()}°');
+    if ((errorCounts['Excessive trunk lean'] ?? 0) > threshold) {
+      errors['Excessive trunk lean'] = '${maxTrunkAngle.toInt()}°';
+    }
 
-    if (shallowMsgs.isNotEmpty) {
-      errors['Movement too shallow (<80°)'] = shallowMsgs.join(', ');
+    if ((errorCounts['Unstable non-working arm'] ?? 0) > threshold) {
+      errors['Unstable non-working arm'] = true;
+    }
+
+    if ((errorCounts['Arm asymmetry'] ?? 0) > threshold) {
+      errors['Arm asymmetry'] = true;
+    }
+
+    if ((errorCounts['Arm raised too high (>100°)'] ?? 0) > threshold) {
+      final vals = <String>[];
+      if (checkLeft) vals.add('L:${maxAngleL.toInt()}°');
+      if (checkRight) vals.add('R:${maxAngleR.toInt()}°');
+      errors['Arm raised too high (>100°)'] = vals.join(', ');
+    }
+
+    bool romTooShallow = false;
+    final valsShallow = <String>[];
+    if (activeVariant == 'LEFT' && maxAngleL < 80) {
+      romTooShallow = true;
+      valsShallow.add('L:${maxAngleL.toInt()}°');
+    } else if (activeVariant == 'RIGHT' && maxAngleR < 80) {
+      romTooShallow = true;
+      valsShallow.add('R:${maxAngleR.toInt()}°');
+    } else if (activeVariant == 'BOTH') {
+      if (maxAngleL < 80) {
+        romTooShallow = true;
+        valsShallow.add('L:${maxAngleL.toInt()}°');
+      }
+      if (maxAngleR < 80) {
+        romTooShallow = true;
+        valsShallow.add('R:${maxAngleR.toInt()}°');
+      }
+    }
+
+    if (romTooShallow) {
+      errors['Movement too shallow (<80°)'] = valsShallow.join(', ');
     }
 
     if (errors.isEmpty) {

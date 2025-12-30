@@ -36,7 +36,7 @@ class OrthoSenseSystem:
     def __new__(cls) -> "OrthoSenseSystem":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.processor = None  # Lazy initialization - only for /video endpoint
+            cls._instance.processor = None  
             cls._instance.engine = OrthoSensePredictor()
             cls._instance.reporter = ReportGenerator()
             cls._instance._initialized = False
@@ -72,7 +72,6 @@ class OrthoSenseSystem:
         if not os.path.exists(video_path):
             return {"error": "File not found"}
 
-        # Lazy initialization of VideoProcessor (only for /video endpoint)
         if self.processor is None:
             self.processor = VideoProcessor(complexity=0)
 
@@ -144,6 +143,7 @@ class OrthoSenseSystem:
         Args:
             landmarks: List of frames, each containing 33 joints with [x, y, z] coordinates.
                      Format: frames × 33 joints × 3 coords
+                     OR: frames × 33 joints × 4 coords (if visibility included as 4th element)
 
         Returns:
             Analysis result dict with exercise, confidence, feedback, and report.
@@ -156,15 +156,39 @@ class OrthoSenseSystem:
         raw_data = []
         visibility_flags = []
 
+        key_indices = [11, 12, 23, 24, 25, 26, 27, 28]
+        min_visibility = 0.5
+
         for frame in landmarks:
             if len(frame) != 33:
                 visibility_flags.append(False)
                 continue
 
-            frame_array = np.array(frame, dtype=np.float32)
+            has_visibility = len(frame) > 0 and len(frame[0]) >= 4
+            
+            frame_array = np.array([joint[:3] for joint in frame], dtype=np.float32)
             raw_data.append(frame_array)
 
-            visibility_flags.append(True)
+            if has_visibility:
+                visible_count = 0
+                for idx in key_indices:
+                    if idx < len(frame) and len(frame[idx]) > 3:
+                        visibility = frame[idx][3]
+                        if visibility >= min_visibility:
+                            visible_count += 1
+                
+                is_visible = visible_count >= 6
+                visibility_flags.append(is_visible)
+            else:
+                visible_count = 0
+                for idx in key_indices:
+                    if idx < len(frame):
+                        coords = frame[idx][:3]
+                        if any(abs(c) > 0.01 for c in coords):
+                            visible_count += 1
+                
+                is_visible = visible_count >= 6
+                visibility_flags.append(is_visible)
 
         if not raw_data:
             return {"error": "No valid landmarks detected"}
@@ -286,7 +310,7 @@ class OrthoSenseSystem:
                 window_visibility[idx] if idx < len(window_visibility) else True
             )
             if not is_visible:
-                continue
+                continue 
 
             res = self.engine.analyze(
                 window_array, forced_exercise_name=winner_exercise

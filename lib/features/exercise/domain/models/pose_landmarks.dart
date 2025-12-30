@@ -19,7 +19,8 @@ class PoseLandmark {
 
   final double visibility;
 
-  List<double> toList() => [x, y, z];
+  List<double> toList({bool includeVisibility = true}) => 
+      includeVisibility ? [x, y, z, visibility] : [x, y, z];
 
   factory PoseLandmark.fromList(List<double> coords) {
     return PoseLandmark(
@@ -41,8 +42,8 @@ class PoseFrame {
 
   final List<PoseLandmark> landmarks;
 
-  List<List<double>> toBackendFormat() {
-    return landmarks.map((lm) => lm.toList()).toList();
+  List<List<double>> toBackendFormat({bool includeVisibility = true}) {
+    return landmarks.map((lm) => lm.toList(includeVisibility: includeVisibility)).toList();
   }
 
   factory PoseFrame.fromBackendFormat(List<List<double>> data) {

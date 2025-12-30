@@ -31,7 +31,7 @@ class ExerciseClassifierService {
 
   static const int _numJoints = 33;
   static const int _numChannels = 3; // x, y, z
-  static const int _modelSequenceLength = 30; 
+  static const int _modelSequenceLength = 60; // Match PyTorch model (MAX_FRAME = 60)
   static const int _numClasses = 3;
 
   Future<void> _initialize() async {
@@ -215,24 +215,91 @@ class ExerciseClassifierService {
       _interpreter!.run(input, output);
 
       final rawOutput = output[0];
-      final probabilities = _softmax(rawOutput);
+      // Model TFLite already has softmax activation, so output is already probabilities
+      // Check if already normalized (sum ~= 1.0 and all values in [0,1])
+      final sum = rawOutput.fold(0.0, (a, b) => a + b);
+      final isNormalized = (sum - 1.0).abs() < 0.01 && 
+                          rawOutput.every((e) => e >= 0 && e <= 1);
+      final probabilities = isNormalized ? rawOutput : _softmax(rawOutput);
 
+      // Find top 2 probabilities to check for ambiguity
       double maxProb = 0.0;
+      double secondMaxProb = 0.0;
       int predictedClass = 0;
+      int secondClass = 0;
+      
       for (var i = 0; i < probabilities.length; i++) {
         if (probabilities[i] > maxProb) {
+          secondMaxProb = maxProb;
+          secondClass = predictedClass;
           maxProb = probabilities[i];
           predictedClass = i;
+        } else if (probabilities[i] > secondMaxProb) {
+          secondMaxProb = probabilities[i];
+          secondClass = i;
         }
       }
 
-      final exerciseName = _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
-
-      debugPrint('Classified: $exerciseName ($maxProb)');
+      // Check for ambiguous classification (especially Standing Shoulder Abduction vs Deep Squat)
+      final probDiff = maxProb - secondMaxProb;
+      final isAmbiguous = probDiff < 0.10; // If difference < 10%, consider ambiguous
+      
+      // Special case: Standing Shoulder Abduction (index 2) vs Deep Squat (index 0)
+      final isSSAvsDS = (predictedClass == 0 && secondClass == 2) || 
+                        (predictedClass == 2 && secondClass == 0);
+      
+      String exerciseName;
+      double finalConfidence = maxProb;
+      
+      if (isAmbiguous && isSSAvsDS) {
+        // For ambiguous SSA vs DS, use more conservative threshold
+        if (probDiff < 0.05) {
+          // Too ambiguous - reject classification
+          exerciseName = 'Unknown Exercise';
+          finalConfidence = 0.0;
+          debugPrint('⚠️ AMBIGUOUS: Standing Shoulder Abduction vs Deep Squat (diff: ${probDiff.toStringAsFixed(4)}) - REJECTED');
+        } else {
+          // Slightly ambiguous but still use it
+          exerciseName = _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
+          debugPrint('⚠️ WARNING: Ambiguous classification (diff: ${probDiff.toStringAsFixed(4)}) but using ${exerciseName}');
+        }
+      } else {
+        exerciseName = _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
+      }
+      
+      // Enhanced debug: print all probabilities with detailed info
+      debugPrint('=== Classification Debug ===');
+      debugPrint('Input frames: ${landmarks.frames.length}');
+      debugPrint('Raw output sum: ${sum.toStringAsFixed(6)} (normalized: $isNormalized)');
+      debugPrint('Raw output values: $rawOutput');
+      debugPrint('Classification probabilities:');
+      for (var i = 0; i < probabilities.length; i++) {
+        final exName = _exerciseLabels[i] ?? 'Unknown';
+        final diff = (i == predictedClass) ? '' : ' (diff: ${(maxProb - probabilities[i]).toStringAsFixed(3)})';
+        debugPrint('  $exName: ${probabilities[i].toStringAsFixed(6)}$diff');
+      }
+      debugPrint('Selected: $exerciseName (${maxProb.toStringAsFixed(6)})');
+      
+      // Special check for Standing Shoulder Abduction vs Deep Squat confusion
+      if (exerciseName == 'Deep Squat' && probabilities.length > 2) {
+        final ssaProb = probabilities[2]; // Standing Shoulder Abduction is index 2
+        if (ssaProb > 0.2) { // If SSA has significant probability
+          debugPrint('⚠️ WARNING: Deep Squat selected but Standing Shoulder Abduction has prob ${ssaProb.toStringAsFixed(6)}');
+          debugPrint('   This might indicate model confusion between these exercises.');
+        }
+      }
+      if (exerciseName == 'Standing Shoulder Abduction' && probabilities.length > 0) {
+        final dsProb = probabilities[0]; // Deep Squat is index 0
+        if (dsProb > 0.2) { // If Deep Squat has significant probability
+          debugPrint('⚠️ WARNING: Standing Shoulder Abduction selected but Deep Squat has prob ${dsProb.toStringAsFixed(6)}');
+          debugPrint('   This might indicate model confusion between these exercises.');
+        }
+      }
+      debugPrint('===========================');
 
       return ExerciseClassification(
         exercise: exerciseName,
-        confidence: maxProb,
+        confidence: finalConfidence,
       );
     } catch (e, stackTrace) {
       debugPrint('Error during classification: $e');
