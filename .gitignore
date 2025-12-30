@@ -127,3 +127,9 @@ todo
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
+
+
+# zosia
+napraw_xcode.sh
+zmiana_wag.py
+/zosia

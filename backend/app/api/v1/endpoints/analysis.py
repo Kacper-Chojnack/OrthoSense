@@ -136,10 +136,10 @@ async def analyze_landmarks(
                     detail=f"Frame {i} has {len(frame)} joints, expected 33",
                 )
             for j, joint in enumerate(frame):
-                if len(joint) != 3:
+                if len(joint) not in [3, 4]:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Frame {i}, joint {j} has {len(joint)} coordinates, expected 3 [x, y, z]",
+                        detail=f"Frame {i}, joint {j} has {len(joint)} coordinates, expected 3 [x, y, z] or 4 [x, y, z, visibility]",
                     )
 
         system = OrthoSenseSystem()

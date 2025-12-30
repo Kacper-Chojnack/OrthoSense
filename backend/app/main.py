@@ -30,17 +30,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     await init_db()
     logger.info("database_initialized")
 
-    logger.info("initializing_ai_system")
-    try:
-        from app.core.ai_system import get_ai_system, is_ai_available
-
-        if is_ai_available():
-            get_ai_system()
-            logger.info("ai_system_ready")
-        else:
-            logger.warning("ai_system_unavailable")
-    except Exception as e:
-        logger.warning("ai_system_init_skipped", reason=str(e))
+    # AI system will be initialized lazily on first use (not during startup)
+    # This prevents blocking the application startup with heavy model loading
+    logger.info("ai_system_will_initialize_lazily")
 
     yield
     logger.info("application_shutdown")
