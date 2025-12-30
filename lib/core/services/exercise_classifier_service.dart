@@ -215,7 +215,6 @@ class ExerciseClassifierService {
       _interpreter!.run(input, output);
 
       final rawOutput = output[0];
-      .
       final probabilities = _softmax(rawOutput);
 
       double maxProb = 0.0;
