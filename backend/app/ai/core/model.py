@@ -5,7 +5,7 @@ import torch.nn as nn
 class SkeletonLSTM(nn.Module):
     def __init__(
         self,
-        num_class=2,
+        num_class=3,
         in_channels=3,
         num_joints=33,
         hidden_size=128,

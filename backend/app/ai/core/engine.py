@@ -12,7 +12,6 @@ from app.ai.core.model import Model
 AI_DIR = Path(__file__).parent.parent
 BASE_DIR = Path(__file__).parent.parent.parent.parent
 
-# Model filename constant
 DEFAULT_MODEL_FILENAME = "lstm_best_model.pt"
 
 

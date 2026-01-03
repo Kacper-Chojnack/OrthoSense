@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io'; 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,29 +32,28 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
   AnalysisPhase _currentPhase = AnalysisPhase.idle;
   Timer? _phaseTimer;
 
-  // Rolling buffer for live analysis (like external repo: 60 frames)
-  final List<PoseFrame> _rawBuffer = []; // Rolling buffer, max 60 frames
-  static const _windowSize = 60; // Buffer size (like external repo)
-  static const _predictionInterval = 5; // Analyze every 5 frames (like external repo)
-  
-  // Calibration votes (like external repo)
+  final List<PoseFrame> _rawBuffer = [];
+  static const _windowSize = 60;
+  static const _predictionInterval = 5;
+
   final List<String> _calibrationVotes = [];
-  
-  // Calibration results
+
   String? _detectedExercise;
   String? _detectedVariant;
   String? _currentFeedback;
   bool _hasError = false;
 
-  // Frame processing throttling
   DateTime? _lastFrameProcessTime;
-  static const _frameProcessingInterval = Duration(milliseconds: 66); // ~15 FPS
-  int _frameCount = 0; // Track frame count for prediction interval
+  static const _frameProcessingInterval = Duration(milliseconds: 66);
+  int _frameCount = 0;
 
-  // Visibility tracking
-  final List<bool> _visibilityBuffer = []; // Track visibility of recent frames
-  static const _visibilityWindowSize = 30; // Check last 30 frames
-  static const _minVisibilityRatio = 0.7; // Need at least 70% visible frames
+  final List<bool> _visibilityBuffer = [];
+  static const _visibilityWindowSize = 30;
+  static const _minVisibilityRatio = 0.7;
+
+  PoseFrame? _debugPose;
+  PoseFrame? _lastSmoothedPose;
+  Size? _sourceImageSize;
 
   @override
   void initState() {
@@ -70,10 +70,15 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       orElse: () => cameras.first,
     );
 
+    final imageFormatGroup = Platform.isIOS
+        ? ImageFormatGroup.bgra8888
+        : ImageFormatGroup.yuv420;
+
     _controller = CameraController(
       camera,
       ResolutionPreset.medium,
       enableAudio: false,
+      imageFormatGroup: imageFormatGroup, 
     );
 
     try {
@@ -108,21 +113,20 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       _hasError = false;
       _visibilityBuffer.clear();
       _frameCount = 0;
+      _debugPose = null;
+      _lastSmoothedPose = null;
     });
 
-    // Start camera stream
     _controller!.startImageStream(_processCameraFrame).catchError((error) {
       debugPrint('Error starting image stream: $error');
       _handleError('Failed to start camera stream');
     });
 
-    // Setup phase: 5 seconds
     _phaseTimer = Timer(const Duration(seconds: 5), () {
       if (mounted && _currentPhase == AnalysisPhase.setup) {
         setState(() {
           _currentPhase = AnalysisPhase.calibrationClassification;
         });
-        // Calibration classification: 10 seconds (like external repo)
         _phaseTimer = Timer(const Duration(seconds: 10), () {
           _performClassification();
         });
@@ -132,21 +136,16 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
   Future<void> _performClassification() async {
     debugPrint('[Classification] Starting classification with ${_calibrationVotes.length} votes');
-    debugPrint('[Classification] All votes: $_calibrationVotes');
     
     if (_calibrationVotes.isEmpty) {
-      debugPrint('[Classification] ERROR: No votes collected');
-      _handleError('No exercise detected during calibration. Please ensure your full body is visible.');
+      _handleError('No exercise detected. Ensure full body is visible.');
       return;
     }
 
-    // Count votes (like external repo)
     final voteCounts = <String, int>{};
     for (final vote in _calibrationVotes) {
       voteCounts[vote] = (voteCounts[vote] ?? 0) + 1;
     }
-
-    debugPrint('[Classification] Vote counts: $voteCounts');
 
     String? winnerExercise;
     int maxVotes = 0;
@@ -158,18 +157,14 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     }
 
     if (winnerExercise == null) {
-      debugPrint('[Classification] ERROR: No winner exercise');
       _handleError('No exercise detected with sufficient confidence.');
       return;
     }
 
-    // Calculate voting confidence (like external repo)
     final votingConfidence = maxVotes / _calibrationVotes.length;
-    debugPrint('[Classification] Winner: $winnerExercise ($maxVotes/${_calibrationVotes.length} votes, ${(votingConfidence * 100).toStringAsFixed(1)}%)');
+    debugPrint('[Classification] Winner: $winnerExercise ($maxVotes votes)');
 
-    // Require at least 30% of votes to be for the winner (to avoid random selection)
     if (votingConfidence < 0.3) {
-      debugPrint('[Classification] ERROR: Voting confidence too low (${(votingConfidence * 100).toStringAsFixed(1)}% < 30%)');
       _handleError('Exercise detection uncertain. Please try again.');
       return;
     }
@@ -180,7 +175,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         _currentPhase = AnalysisPhase.calibrationVariant;
       });
 
-      // Calibration variant detection: 4 seconds
       _phaseTimer = Timer(const Duration(seconds: 4), () {
         _performVariantDetection();
       });
@@ -193,9 +187,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       return;
     }
 
-    // Use recent frames from buffer for variant detection
     if (_rawBuffer.length < 10) {
-      // If not enough frames, use default
       if (mounted) {
         setState(() {
           _detectedVariant = 'BOTH';
@@ -207,13 +199,13 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
     try {
       final diagnostics = ref.read(movementDiagnosticsServiceProvider);
-      final recentFrames = _rawBuffer.length > 30 
-          ? _rawBuffer.sublist(_rawBuffer.length - 30) 
+      final recentFrames = _rawBuffer.length > 30
+          ? _rawBuffer.sublist(_rawBuffer.length - 30)
           : _rawBuffer;
       final skeletonData = recentFrames
           .map((frame) => frame.landmarks.map((lm) => [lm.x, lm.y, lm.z]).toList())
           .toList();
-      
+
       final variant = diagnostics.detectVariant(_detectedExercise!, skeletonData);
 
       if (mounted) {
@@ -233,8 +225,38 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     }
   }
 
+  PoseFrame _smoothPose(PoseFrame newPose) {
+    if (_lastSmoothedPose == null) {
+      _lastSmoothedPose = newPose;
+      return newPose;
+    }
+
+    const double alpha = 0.6; 
+    final smoothedLandmarks = <PoseLandmark>[];
+
+    for (int i = 0; i < newPose.landmarks.length; i++) {
+      final prevLm = _lastSmoothedPose!.landmarks[i];
+      final newLm = newPose.landmarks[i];
+
+      final smoothedX = (prevLm.x * (1 - alpha)) + (newLm.x * alpha);
+      final smoothedY = (prevLm.y * (1 - alpha)) + (newLm.y * alpha);
+      final smoothedZ = (prevLm.z * (1 - alpha)) + (newLm.z * alpha);
+
+      smoothedLandmarks.add(PoseLandmark(
+        x: smoothedX,
+        y: smoothedY,
+        z: smoothedZ,
+      ));
+    }
+
+    final smoothedPose = PoseFrame(landmarks: smoothedLandmarks);
+    
+    _lastSmoothedPose = smoothedPose;
+    
+    return smoothedPose;
+  }
+
   Future<void> _processCameraFrame(CameraImage image) async {
-    // Throttle frame processing
     final now = DateTime.now();
     if (_lastFrameProcessTime != null &&
         now.difference(_lastFrameProcessTime!) < _frameProcessingInterval) {
@@ -253,18 +275,24 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
       if (poseFrame == null) return;
 
+      if (mounted) {
+        final smoothedPose = _smoothPose(poseFrame);
+
+        setState(() {
+          _debugPose = smoothedPose;
+          _sourceImageSize = Size(image.width.toDouble(), image.height.toDouble());
+        });
+      }
+
       if (!mounted) return;
 
-      // Check visibility before processing
       final isVisible = poseService.checkPoseVisibility(poseFrame);
-      
-      // Track visibility in buffer
+
       _visibilityBuffer.add(isVisible);
       if (_visibilityBuffer.length > _visibilityWindowSize) {
         _visibilityBuffer.removeAt(0);
       }
 
-      // Add to rolling buffer (max 60 frames, like external repo)
       if (isVisible) {
         _rawBuffer.add(poseFrame);
         if (_rawBuffer.length > _windowSize) {
@@ -272,21 +300,20 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         }
       }
 
-      // In analyzing phase, check visibility ratio in recent frames
       if (_currentPhase == AnalysisPhase.analyzing && _visibilityBuffer.length >= _visibilityWindowSize) {
         final visibleCount = _visibilityBuffer.where((v) => v).length;
         final visibilityRatio = visibleCount / _visibilityBuffer.length;
-        
+
         if (visibilityRatio < _minVisibilityRatio) {
           if (mounted) {
             setState(() {
-              _currentFeedback = 'Insufficient body visibility - ensure full body is visible';
+              _currentFeedback = 'Insufficient body visibility';
               _hasError = true;
             });
           }
           return;
         } else {
-          if (mounted && _currentFeedback == 'Insufficient body visibility - ensure full body is visible') {
+          if (mounted && _currentFeedback == 'Insufficient body visibility') {
             setState(() {
               _currentFeedback = null;
               _hasError = false;
@@ -295,18 +322,14 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         }
       }
 
-      // Analyze only if buffer is full and at prediction interval (like external repo)
       if (_rawBuffer.length == _windowSize && _frameCount % _predictionInterval == 0) {
         if (isVisible) {
           if (_currentPhase == AnalysisPhase.calibrationClassification) {
-            // During calibration: classify and collect votes
             await _analyzeCalibrationFrame();
           } else if (_currentPhase == AnalysisPhase.analyzing) {
-            // During analysis: diagnose with forced exercise
             await _analyzeFrame();
           }
         } else {
-          // Not visible - show warning
           if (mounted && _currentPhase == AnalysisPhase.analyzing) {
             setState(() {
               _currentFeedback = 'Please ensure full body is visible';
@@ -321,43 +344,33 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
   }
 
   Future<void> _analyzeCalibrationFrame() async {
-    if (_rawBuffer.length < 60) return; // Need at least 60 frames (like PyTorch model)
+    if (_rawBuffer.length < 60) return;
 
     try {
       final poseService = ref.read(poseDetectionServiceProvider);
       final classifier = ref.read(exerciseClassifierServiceProvider);
-      
-      // Use last 60 frames (model sequence length, matching PyTorch)
-      final windowFrames = _rawBuffer.length >= 60 
+
+      final windowFrames = _rawBuffer.length >= 60
           ? _rawBuffer.sublist(_rawBuffer.length - 60)
           : _rawBuffer;
-      
-      // Filter frames with insufficient visibility (like video analysis)
+
       final validFrames = <PoseFrame>[];
       for (final frame in windowFrames) {
         if (poseService.checkPoseVisibility(frame)) {
           validFrames.add(frame);
         }
       }
-      
-      // Need at least some valid frames to classify
-      if (validFrames.length < 30) {
-        debugPrint('[Calibration] Insufficient valid frames: ${validFrames.length}/60');
-        return;
-      }
-      
+
+      if (validFrames.length < 30) return;
+
       final landmarks = PoseLandmarks(frames: validFrames, fps: 30.0);
       final classification = await classifier.classify(landmarks);
 
-      // Collect votes (like external repo) - match exact logic: confidence > 0.50 and ex_name != "No Exercise Detected"
       final exName = classification.exercise;
-      if (exName != 'Unknown Exercise' && 
+      if (exName != 'Unknown Exercise' &&
           exName != 'No Exercise Detected' &&
           classification.confidence > 0.50) {
         _calibrationVotes.add(exName);
-        debugPrint('[Calibration] Vote: $exName (${classification.confidence.toStringAsFixed(3)})');
-      } else {
-        debugPrint('[Calibration] Rejected: $exName (conf: ${classification.confidence.toStringAsFixed(3)})');
       }
     } catch (e) {
       debugPrint('Calibration analysis error: $e');
@@ -366,16 +379,15 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
   Future<void> _analyzeFrame() async {
     if (_detectedExercise == null) return;
-    if (_rawBuffer.length < 60) return; // Need at least 60 frames (like PyTorch model)
+    if (_rawBuffer.length < 60) return;
 
     try {
       final diagnostics = ref.read(movementDiagnosticsServiceProvider);
-      // Use last 60 frames for analysis (matching PyTorch model window size)
-      final windowFrames = _rawBuffer.length >= 60 
+      final windowFrames = _rawBuffer.length >= 60
           ? _rawBuffer.sublist(_rawBuffer.length - 60)
           : _rawBuffer;
       final landmarks = PoseLandmarks(frames: windowFrames, fps: 30.0);
-      
+
       final result = diagnostics.diagnose(
         _detectedExercise!,
         landmarks,
@@ -384,20 +396,16 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
       if (mounted && _currentPhase == AnalysisPhase.analyzing) {
         setState(() {
-          // Only update feedback if we're not showing visibility warning
-          if (_currentFeedback != 'Insufficient body visibility - ensure full body is visible' &&
+          if (_currentFeedback != 'Insufficient body visibility' &&
               _currentFeedback != 'Please ensure full body is visible') {
             _hasError = !result.isCorrect;
             if (result.isCorrect) {
               _currentFeedback = 'Good job';
             } else {
-              // Show first error key without angle details
               final firstError = result.feedback.keys.first;
-              // Remove angle details from error message
               String errorMsg = firstError;
               if (errorMsg.contains('°')) {
                 errorMsg = errorMsg.split('°').first.trim();
-                // Remove common angle-related suffixes
                 errorMsg = errorMsg.replaceAll(RegExp(r'\([^)]*°[^)]*\)'), '');
               }
               _currentFeedback = errorMsg;
@@ -426,6 +434,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     _phaseTimer?.cancel();
     _phaseTimer = null;
     _controller?.stopImageStream();
+    setState(() {
+      _debugPose = null;
+    });
   }
 
   String _getPhaseMessage() {
@@ -470,7 +481,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Camera preview
           if (_isInitialized && _controller != null)
             Positioned.fill(
               child: _controller!.value.isInitialized
@@ -483,8 +493,22 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
                         return Transform.scale(
                           scale: scale,
-                          child: Center(
-                            child: CameraPreview(_controller!),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Center(
+                                child: CameraPreview(_controller!),
+                              ),
+                              if (_debugPose != null && _sourceImageSize != null)
+                                CustomPaint(
+                                  painter: PosePainter(
+                                    pose: _debugPose!,
+                                    imageSize: _sourceImageSize!,
+                                    isFrontCamera: _controller!.description.lensDirection ==
+                                        CameraLensDirection.front,
+                                  ),
+                                ),
+                            ],
                           ),
                         );
                       },
@@ -494,7 +518,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
           else
             const Center(child: CircularProgressIndicator()),
 
-          // Phase status overlay
           if (_currentPhase != AnalysisPhase.idle)
             Positioned(
               top: 16,
@@ -518,8 +541,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
               ),
             ),
 
-          // Real-time feedback overlay - show in analyzing phase or when there's an error message
-          if (_currentFeedback != null && 
+          if (_currentFeedback != null &&
               (_currentPhase == AnalysisPhase.analyzing || _hasError))
             Positioned(
               bottom: 100,
@@ -544,7 +566,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
               ),
             ),
 
-          // Start button
           if (_currentPhase == AnalysisPhase.idle)
             Positioned(
               bottom: 32,
@@ -561,5 +582,103 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         ],
       ),
     );
+  }
+}
+
+class PosePainter extends CustomPainter {
+  final PoseFrame pose;
+  final Size imageSize;
+  final bool isFrontCamera;
+
+  static const List<List<int>> connections = [
+    [11, 12], 
+    [11, 13], [13, 15], 
+    [12, 14], [14, 16], 
+    [11, 23], [12, 24], 
+    [23, 24], 
+    [23, 25], [25, 27], 
+    [24, 26], [26, 28], 
+  ];
+
+  static const List<int> allowedLandmarks = [
+    11, 12, 13, 14, 15, 16, 
+    23, 24, 25, 26, 27, 28  
+  ];
+
+  PosePainter({
+    required this.pose,
+    required this.imageSize,
+    this.isFrontCamera = true,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (pose.landmarks.isEmpty) return;
+
+    final linePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..color = Colors.green;
+
+    final jointPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = Colors.green;
+
+    double screenRatio = size.width / size.height;
+    double imageRatio = imageSize.width / imageSize.height;
+    
+    double contentWidth, contentHeight;
+
+    if (screenRatio > imageRatio) {
+      contentHeight = size.height;
+      contentWidth = size.height * imageRatio;
+    } else {
+      contentWidth = size.width;
+      contentHeight = size.width / imageRatio;
+    }
+
+    double offsetX = (size.width - contentWidth) / 2;
+    double offsetY = (size.height - contentHeight) / 2;
+    
+    bool mirrorX = false; 
+    // if (isFrontCamera) mirrorX = true; 
+
+    Offset getPoint(int index) {
+      if (index >= pose.landmarks.length) return Offset.zero;
+      
+      final landmark = pose.landmarks[index];
+      double x = landmark.x * contentWidth + offsetX;
+      double y = landmark.y * contentHeight + offsetY;
+
+      if (mirrorX) {
+        x = size.width - x; 
+      }
+      return Offset(x, y);
+    }
+
+    for (final pair in connections) {
+      if (pair[0] < pose.landmarks.length && pair[1] < pose.landmarks.length) {
+        final start = getPoint(pair[0]);
+        final end = getPoint(pair[1]);
+        
+        if (start != Offset.zero && end != Offset.zero) {
+           canvas.drawLine(start, end, linePaint);
+        }
+      }
+    }
+
+    for (final index in allowedLandmarks) {
+      if (index < pose.landmarks.length) {
+        final point = getPoint(index);
+        if (point != Offset.zero) {
+          canvas.drawCircle(point, 4.0, jointPaint);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant PosePainter oldDelegate) {
+    return oldDelegate.pose != pose;
   }
 }
