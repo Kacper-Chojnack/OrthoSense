@@ -168,7 +168,7 @@ class VideoProcessor:
             if needs_rotation and auto_rotate:
                 frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
-            frame = cv2.resize(frame, (640, 480))
+            # frame = cv2.resize(frame, (640, 480))
             image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             mp_image = mp.Image(image_format=ImageFormat.SRGB, data=image_rgb)
@@ -177,10 +177,10 @@ class VideoProcessor:
             self.frame_timestamp_ms += frame_duration_ms
 
             if (
-                results.pose_world_landmarks
-                and len(results.pose_world_landmarks) > 0
+                results.pose_landmarks
+                and len(results.pose_landmarks) > 0
             ):
-                skeleton = self.get_raw_landmarks(results.pose_world_landmarks[0])
+                skeleton = self.get_raw_landmarks(results.pose_landmarks[0])
                 last_valid_skeleton = skeleton
 
                 pose_landmarks = (
