@@ -199,7 +199,6 @@ class MovementDiagnosticsService {
   DiagnosticsResult _analyzeHurdleStep(List<List<List<double>>> skeletonData, {String? variant}) {
     final errors = <String, dynamic>{};
 
-    // Use variant if provided, otherwise detect from movement
     final activeVariant = variant ?? _detectHurdleVariant(skeletonData);
 
     double minKneeY = double.infinity;
@@ -348,7 +347,6 @@ class MovementDiagnosticsService {
   DiagnosticsResult _analyzeShoulderAbduction(List<List<List<double>>> skeletonData, {String? variant}) {
     final errors = <String, dynamic>{};
     
-    // Use variant if provided, otherwise default to BOTH
     final activeVariant = variant ?? 'BOTH';
     
     final checkLeft = activeVariant == 'LEFT' || activeVariant == 'BOTH';
