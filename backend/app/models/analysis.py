@@ -19,16 +19,20 @@ class AnalysisStatus(str, Enum):
     FAILED = "failed"
 
 
-class VideoAnalysisRequest(BaseModel):
-    """Request model for video upload analysis."""
+class LandmarksAnalysisRequest(BaseModel):
+    """Request model for landmarks-based analysis (Edge AI)."""
 
-    session_id: UUID | None = Field(
-        default=None,
-        description="Optional session ID to associate with the analysis",
+    landmarks: list[list[list[float]]] = Field(
+        description="Pose landmarks: frames × 33 joints × 3 coordinates [x, y, z]"
     )
-    exercise_hint: str | None = Field(
-        default=None,
-        description="Optional hint for expected exercise type",
+    exercise_name: str = Field(
+        description="Name of the exercise detected by client TFLite model (e.g., 'Deep Squat')"
+    )
+    fps: float = Field(
+        default=30.0,
+        ge=1.0,
+        le=120.0,
+        description="Video frames per second",
     )
 
 
