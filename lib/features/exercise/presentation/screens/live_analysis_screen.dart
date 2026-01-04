@@ -127,7 +127,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         setState(() {
           _currentPhase = AnalysisPhase.calibrationClassification;
         });
-        _phaseTimer = Timer(const Duration(seconds: 10), () {
+        _phaseTimer = Timer(const Duration(seconds: 6), () {
           _performClassification();
         });
       }
