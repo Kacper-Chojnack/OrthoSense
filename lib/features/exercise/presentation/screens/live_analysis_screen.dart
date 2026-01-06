@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io'; 
+import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,6 +55,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
   PoseFrame? _lastSmoothedPose;
   Size? _sourceImageSize;
 
+  final Map<String, int> _sessionErrorCounts = {};
+  int _totalAnalysisFrames = 0;
+  int _correctFrames = 0;
+
   @override
   void initState() {
     super.initState();
@@ -78,7 +82,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       camera,
       ResolutionPreset.medium,
       enableAudio: false,
-      imageFormatGroup: imageFormatGroup, 
+      imageFormatGroup: imageFormatGroup,
     );
 
     try {
@@ -115,6 +119,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       _frameCount = 0;
       _debugPose = null;
       _lastSmoothedPose = null;
+      
+      _sessionErrorCounts.clear();
+      _totalAnalysisFrames = 0;
+      _correctFrames = 0;
     });
 
     _controller!.startImageStream(_processCameraFrame).catchError((error) {
@@ -134,11 +142,70 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     });
   }
 
+  void _finishAndShowReport() {
+    _stopAnalysis();
+    
+    setState(() {
+      _currentPhase = AnalysisPhase.idle;
+    });
+
+    if (_totalAnalysisFrames < 5 || _detectedExercise == null) {
+      return;
+    }
+
+    final correctRatio = _correctFrames / _totalAnalysisFrames;
+    final isSessionCorrect = correctRatio > 0.7; 
+
+    final Map<String, dynamic> finalFeedback = {};
+
+    if (!isSessionCorrect) {
+      final threshold = _totalAnalysisFrames * 0.10;
+      
+      _sessionErrorCounts.forEach((key, count) {
+        if (count > threshold) {
+           finalFeedback[key] = true; 
+        }
+      });
+      
+      if (finalFeedback.isEmpty && _sessionErrorCounts.isNotEmpty) {
+         final sorted = _sessionErrorCounts.entries.toList()
+           ..sort((a, b) => b.value.compareTo(a.value));
+         finalFeedback[sorted.first.key] = true;
+      }
+    }
+
+    final finalResult = DiagnosticsResult(
+      isCorrect: isSessionCorrect,
+      feedback: finalFeedback,
+    );
+
+    final diagnostics = ref.read(movementDiagnosticsServiceProvider);
+    final reportText = diagnostics.generateReport(finalResult, _detectedExercise!);
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Session Summary'),
+          content: SingleChildScrollView(
+            child: Text(reportText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   Future<void> _performClassification() async {
     debugPrint('[Classification] Starting classification with ${_calibrationVotes.length} votes');
     
     if (_calibrationVotes.isEmpty) {
-      _handleError('No exercise detected. Ensure full body is visible.');
+      _handleError('Unable to detect exercise, please try again');
       return;
     }
 
@@ -157,7 +224,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     }
 
     if (winnerExercise == null) {
-      _handleError('No exercise detected with sufficient confidence.');
+      _handleError('Unable to detect exercise, please try again');
       return;
     }
 
@@ -165,7 +232,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
     debugPrint('[Classification] Winner: $winnerExercise ($maxVotes votes)');
 
     if (votingConfidence < 0.3) {
-      _handleError('Exercise detection uncertain. Please try again.');
+      _handleError('Unable to detect exercise, please try again');
       return;
     }
 
@@ -183,7 +250,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
 
   Future<void> _performVariantDetection() async {
     if (_detectedExercise == null) {
-      _handleError('Exercise not detected');
+      _handleError('Unable to detect exercise, please try again');
       return;
     }
 
@@ -216,12 +283,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
       }
     } catch (e) {
       debugPrint('Variant detection error: $e');
-      if (mounted) {
-        setState(() {
-          _detectedVariant = 'BOTH';
-          _currentPhase = AnalysisPhase.analyzing;
-        });
-      }
+      _handleError('Unable to detect exercise, please try again');
     }
   }
 
@@ -394,6 +456,18 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
         forcedVariant: _detectedVariant,
       );
 
+      // --- Zbieranie statystyk ---
+      if (_currentPhase == AnalysisPhase.analyzing) {
+        _totalAnalysisFrames++;
+        if (result.isCorrect) {
+          _correctFrames++;
+        } else {
+          for (final key in result.feedback.keys) {
+            _sessionErrorCounts[key] = (_sessionErrorCounts[key] ?? 0) + 1;
+          }
+        }
+      }
+
       if (mounted && _currentPhase == AnalysisPhase.analyzing) {
         setState(() {
           if (_currentFeedback != 'Insufficient body visibility' &&
@@ -469,12 +543,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
           if (_currentPhase != AnalysisPhase.idle)
             IconButton(
               icon: const Icon(Icons.stop),
-              onPressed: () {
-                setState(() {
-                  _currentPhase = AnalysisPhase.idle;
-                });
-                _stopAnalysis();
-              },
+              onPressed: _finishAndShowReport,
             ),
         ],
       ),
@@ -518,67 +587,87 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen> {
           else
             const Center(child: CircularProgressIndicator()),
 
-          if (_currentPhase != AnalysisPhase.idle)
+          if (_currentPhase != AnalysisPhase.idle || _hasError)
             Positioned(
               top: 16,
               left: 16,
               right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _getPhaseMessage(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-
-          if (_currentFeedback != null &&
-              (_currentPhase == AnalysisPhase.analyzing || _hasError))
-            Positioned(
-              bottom: 100,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: _hasError ? Colors.red.withOpacity(0.8) : Colors.green.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _currentFeedback!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _getPhaseMessage(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
+
+                  if (_currentFeedback != null &&
+                      (_currentPhase == AnalysisPhase.analyzing || _hasError))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: _hasError 
+                              ? Colors.red.withOpacity(0.9) 
+                              : Colors.green.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                             BoxShadow(
+                               color: Colors.black26,
+                               blurRadius: 4,
+                               offset: const Offset(0, 2),
+                             )
+                          ],
+                        ),
+                        child: Text(
+                          _currentFeedback!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20, 
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
 
-          if (_currentPhase == AnalysisPhase.idle)
-            Positioned(
-              bottom: 32,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: FloatingActionButton.extended(
-                  onPressed: _startAnalysis,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start Analysis'),
-                ),
-              ),
+          Positioned(
+            bottom: 32,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _currentPhase == AnalysisPhase.idle
+                  ? FloatingActionButton.extended(
+                      heroTag: 'start_btn',
+                      onPressed: _startAnalysis,
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('Start Analysis'),
+                    )
+                  : FloatingActionButton.extended(
+                      heroTag: 'stop_btn',
+                      onPressed: _finishAndShowReport,
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: const Icon(Icons.stop),
+                      label: const Text('Stop & Report'),
+                    ),
             ),
+          ),
         ],
       ),
     );
@@ -641,7 +730,6 @@ class PosePainter extends CustomPainter {
     double offsetY = (size.height - contentHeight) / 2;
     
     bool mirrorX = false; 
-    // if (isFrontCamera) mirrorX = true; 
 
     Offset getPoint(int index) {
       if (index >= pose.landmarks.length) return Offset.zero;
