@@ -34,7 +34,7 @@ class MovementDiagnosticsService {
     if (landmarks.isEmpty) {
       return const DiagnosticsResult(
         isCorrect: false,
-        feedback: {'System': 'No data provided'},
+        feedback: {'No active exercise detected': true},
       );
     }
 
@@ -57,7 +57,7 @@ class MovementDiagnosticsService {
       default:
         return const DiagnosticsResult(
           isCorrect: true,
-          feedback: {'System': 'No specific analysis available for this exercise'},
+          feedback: {'Analysis not available for this exercise': true},
         );
     }
   }
@@ -127,7 +127,7 @@ class MovementDiagnosticsService {
     if (deepestFrame == null) {
       return const DiagnosticsResult(
         isCorrect: false,
-        feedback: {'System': 'No movement detected'},
+        feedback: {'No active exercise detected': true},
       );
     }
 
@@ -228,7 +228,7 @@ class MovementDiagnosticsService {
     if (peakFrame == null) {
       return const DiagnosticsResult(
         isCorrect: false,
-        feedback: {'System': 'No movement detected'},
+        feedback: {'No active exercise detected': true},
       );
     }
 
@@ -484,7 +484,7 @@ class MovementDiagnosticsService {
     if (framesAnalyzed == 0) {
       return const DiagnosticsResult(
         isCorrect: false,
-        feedback: {'System': 'No movement detected'},
+        feedback: {'No active exercise detected': true},
       );
     }
 
@@ -614,15 +614,29 @@ class MovementDiagnosticsService {
     final buffer = StringBuffer();
     buffer.writeln('Exercise Analysis: $exerciseName');
 
-    if (result.isCorrect) {
+    // Filter out the idle message from the report
+    final filteredFeedback = Map<String, dynamic>.from(result.feedback);
+    filteredFeedback.remove('No active exercise detected');
+
+    // Consider the session correct if the original was correct OR if the only "error" was the idle message
+    if (result.isCorrect || filteredFeedback.isEmpty) {
       buffer.writeln('Status: Movement correct.');
       buffer.writeln('Conclusion: Excellent form! Keep it up.');
     } else {
       buffer.writeln('Status: Technique needs improvement.');
+
+      buffer.writeln('\nDetected Issues:');
+      for (final entry in filteredFeedback.entries) {
+        if (entry.value == true) {
+          buffer.writeln('• ${entry.key}');
+        } else {
+          buffer.writeln('• ${entry.key}: ${entry.value}');
+        }
+      }
       
       final adviceList = <String>[];
       
-      for (final key in result.feedback.keys) {
+      for (final key in filteredFeedback.keys) {
         if (_adviceMap.containsKey(key)) {
           adviceList.add(_adviceMap[key]!);
         } else {
@@ -630,7 +644,10 @@ class MovementDiagnosticsService {
         }
       }
       if (adviceList.isNotEmpty) {
-        buffer.writeln('Recommendations: ${adviceList.join(' ')}');
+        buffer.writeln('\nRecommendations:');
+        for (final advice in adviceList) {
+          buffer.writeln('• $advice');
+        }
       }
     }
 

@@ -93,7 +93,6 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         return;
       }
 
-      // Filter out frames with insufficient visibility
       final validFrames = <PoseFrame>[];
       for (final frame in landmarks.frames) {
         if (poseService.checkPoseVisibility(frame)) {
@@ -121,18 +120,14 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         });
       }
 
-      // Step 2: Classify exercise using TFLite
       final classifier = ref.read(exerciseClassifierServiceProvider);
       final classification = await classifier.classify(validLandmarks);
 
-      // Step 3: Diagnose movement quality
       final diagnostics = ref.read(movementDiagnosticsServiceProvider);
       final diagnosticsResult = diagnostics.diagnose(classification.exercise, validLandmarks);
 
-      // Step 4: Generate report
       final textReport = diagnostics.generateReport(diagnosticsResult, classification.exercise);
 
-      // Format result to match expected structure
       if (mounted) {
         setState(() {
           _result = {
