@@ -146,8 +146,9 @@ class MovementDiagnosticsService {
 
     final hipsYAvg = (hipL[1] + hipR[1]) / 2;
     final kneesYAvg = (kneeL[1] + kneeR[1]) / 2;
+    
     if (hipsYAvg < kneesYAvg) {
-      errors['Squat too shallow'] = 'Hips did not descend below knees';
+      errors['Squat too shallow'] = true;
     }
 
     final kneeWidth = (kneeL[0] - kneeR[0]).abs();
@@ -157,8 +158,9 @@ class MovementDiagnosticsService {
     }
 
     final heelsUp = <String>[];
-    if (heelL[1] < (footL[1] - 0.03)) heelsUp.add('L');
-    if (heelR[1] < (footR[1] - 0.03)) heelsUp.add('R');
+    if (heelL[1] < (footL[1] - 0.03)) heelsUp.add('Left');
+    if (heelR[1] < (footR[1] - 0.03)) heelsUp.add('Right');
+    
     if (heelsUp.isNotEmpty) {
       errors['Heels rising'] = heelsUp.join(', ');
     }
@@ -176,8 +178,9 @@ class MovementDiagnosticsService {
     final duckFeetMsgs = <String>[];
     if (angleFootL > 35) duckFeetMsgs.add('Left: ${angleFootL.toInt()}°');
     if (angleFootR > 35) duckFeetMsgs.add('Right: ${angleFootR.toInt()}°');
+    
     if (duckFeetMsgs.isNotEmpty) {
-      errors['Excessive Foot Turn-Out (Limit ~30°)'] = duckFeetMsgs.join(', ');
+      errors['Excessive Foot Turn-Out'] = duckFeetMsgs.join(', ');
     }
 
     final torsoVerticalLen = (hipL[1] + hipR[1]) / 2 - (shL[1] + shR[1]) / 2;
@@ -252,7 +255,7 @@ class MovementDiagnosticsService {
     final shMid = [(shL[0] + shR[0]) / 2, (shL[1] + shR[1]) / 2, (shL[2] + shR[2]) / 2];
     final hipMid = [(sHip[0] + mHip[0]) / 2, (sHip[1] + mHip[1]) / 2, (sHip[2] + mHip[2]) / 2];
 
-    // Pelvic stability
+    //Pelvic stability
     final pelvisVec = [mHip[0] - sHip[0], mHip[1] - sHip[1], mHip[2] - sHip[2]];
     final pelvisWidth = (pelvisVec[0]).abs();
     if (pelvisWidth > 0) {
@@ -264,7 +267,7 @@ class MovementDiagnosticsService {
       }
     }
 
-    // Knee valgus (stance leg)
+    //Knee valgus (stance leg)
     final ankleHipDiff = (sAnkle[1] - sHip[1]).abs();
     if (ankleHipDiff > 0) {
       final ratioY = (sKnee[1] - sHip[1]) / (sAnkle[1] - sHip[1]);
@@ -284,7 +287,7 @@ class MovementDiagnosticsService {
       }
     }
 
-    // Torso lean
+    //Torso lean
     final spineVec = [shMid[0] - hipMid[0], shMid[1] - hipMid[1], shMid[2] - hipMid[2]];
     final spineVec2D = [spineVec[0], spineVec[1]];
     final normSpine = _vectorNorm2D(spineVec2D);
@@ -298,12 +301,12 @@ class MovementDiagnosticsService {
       }
     }
 
-    // Clearance check
+    //Clearance check
     if (mAnkle[1] > (sKnee[1] + 0.02)) {
       errors['Step too low'] = true;
     }
 
-    // Foot alignment
+    //Foot alignment
     if (activeVariant == 'LEFT') {
       if (mAnkle[0] > (mKnee[0] + 0.04)) {
         errors['Foot External Rotation'] = true;
@@ -314,7 +317,7 @@ class MovementDiagnosticsService {
       }
     }
 
-    // Dorsiflexion check
+    //Dorsiflexion check
     if (mFoot[1] > (mAnkle[1] + 0.02)) {
       errors['Lack of Dorsiflexion (Toes down)'] = true;
     }
@@ -393,7 +396,7 @@ class MovementDiagnosticsService {
       ];
       final shoulderWidth = _calculateDistance(shL, shR);
 
-      // Shrugging
+      //Shrugging
       if (shoulderWidth > 0) {
         final distRatioLeft = _calculateDistance(nose, shL) / shoulderWidth;
         final distRatioRight = _calculateDistance(nose, shR) / shoulderWidth;
@@ -405,7 +408,7 @@ class MovementDiagnosticsService {
         }
       }
 
-      // Trunk lean
+      //Trunk lean
       final spineVec = [shMid[0] - hipMid[0], shMid[1] - hipMid[1], shMid[2] - hipMid[2]];
       final spineVec2D = [spineVec[0], spineVec[1]];
       final normSpine = _vectorNorm2D(spineVec2D);
@@ -424,14 +427,14 @@ class MovementDiagnosticsService {
         }
       }
 
-      // Non-working arm movement
+      //Non-working arm movement
       if (activeVariant == 'LEFT' && wristRY < elbowRY) {
         errorCounts['Unstable non-working arm'] = (errorCounts['Unstable non-working arm'] ?? 0) + 1;
       } else if (activeVariant == 'RIGHT' && wristLY < elbowLY) {
         errorCounts['Unstable non-working arm'] = (errorCounts['Unstable non-working arm'] ?? 0) + 1;
       }
 
-      // Arm asymmetry
+      //Arm asymmetry
       if (activeVariant == 'BOTH') {
         final wrL = frame[_leftWrist];
         final wrR = frame[_rightWrist];
@@ -440,7 +443,7 @@ class MovementDiagnosticsService {
         }
       }
 
-      // Range of motion safety check
+      //Range of motion safety check
       final verticalDown = [0.0, 1.0];
 
       if (checkLeft) {
@@ -522,7 +525,7 @@ class MovementDiagnosticsService {
       if (maxAngleL < 80) {
         romTooShallow = true;
         valsShallow.add('L:${maxAngleL.toInt()}°');
-      }
+      } 
       if (maxAngleR < 80) {
         romTooShallow = true;
         valsShallow.add('R:${maxAngleR.toInt()}°');
@@ -542,6 +545,33 @@ class MovementDiagnosticsService {
 
     return DiagnosticsResult(isCorrect: false, feedback: errors);
   }
+
+  static final Map<String, String> _adviceMap = {
+    //Deep Squat
+    'Squat too shallow': 'Try to lower your hips further until your thighs are at least parallel to the floor.',
+    'Knee Valgus (Collapse)': 'Focus on pushing your knees outward to align with your toes. Do not let them cave in.',
+    'Heels rising': 'Keep your heels firmly planted on the ground throughout the movement. Work on ankle mobility.',
+    'Asymmetrical Shift': 'Ensure you are distributing your weight evenly on both legs. Avoid shifting to one side.',
+    'Excessive Foot Turn-Out': 'Try to point your feet more forward (ideal limit is ~30°). Excessive rotation can strain your knees.',
+    'Excessive Forward Lean': 'Keep your chest up and your back straight. Engage your core to stay more upright.',
+
+    //Hurdle Step
+    'Pelvic Hike (Compensation)': 'Keep your hips level. Don\'t hike your hip up to lift the leg; use your hip flexors.',
+    'Pelvic Drop (Instability)': 'Engage your core and glutes on the standing leg to keep your pelvis stable and level.',
+    'Knee Valgus': 'Keep your standing knee stable and aligned with your foot. Don\'t let it collapse inward.',
+    'Torso Instability': 'Keep your torso upright and tall. Avoid swaying side-to-side to maintain balance.',
+    'Step too low': 'Try to raise your knee higher. Imagine stepping over a real hurdle.',
+    'Foot External Rotation': 'Keep your moving foot pointing forward as you step over, avoiding outward rotation.',
+    'Lack of Dorsiflexion (Toes down)': 'Pull your toes up towards your shin (flex your foot) as you lift your leg.',
+
+    //Standing Shoulder Abduction
+    'Shoulder elevation (Shrugging)': 'Keep your shoulders down and relaxed. Avoid shrugging them up towards your ears.',
+    'Excessive trunk lean': 'Stand tall with a neutral spine. Avoid leaning your body to the side to help lift the arm.',
+    'Unstable non-working arm': 'Keep your resting arm still and relaxed by your side.',
+    'Arm asymmetry': 'Focus on moving both arms at the same speed and height.',
+    'Arm raised too high (>100°)': 'Stop the movement when your arms are parallel to the floor or slightly above (approx. 90°).',
+    'Movement too shallow (<80°)': 'Try to raise your arms a bit higher to reach the full target range of motion.',
+  };
 
   double _calculateAngle(List<double> a, List<double> b, List<double> c) {
     final ba = [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -589,22 +619,21 @@ class MovementDiagnosticsService {
       buffer.writeln('Conclusion: Excellent form! Keep it up.');
     } else {
       buffer.writeln('Status: Technique needs improvement.');
-      buffer.writeln('');
-      buffer.writeln('DETECTED ERRORS:');
-
-      for (final entry in result.feedback.entries) {
-        if (entry.value == true) {
-          buffer.writeln('- ${entry.key}');
+      
+      final adviceList = <String>[];
+      
+      for (final key in result.feedback.keys) {
+        if (_adviceMap.containsKey(key)) {
+          adviceList.add(_adviceMap[key]!);
         } else {
-          buffer.writeln('- ${entry.key}: ${entry.value}');
+          adviceList.add('Focus on correcting: $key.');
         }
       }
-
-      buffer.writeln('');
-      buffer.writeln('Recommendation: Lower intensity and focus on correcting these specific patterns.');
+      if (adviceList.isNotEmpty) {
+        buffer.writeln('Recommendations: ${adviceList.join(' ')}');
+      }
     }
 
     return buffer.toString();
   }
 }
-
