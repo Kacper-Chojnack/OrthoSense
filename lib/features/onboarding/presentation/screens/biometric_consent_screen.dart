@@ -130,7 +130,7 @@ class _BiometricConsentScreenState
                       title: 'Secure & Encrypted',
                       description:
                           'All stored metrics are encrypted and can only be '
-                          'accessed by you and your authorized therapist.',
+                          'accessed by you.',
                     ),
                     const SizedBox(height: 32),
 

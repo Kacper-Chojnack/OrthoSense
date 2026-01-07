@@ -247,28 +247,7 @@ module "compute" {
   ]
 }
 
-# -----------------------------------------------------------------------------
-# Module: CDN (CloudFront + S3 Frontend)
-# -----------------------------------------------------------------------------
 
-module "cdn" {
-  source = "./modules/cdn"
-
-  providers = {
-    aws           = aws
-    aws.us_east_1 = aws.us_east_1
-  }
-
-  name_prefix         = local.name_prefix
-  environment         = var.environment
-  domain_name         = var.domain_name
-  api_subdomain       = var.api_subdomain
-  apprunner_url       = module.compute.apprunner_service_url
-  price_class         = var.cloudfront_price_class
-  kms_key_arn         = module.security.kms_key_arn
-
-  tags = local.common_tags
-}
 
 # -----------------------------------------------------------------------------
 # Module: Monitoring (CloudWatch)

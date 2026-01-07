@@ -14,18 +14,6 @@ from app.models.exercise_video import (
     ExerciseVideoRead,
     ExerciseVideoUpdate,
 )
-from app.models.protocol import (
-    Protocol,
-    ProtocolCreate,
-    ProtocolExercise,
-    ProtocolExerciseCreate,
-    ProtocolExerciseRead,
-    ProtocolExerciseUpdate,
-    ProtocolRead,
-    ProtocolReadWithExercises,
-    ProtocolStatus,
-    ProtocolUpdate,
-)
 from app.models.session import (
     Session,
     SessionComplete,
@@ -38,15 +26,6 @@ from app.models.session import (
     SessionStart,
     SessionStatus,
     SessionSummary,
-)
-from app.models.treatment_plan import (
-    PatientStats,
-    PlanStatus,
-    TreatmentPlan,
-    TreatmentPlanCreate,
-    TreatmentPlanRead,
-    TreatmentPlanReadWithDetails,
-    TreatmentPlanUpdate,
 )
 from app.models.user import (
     EmailVerification,
@@ -87,25 +66,6 @@ __all__ = [
     "ExerciseVideoCreate",
     "ExerciseVideoRead",
     "ExerciseVideoUpdate",
-    # Protocol
-    "Protocol",
-    "ProtocolCreate",
-    "ProtocolRead",
-    "ProtocolReadWithExercises",
-    "ProtocolUpdate",
-    "ProtocolStatus",
-    "ProtocolExercise",
-    "ProtocolExerciseCreate",
-    "ProtocolExerciseRead",
-    "ProtocolExerciseUpdate",
-    # Treatment Plan
-    "TreatmentPlan",
-    "TreatmentPlanCreate",
-    "TreatmentPlanRead",
-    "TreatmentPlanReadWithDetails",
-    "TreatmentPlanUpdate",
-    "PlanStatus",
-    "PatientStats",
     # Session
     "Session",
     "SessionCreate",

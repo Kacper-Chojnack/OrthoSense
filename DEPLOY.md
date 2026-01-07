@@ -29,13 +29,12 @@
 │                                  GDPR Compliant                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
-│    ┌──────────────┐         ┌─────────────────────────────────────────┐    │
-│    │  CloudFront  │────────▶│     S3 (Flutter Web Static Assets)      │    │
-│    │  (CDN + WAF) │         │     - OAC (Origin Access Control)       │    │
-│    └──────┬───────┘         │     - Versioning + KMS Encryption       │    │
-│           │                 └─────────────────────────────────────────┘    │
-│           │ /api/*                                                          │
-│           ▼                                                                  │
+│                                                                              │
+│                                                                              │
+│                         Mobile App (iOS / Android)                           │
+│                                     │                                        │
+│                                     │ HTTPS /api/*                           │
+│                                     ▼                                        │
 │    ┌──────────────┐         ┌─────────────────────────────────────────┐    │
 │    │  App Runner  │────────▶│           ECR Repository                 │    │
 │    │  (FastAPI)   │         │     - Vulnerability Scanning             │    │
@@ -68,7 +67,7 @@
 
 | Component | Service | Purpose |
 |-----------|---------|---------|
-| **Frontend** | CloudFront + S3 | Flutter Web hosting with CDN |
+
 | **Backend** | App Runner | FastAPI containerized service |
 | **Database** | RDS PostgreSQL 16 | Primary data store (Multi-AZ) |
 | **Cache** | ElastiCache Redis 7 | Rate limiting & session cache |
@@ -112,9 +111,7 @@ Configure these secrets in your GitHub repository settings:
 | `AWS_ACCOUNT_ID` | Your 12-digit AWS account ID |
 | `APP_SECRET_KEY` | Application secret key (min 32 chars) |
 | `CODECOV_TOKEN` | Codecov upload token |
-| `CLOUDFRONT_DEV_DISTRIBUTION_ID` | Dev CloudFront distribution ID |
-| `CLOUDFRONT_STAGING_DISTRIBUTION_ID` | Staging CloudFront distribution ID |
-| `CLOUDFRONT_PROD_DISTRIBUTION_ID` | Production CloudFront distribution ID |
+
 
 ---
 
@@ -259,27 +256,7 @@ aws apprunner start-deployment \
   --service-arn arn:aws:apprunner:eu-central-1:ACCOUNT:service/orthosense-prod-backend
 ```
 
-### Frontend Deployment
 
-#### Automatic (via CI/CD)
-
-1. Push to `develop` branch → Deploys to **Dev**
-2. Push to `main` branch → Deploys to **Staging** → Manual approval → **Production**
-
-#### Manual Deployment
-
-```bash
-# Build Flutter Web
-flutter build web --release --web-renderer html
-
-# Sync to S3
-aws s3 sync build/web s3://orthosense-prod-frontend --delete
-
-# Invalidate CloudFront
-aws cloudfront create-invalidation \
-  --distribution-id DISTRIBUTION_ID \
-  --paths "/*"
-```
 
 ### Infrastructure Changes
 

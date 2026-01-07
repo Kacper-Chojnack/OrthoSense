@@ -39,7 +39,6 @@ class Session(SessionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     patient_id: UUID = Field(foreign_key="users.id", index=True)
-    treatment_plan_id: UUID = Field(foreign_key="treatment_plans.id", index=True)
     started_at: datetime | None = Field(default=None)
     completed_at: datetime | None = Field(default=None)
     duration_seconds: int | None = Field(default=None)
@@ -49,7 +48,6 @@ class Session(SessionBase, table=True):
 
     # Relationships
     patient: "User" = Relationship(back_populates="sessions")
-    treatment_plan: "TreatmentPlan" = Relationship(back_populates="sessions")
     exercise_results: list["SessionExerciseResult"] = Relationship(
         back_populates="session",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
@@ -57,7 +55,6 @@ class Session(SessionBase, table=True):
 
 
 # Forward references
-from app.models.treatment_plan import TreatmentPlan  # noqa: E402
 from app.models.user import User  # noqa: E402
 
 
@@ -88,7 +85,6 @@ from app.models.exercise import Exercise  # noqa: E402
 class SessionCreate(SQLModel):
     """Schema for creating a session."""
 
-    treatment_plan_id: UUID
     scheduled_date: datetime
     notes: str = ""
 
@@ -112,7 +108,6 @@ class SessionRead(SQLModel):
 
     id: UUID
     patient_id: UUID
-    treatment_plan_id: UUID
     scheduled_date: datetime
     status: SessionStatus
     notes: str

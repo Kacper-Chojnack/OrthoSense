@@ -80,24 +80,7 @@ output "ecr_repository_url" {
   value       = module.compute.ecr_repository_url
 }
 
-# -----------------------------------------------------------------------------
-# Frontend Outputs
-# -----------------------------------------------------------------------------
 
-output "frontend_bucket_name" {
-  description = "S3 bucket name for frontend assets"
-  value       = module.cdn.frontend_bucket_name
-}
-
-output "cloudfront_distribution_id" {
-  description = "CloudFront distribution ID"
-  value       = module.cdn.cloudfront_distribution_id
-}
-
-output "cloudfront_domain_name" {
-  description = "CloudFront distribution domain name"
-  value       = module.cdn.cloudfront_domain_name
-}
 
 # -----------------------------------------------------------------------------
 # Storage Outputs

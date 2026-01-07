@@ -338,7 +338,6 @@ async def delete_current_user_account(
     - Session exercise results
     - Protocols created by user
     """
-    from app.models.protocol import Protocol
     from app.models.session import Session
     from app.models.treatment_plan import TreatmentPlan
 
@@ -353,19 +352,6 @@ async def delete_current_user_account(
     plans_result = await session.execute(plans_stmt)
     for plan in plans_result.scalars().all():
         await session.delete(plan)
-
-    therapist_plans_stmt = select(TreatmentPlan).where(
-        TreatmentPlan.therapist_id == user_id
-    )
-    therapist_plans_result = await session.execute(therapist_plans_stmt)
-    for plan in therapist_plans_result.scalars().all():
-        plan.therapist_id = None  
-        session.add(plan)
-
-    protocols_stmt = select(Protocol).where(Protocol.created_by == user_id)
-    protocols_result = await session.execute(protocols_stmt)
-    for protocol in protocols_result.scalars().all():
-        await session.delete(protocol)
 
     await session.delete(current_user)
     await session.commit()
@@ -386,21 +372,20 @@ async def export_user_data(
 
     Returns all user data in a structured JSON format.
     """
-    from app.models.protocol import Protocol
     from app.models.session import Session, SessionExerciseResult
     from app.models.treatment_plan import TreatmentPlan
 
     user_id = current_user.id
 
     plans_stmt = select(TreatmentPlan).where(
-        (TreatmentPlan.patient_id == user_id) | (TreatmentPlan.therapist_id == user_id)
+        TreatmentPlan.patient_id == user_id
     )
     plans_result = await session.execute(plans_stmt)
     plans_data = [
         {
             "id": str(p.id),
             "name": p.name,
-            "role": "patient" if p.patient_id == user_id else "therapist",
+            "role": "patient",
             "status": p.status.value,
             "start_date": p.start_date.isoformat(),
             "end_date": p.end_date.isoformat() if p.end_date else None,
@@ -447,18 +432,6 @@ async def export_user_data(
             }
         )
 
-    protocols_stmt = select(Protocol).where(Protocol.created_by == user_id)
-    protocols_result = await session.execute(protocols_stmt)
-    protocols_data = [
-        {
-            "id": str(p.id),
-            "name": p.name,
-            "description": p.description,
-            "created_at": p.created_at.isoformat(),
-        }
-        for p in protocols_result.scalars().all()
-    ]
-
     export_data = {
         "export_date": datetime.now(UTC).isoformat(),
         "user": {
@@ -471,7 +444,6 @@ async def export_user_data(
         },
         "treatment_plans": plans_data,
         "sessions": sessions_data,
-        "protocols_created": protocols_data,
     }
 
     logger.info(

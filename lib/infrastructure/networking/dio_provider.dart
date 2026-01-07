@@ -10,10 +10,6 @@ part 'dio_provider.g.dart';
 /// Returns appropriate base URL based on platform.
 /// Android emulator uses 10.0.2.2 to reach host localhost.
 String _getBaseUrl() {
-  if (kIsWeb) {
-    return 'http://localhost:8000';
-  }
-
   if (Platform.isAndroid) {
     return 'http://10.0.2.2:8000';
   }

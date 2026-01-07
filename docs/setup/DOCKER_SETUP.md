@@ -21,21 +21,17 @@ This guide explains how to run the OrthoSense platform using Docker.
    - Backend API: http://localhost:8000/docs
    - Database (Adminer): http://localhost:8080
 
-3. **Run Production (Web App + API):**
+3. **Run Production (API):**
    ```bash
    ./scripts/docker-prod.sh
    ```
-   - Web App: http://localhost
-   - API: http://localhost/api/v1/...
+   - API: http://localhost/api/v1/... (via direct port mapping if configured, or check docker-compose)
 
 ## Architecture
 
 - **Backend:** Python 3.13 FastAPI container.
   - In `dev`: Code is mounted via volume for live updates.
   - In `prod`: Code is copied into the image.
-- **Frontend:** Flutter Web.
-  - Only runs in `prod` mode via Docker.
-  - Served via Nginx, which also acts as a reverse proxy for the API.
 - **Database:** PostgreSQL 16.
 - **Cache:** Redis 7 (for rate limiting).
 
