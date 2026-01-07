@@ -131,3 +131,9 @@ todo
 
 # zosia
 napraw_xcode.sh
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
