@@ -34,12 +34,15 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:8080", "http://localhost:3000"]
 
     # Security
+    # Use "*" in production behind AWS App Runner (which handles host validation)
     allowed_hosts: list[str] = [
         "localhost",
         "127.0.0.1",
         "orthosense.app",
         "testserver",
         "192.168.0.27",  # Current local network IP for mobile testing
+        "*.eu-central-1.awsapprunner.com",  # AWS App Runner domains
+        "*",  # Allow all hosts when behind reverse proxy (App Runner validates)
     ]
 
     # Rate Limiting (Redis)
