@@ -4,17 +4,6 @@ services:
     environment:
       - DEBUG=false
 
-  frontend:
-    build:
-      context: ../..
-      dockerfile: config/docker/Dockerfile.flutter
-    ports:
-      - "80:80"
-    networks:
-      - ortho-net
-    depends_on:
-      - backend
-    restart: unless-stopped
 
   db:
     restart: unless-stopped

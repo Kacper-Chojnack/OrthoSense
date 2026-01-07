@@ -75,7 +75,7 @@ class _PrivacyPolicyScreenState extends ConsumerState<PrivacyPolicyScreen> {
                         _buildBulletPoint(
                           context,
                           'Account Information',
-                          'Email address, name, role (patient/therapist)',
+                          'Email address, name.',
                         ),
                         _buildBulletPoint(
                           context,

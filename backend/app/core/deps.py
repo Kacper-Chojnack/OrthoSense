@@ -64,18 +64,6 @@ def get_current_verified_user(
     return current_user
 
 
-def get_current_therapist(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-) -> User:
-    """Ensure the current user is a therapist."""
-    if current_user.role not in (UserRole.THERAPIST, UserRole.ADMIN):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Therapist or admin access required",
-        )
-    return current_user
-
-
 def get_current_admin(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> User:
@@ -92,5 +80,4 @@ def get_current_admin(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 ActiveUser = Annotated[User, Depends(get_current_active_user)]
 VerifiedUser = Annotated[User, Depends(get_current_verified_user)]
-TherapistUser = Annotated[User, Depends(get_current_therapist)]
 AdminUser = Annotated[User, Depends(get_current_admin)]

@@ -36,7 +36,7 @@ class SecureTokenStorage implements TokenStorage {
   final FlutterSecureStorage _storage;
   final SharedPreferences _prefs;
 
-  bool get _isMacOS => !kIsWeb && Platform.isMacOS;
+  bool get _isMacOS => Platform.isMacOS;
 
   @override
   Future<void> saveAccessToken(String token) async {

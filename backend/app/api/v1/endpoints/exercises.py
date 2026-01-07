@@ -1,4 +1,4 @@
-"""Exercise management endpoints (Admin/Therapist only)."""
+"""Exercise management endpoints."""
 
 from datetime import UTC, datetime
 from typing import Annotated
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.core.database import get_session
-from app.core.deps import ActiveUser, TherapistUser
+from app.core.deps import ActiveUser, AdminUser
 from app.core.logging import get_logger
 from app.models.exercise import (
     BodyPart,
@@ -71,9 +71,9 @@ async def get_exercise(
 async def create_exercise(
     data: ExerciseCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: AdminUser,
 ) -> Exercise:
-    """Create a new exercise (Therapist/Admin only)."""
+    """Create a new exercise (Admin only)."""
     exercise = Exercise(**data.model_dump())
     session.add(exercise)
     await session.commit()
@@ -93,9 +93,9 @@ async def update_exercise(
     exercise_id: UUID,
     data: ExerciseUpdate,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: AdminUser,
 ) -> Exercise:
-    """Update an exercise (Therapist/Admin only)."""
+    """Update an exercise (Admin only)."""
     exercise = await session.get(Exercise, exercise_id)
     if not exercise:
         raise HTTPException(
@@ -124,9 +124,9 @@ async def update_exercise(
 async def delete_exercise(
     exercise_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: AdminUser,
 ) -> None:
-    """Soft delete an exercise (Therapist/Admin only)."""
+    """Soft delete an exercise (Admin only)."""
     exercise = await session.get(Exercise, exercise_id)
     if not exercise:
         raise HTTPException(

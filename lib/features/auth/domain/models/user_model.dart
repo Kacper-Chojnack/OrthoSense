@@ -7,8 +7,6 @@ part 'user_model.g.dart';
 enum UserRole {
   @JsonValue('patient')
   patient,
-  @JsonValue('therapist')
-  therapist,
   @JsonValue('admin')
   admin,
 }

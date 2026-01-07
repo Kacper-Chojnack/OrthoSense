@@ -1,0 +1,54 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Użytkownik (Pacjent)" as User
+
+package "System OrthoSense" {
+
+    package "Dostęp i Konfiguracja" {
+        usecase "Rejestracja i Logowanie" as Auth
+        usecase "Zarządzanie profilem" as Profile
+        usecase "Ustawienia (Głos lektora, Powiadomienia)" as Settings
+    }
+
+    package "Moduł Treningowy (Feedback na żywo)" {
+        usecase "Wykonywanie ćwiczeń z kamerą" as LiveExercise
+        usecase "Analiza wideo z galerii" as GalleryExercise
+        usecase "Weryfikacja błędów i korekcja\n(Wizualna + Głosowa)" as Feedback
+        usecase "Detekcja pozy i klasyfikacja (AI)" as AIAnalysis
+    }
+
+    package "Analityka i Raportowanie" {
+        usecase "Monitorowanie postępów (Wykresy)" as History
+        usecase "Generowanie raportu dla specjalisty" as ShareReport
+    }
+}
+
+User -- Auth
+User -- Profile
+User -- Settings
+User -- LiveExercise
+User -- GalleryExercise
+User -- History
+
+LiveExercise ..> AIAnalysis : <<include>>
+GalleryExercise ..> AIAnalysis : <<include>>
+
+LiveExercise <.. Feedback : <<extend>>
+
+History <.. ShareReport : <<extend>>
+
+note right of Feedback
+  System pokazuje na ekranie
+  błędne kąty i sugeruje poprawę
+  (Visual + TTS)
+end note
+
+note right of ShareReport
+  Eksport wyników (PDF/Link)
+  do zewnętrznej konsultacji
+end note
+
+@enduml

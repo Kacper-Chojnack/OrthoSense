@@ -19,7 +19,7 @@ OrthoSense uses GitHub Actions for Continuous Integration and Deployment. The pi
 - **Checks:**
   - **Analysis:** `flutter analyze` & `dart format`
   - **Testing:** Unit/Widget tests with coverage
-  - **Builds:** Generates Android APK and Web artifacts
+  - **Builds:** Generates Android APK
 
 ### 3. Integration Tests (`integration-tests.yml`)
 - **Triggers:** Nightly or PR to main

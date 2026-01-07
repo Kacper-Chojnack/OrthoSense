@@ -24,7 +24,6 @@ from app.models.session import (
     SessionStart,
     SessionStatus,
 )
-from app.models.treatment_plan import PlanStatus, TreatmentPlan
 from app.models.user import UserRole
 
 router = APIRouter()
@@ -32,37 +31,25 @@ logger = get_logger(__name__)
 
 SESSION_NOT_FOUND = "Session not found"
 ACCESS_DENIED = "Access denied"
-TREATMENT_PLAN_NOT_FOUND = "Treatment plan not found"
 
 
 @router.get("", response_model=list[SessionRead])
 async def list_sessions(
     session: Annotated[AsyncSession, Depends(get_session)],
     current_user: ActiveUser,
-    plan_id: UUID | None = None,
     status_filter: SessionStatus | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
 ) -> list[Session]:
     """List sessions for the current user."""
-    if current_user.role == UserRole.PATIENT:
-        statement = select(Session).where(Session.patient_id == current_user.id)
-    else:
-        plan_ids_stmt = select(TreatmentPlan.id).where(
-            TreatmentPlan.therapist_id == current_user.id
-        )
-        statement = select(Session).where(
-            Session.treatment_plan_id.in_(plan_ids_stmt)  # type: ignore[attr-defined]
-        )
+    statement = select(Session).where(Session.patient_id == current_user.id)
 
-    if plan_id:
-        statement = statement.where(Session.treatment_plan_id == plan_id)
     if status_filter:
         statement = statement.where(Session.status == status_filter)
 
     statement = (
         statement.order_by(
-            Session.scheduled_date.desc()  # type: ignore[attr-defined]
+            Session.scheduled_date.desc()
         )
         .offset(skip)
         .limit(limit)
@@ -116,33 +103,8 @@ async def create_session(
     current_user: ActiveUser,
 ) -> Session:
     """Create a new session (scheduled or ad-hoc)."""
-    plan = await session.get(TreatmentPlan, data.treatment_plan_id)
-    if not plan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=TREATMENT_PLAN_NOT_FOUND,
-        )
-
-    if current_user.role == UserRole.PATIENT:
-        if plan.patient_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ACCESS_DENIED,
-            )
-    elif plan.therapist_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ACCESS_DENIED,
-        )
-
-    if plan.status != PlanStatus.ACTIVE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot create session for inactive plan",
-        )
-
     exercise_session = Session(
-        patient_id=plan.patient_id,
+        patient_id=current_user.id,
         **data.model_dump(),
     )
     session.add(exercise_session)

@@ -214,32 +214,7 @@ variable "apprunner_max_concurrency" {
   default     = 100
 }
 
-# -----------------------------------------------------------------------------
-# Frontend Configuration
-# -----------------------------------------------------------------------------
 
-variable "domain_name" {
-  description = "Primary domain name for the application"
-  type        = string
-  default     = ""
-}
-
-variable "api_subdomain" {
-  description = "Subdomain for API (e.g., api.orthosense.app)"
-  type        = string
-  default     = "api"
-}
-
-variable "cloudfront_price_class" {
-  description = "CloudFront price class"
-  type        = string
-  default     = "PriceClass_100"
-
-  validation {
-    condition     = contains(["PriceClass_100", "PriceClass_200", "PriceClass_All"], var.cloudfront_price_class)
-    error_message = "Price class must be one of: PriceClass_100, PriceClass_200, PriceClass_All."
-  }
-}
 
 # -----------------------------------------------------------------------------
 # Security & Secrets Configuration

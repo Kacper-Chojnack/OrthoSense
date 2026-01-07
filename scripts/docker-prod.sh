@@ -14,5 +14,5 @@ docker compose \
   up -d --build
 
 echo "✅ OrthoSense is running!"
-echo "   Web App: http://localhost"
-echo "   API:     http://localhost/api/v1/docs"
+
+echo "   API:     http://localhost:8000/api/v1/docs"

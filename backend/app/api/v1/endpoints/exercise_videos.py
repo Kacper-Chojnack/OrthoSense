@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.core.database import get_session
-from app.core.deps import ActiveUser, TherapistUser
+from app.core.deps import ActiveUser
 from app.core.logging import get_logger
 from app.models.exercise import Exercise
 from app.models.exercise_video import (
@@ -90,9 +90,9 @@ async def get_video(
 async def create_video(
     data: ExerciseVideoCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: ActiveUser,
 ) -> ExerciseVideo:
-    """Create a new demo video (Therapist/Admin only)."""
+    """Create a new demo video."""
     exercise = await session.get(Exercise, data.exercise_id)
     if not exercise:
         raise HTTPException(
@@ -123,9 +123,9 @@ async def update_video(
     video_id: UUID,
     data: ExerciseVideoUpdate,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: ActiveUser,
 ) -> ExerciseVideo:
-    """Update a demo video (Therapist/Admin only)."""
+    """Update a demo video."""
     video = await session.get(ExerciseVideo, video_id)
     if not video:
         raise HTTPException(
@@ -158,9 +158,9 @@ async def update_video(
 async def delete_video(
     video_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
-    current_user: TherapistUser,
+    current_user: ActiveUser,
 ) -> None:
-    """Soft delete a demo video (Therapist/Admin only)."""
+    """Soft delete a demo video."""
     video = await session.get(ExerciseVideo, video_id)
     if not video:
         raise HTTPException(
