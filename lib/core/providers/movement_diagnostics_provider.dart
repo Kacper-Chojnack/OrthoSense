@@ -6,4 +6,3 @@ final movementDiagnosticsServiceProvider = Provider<MovementDiagnosticsService>(
     return MovementDiagnosticsService();
   },
 );
-

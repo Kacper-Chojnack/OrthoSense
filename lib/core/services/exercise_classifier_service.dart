@@ -28,7 +28,7 @@ class ExerciseClassifierService {
   };
 
   static const int _numJoints = 33;
-  static const int _numChannels = 3; 
+  static const int _numChannels = 3;
   static const int _modelSequenceLength = 60;
   static const int _numClasses = 3;
 
@@ -68,10 +68,14 @@ class ExerciseClassifierService {
           (c) {
             final landmark = frames[t].landmarks[v];
             switch (c) {
-              case 0: return landmark.x;
-              case 1: return landmark.y;
-              case 2: return landmark.z;
-              default: return 0.0;
+              case 0:
+                return landmark.x;
+              case 1:
+                return landmark.y;
+              case 2:
+                return landmark.z;
+              default:
+                return 0.0;
             }
           },
         ),
@@ -169,9 +173,9 @@ class ExerciseClassifierService {
   List<double> _softmax(List<double> logits) {
     double sum = logits.fold(0, (p, c) => p + c);
     if ((sum - 1.0).abs() < 0.01 && logits.every((e) => e >= 0 && e <= 1)) {
-        return logits; 
+      return logits;
     }
-  
+
     final maxLogit = logits.reduce((a, b) => a > b ? a : b);
     final expLogits = logits.map((x) => math.exp(x - maxLogit)).toList();
     final sumExp = expLogits.fold(0.0, (a, b) => a + b);
@@ -197,21 +201,22 @@ class ExerciseClassifierService {
 
       final rawOutput = output[0];
       final sum = rawOutput.fold(0.0, (a, b) => a + b);
-      final isNormalized = (sum - 1.0).abs() < 0.01 && 
-                          rawOutput.every((e) => e >= 0 && e <= 1);
+      final isNormalized =
+          (sum - 1.0).abs() < 0.01 && rawOutput.every((e) => e >= 0 && e <= 1);
       final probabilities = isNormalized ? rawOutput : _softmax(rawOutput);
 
       double maxProb = 0.0;
       int predictedClass = 0;
-      
+
       for (var i = 0; i < probabilities.length; i++) {
         if (probabilities[i] > maxProb) {
           maxProb = probabilities[i];
           predictedClass = i;
-        } 
+        }
       }
 
-      String exerciseName = _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
+      String exerciseName =
+          _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
       double finalConfidence = maxProb;
 
       return ExerciseClassification(

@@ -10,6 +10,7 @@ import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/providers/tts_provider.dart';
 import 'package:orthosense/core/services/movement_diagnostics_service.dart';
+import 'package:orthosense/features/exercise/data/analysis_result_saver.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:orthosense/features/exercise/presentation/widgets/countdown_overlay.dart';
 
@@ -270,7 +271,27 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       feedback: finalFeedback,
     );
 
+    // Calculate score based on correct ratio
+    final score = (correctRatio * 100).round().clamp(0, 100);
+
+    // Save result to Drift database (async, non-blocking)
+    _saveAnalysisResultToDb(score, isSessionCorrect);
+
     _showResultsDialog(finalResult);
+  }
+
+  /// Save analysis result to local Drift database for history tracking.
+  Future<void> _saveAnalysisResultToDb(int score, bool isCorrect) async {
+    if (_detectedExercise == null) return;
+
+    final saver = AnalysisResultSaver(ref);
+    await saver.saveResult(
+      exerciseName: _detectedExercise!,
+      score: score,
+      isCorrect: isCorrect,
+      errorCounts: _sessionErrorCounts,
+      durationSeconds: _sessionDuration.inSeconds,
+    );
   }
 
   void _showResultsDialog(DiagnosticsResult? result) {

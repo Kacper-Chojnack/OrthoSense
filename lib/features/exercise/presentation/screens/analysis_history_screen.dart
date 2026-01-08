@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:orthosense/core/database/app_database.dart';
+import 'package:orthosense/core/database/repositories/exercise_results_repository.dart';
 import 'package:orthosense/core/theme/app_colors.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -15,7 +17,27 @@ class AnalysisHistoryItem {
     required this.score,
     required this.isCorrect,
     this.feedbackText,
+    this.feedback = const {},
+    this.durationSeconds = 0,
   });
+
+  /// Create from Drift ExerciseResult.
+  factory AnalysisHistoryItem.fromExerciseResult(ExerciseResult result) {
+    final feedback = ExerciseResultsRepository.parseFeedback(
+      result.feedbackJson,
+    );
+
+    return AnalysisHistoryItem(
+      id: result.id,
+      exerciseName: result.exerciseName,
+      date: result.performedAt,
+      score: result.score ?? 0,
+      isCorrect: result.isCorrect ?? false,
+      feedbackText: result.textReport,
+      feedback: feedback,
+      durationSeconds: result.durationSeconds,
+    );
+  }
 
   final String id;
   final String exerciseName;
@@ -23,58 +45,26 @@ class AnalysisHistoryItem {
   final int score;
   final bool isCorrect;
   final String? feedbackText;
+  final Map<String, dynamic> feedback;
+  final int durationSeconds;
 }
 
-/// Provider for fetching analysis history.
-/// In production, this would watch the Drift database Stream.
+/// Provider for fetching analysis history from Drift database (SSOT).
+/// Returns a Stream for reactive updates.
+@riverpod
+Stream<List<AnalysisHistoryItem>> analysisHistoryStream(Ref ref) {
+  final repository = ref.watch(exerciseResultsRepositoryProvider);
+  return repository.watchAll().map(
+    (results) => results.map(AnalysisHistoryItem.fromExerciseResult).toList(),
+  );
+}
+
+/// Provider for fetching analysis history (async, for initial load).
 @riverpod
 Future<List<AnalysisHistoryItem>> analysisHistory(Ref ref) async {
-  // Simulate DB delay
-  await Future<void>.delayed(const Duration(milliseconds: 500));
-
-  // Mock data - In production, read from Drift ExerciseResults table
-  return [
-    AnalysisHistoryItem(
-      id: '1',
-      exerciseName: 'Knee Extension',
-      date: DateTime.now().subtract(const Duration(hours: 2)),
-      score: 92,
-      isCorrect: true,
-      feedbackText: 'Great form! Range of motion improved.',
-    ),
-    AnalysisHistoryItem(
-      id: '2',
-      exerciseName: 'Squat',
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      score: 75,
-      isCorrect: false,
-      feedbackText: 'Try to keep your knees aligned with your toes.',
-    ),
-    AnalysisHistoryItem(
-      id: '3',
-      exerciseName: 'Leg Raise',
-      date: DateTime.now().subtract(const Duration(days: 2)),
-      score: 88,
-      isCorrect: true,
-      feedbackText: 'Good control throughout the movement.',
-    ),
-    AnalysisHistoryItem(
-      id: '4',
-      exerciseName: 'Hip Flexion',
-      date: DateTime.now().subtract(const Duration(days: 3)),
-      score: 65,
-      isCorrect: false,
-      feedbackText: 'Maintain a slower, controlled pace.',
-    ),
-    AnalysisHistoryItem(
-      id: '5',
-      exerciseName: 'Ankle Rotation',
-      date: DateTime.now().subtract(const Duration(days: 5)),
-      score: 95,
-      isCorrect: true,
-      feedbackText: 'Excellent mobility demonstration.',
-    ),
-  ];
+  final repository = ref.watch(exerciseResultsRepositoryProvider);
+  final results = await repository.getRecent(limit: 50);
+  return results.map(AnalysisHistoryItem.fromExerciseResult).toList();
 }
 
 /// Screen displaying the history of analysis sessions.
@@ -86,7 +76,8 @@ class AnalysisHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final historyAsync = ref.watch(analysisHistoryProvider);
+    // Use stream for reactive updates from Drift database (SSOT)
+    final historyAsync = ref.watch(analysisHistoryStreamProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -208,7 +199,7 @@ class AnalysisHistoryScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => ref.invalidate(analysisHistoryProvider),
+              onPressed: () => ref.invalidate(analysisHistoryStreamProvider),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),

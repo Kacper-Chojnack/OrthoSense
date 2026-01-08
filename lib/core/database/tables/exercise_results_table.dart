@@ -1,17 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:orthosense/core/database/tables/sessions_table.dart';
 
-/// Local storage for specific exercise results within a session.
-/// Links to parent session via foreign key with cascade delete.
+/// Local storage for exercise results (per-exercise within a session).
+/// Extended to support full analysis history with feedback details.
 class ExerciseResults extends Table {
   /// Unique result identifier (UUID).
   TextColumn get id => text()();
 
-  /// Parent session reference.
+  /// Foreign key to the parent session.
   TextColumn get sessionId =>
       text().references(Sessions, #id, onDelete: KeyAction.cascade)();
 
-  /// Exercise type identifier.
+  /// Exercise ID from the catalog (for future API sync).
   TextColumn get exerciseId => text()();
 
   /// Human-readable exercise name.
@@ -23,8 +23,27 @@ class ExerciseResults extends Table {
   /// Number of reps completed.
   IntColumn get repsCompleted => integer().withDefault(const Constant(0))();
 
-  /// Exercise score (0-100).
+  /// Overall score for this exercise (0-100).
   IntColumn get score => integer().nullable()();
+
+  /// Whether the exercise form was correct.
+  BoolColumn get isCorrect => boolean().nullable()();
+
+  /// JSON-encoded feedback map (error names -> details).
+  TextColumn get feedbackJson => text().nullable()();
+
+  /// Detailed text report from AI analysis.
+  TextColumn get textReport => text().nullable()();
+
+  /// Duration of exercise analysis in seconds.
+  IntColumn get durationSeconds => integer().withDefault(const Constant(0))();
+
+  /// When the exercise was performed.
+  DateTimeColumn get performedAt =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  /// Sync status for offline-first pattern.
+  TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override
   Set<Column> get primaryKey => {id};
