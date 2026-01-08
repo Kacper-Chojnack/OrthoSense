@@ -141,8 +141,11 @@ class PoseDetectionService {
         image.width.toDouble(),
         image.height.toDouble(),
       );
+      final rawFormat = image.format.raw;
       final inputImageFormat =
-          ml_kit.InputImageFormatValue.fromRawValue(image.format.raw) ??
+          ml_kit.InputImageFormatValue.fromRawValue(
+            rawFormat is int ? rawFormat : 0,
+          ) ??
           ml_kit.InputImageFormat.nv21;
       final rotation =
           ml_kit.InputImageRotationValue.fromRawValue(

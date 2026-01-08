@@ -1,11 +1,13 @@
 import time
-from app.ai.core.engine import OrthoSensePredictor
+
 import numpy as np
-import asyncio
+
+from app.ai.core.engine import OrthoSensePredictor
+
 
 async def test_inference_latency():
     engine = OrthoSensePredictor()
-    dummy_input = np.random.rand(60, 33, 3).astype(np.float32) 
+    dummy_input = np.random.rand(60, 33, 3).astype(np.float32)
 
     async def predict():
         return engine.analyze(dummy_input)
@@ -15,7 +17,7 @@ async def test_inference_latency():
         start = time.time()
         await predict()
         end = time.time()
-        times.append((end - start) * 1000) # ms
+        times.append((end - start) * 1000)  # ms
 
     avg_time = sum(times) / len(times)
     print(f"\nŚrednia latencja: {avg_time:.2f}ms")

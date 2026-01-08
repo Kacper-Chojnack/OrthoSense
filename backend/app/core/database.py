@@ -29,17 +29,18 @@ async_session_factory = sessionmaker(  # type: ignore[call-overload]
 
 async def init_db() -> None:
     """Create all tables. Called on application startup.
-    
+
     Gracefully handles connection failures for cloud deployments
     where database might not be immediately available.
     """
     import asyncio
+
     from app.core.logging import get_logger
-    
+
     logger = get_logger(__name__)
     max_retries = 3
     retry_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             async with engine.begin() as conn:
@@ -52,14 +53,14 @@ async def init_db() -> None:
                     "database_connection_retry",
                     attempt=attempt + 1,
                     max_retries=max_retries,
-                    error=str(e)
+                    error=str(e),
                 )
                 await asyncio.sleep(retry_delay)
             else:
                 logger.error(
                     "database_initialization_failed",
                     error=str(e),
-                    message="App will start but DB operations may fail"
+                    message="App will start but DB operations may fail",
                 )
                 # Don't raise - let app start for health checks
 

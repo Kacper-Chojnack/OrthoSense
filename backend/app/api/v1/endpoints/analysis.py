@@ -55,14 +55,14 @@ async def analyze_landmarks(
                     detail=f"Frame {i} has {len(frame)} joints, expected 33 (BlazePose topology)",
                 )
             if len(frame) > 0 and len(frame[0]) not in [3, 4]:
-                 raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Frame {i} joint format invalid. Expected [x,y,z] or [x,y,z,visibility]",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Frame {i} joint format invalid. Expected [x,y,z] or [x,y,z,visibility]",
+                )
 
         system = OrthoSenseSystem()
         result = system.analyze_landmarks(request.landmarks, request.exercise_name)
-        
+
         if "error" in result:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"]

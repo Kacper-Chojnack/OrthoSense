@@ -1,6 +1,6 @@
 """Protocol models for rehabilitation protocols and their exercises."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -8,7 +8,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 def utc_now() -> datetime:
     """Return current UTC datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class ProtocolBase(SQLModel):

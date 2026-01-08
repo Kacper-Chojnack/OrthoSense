@@ -24,6 +24,7 @@ from app.models.session import (
     SessionStart,
     SessionStatus,
 )
+from app.models.treatment_plan import TreatmentPlan
 from app.models.user import UserRole
 
 router = APIRouter()
@@ -48,11 +49,7 @@ async def list_sessions(
         statement = statement.where(Session.status == status_filter)
 
     statement = (
-        statement.order_by(
-            Session.scheduled_date.desc()
-        )
-        .offset(skip)
-        .limit(limit)
+        statement.order_by(Session.scheduled_date.desc()).offset(skip).limit(limit)
     )
     result = await session.execute(statement)
     return list(result.scalars().all())
@@ -240,8 +237,6 @@ async def skip_session(
 
     logger.info("session_skipped", session_id=str(session_id), reason=reason)
     return exercise_session
-
-
 
 
 @router.post(

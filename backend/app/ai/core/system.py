@@ -4,7 +4,6 @@ Video processing has been offloaded to client-side (ML Kit).
 This module now supports analysis of pre-extracted landmarks.
 """
 
-from collections import Counter
 import numpy as np
 
 from app.ai.core.diagnostics import ReportGenerator
@@ -44,7 +43,9 @@ class OrthoSenseSystem:
         """Release resources."""
         self._initialized = False
 
-    def analyze_landmarks(self, landmarks: list[list[list[float]]], exercise_name: str) -> dict:        
+    def analyze_landmarks(
+        self, landmarks: list[list[list[float]]], exercise_name: str
+    ) -> dict:
         """
         Analyze pose landmarks directly (Edge AI mode / ML Kit).
         """
@@ -65,7 +66,7 @@ class OrthoSenseSystem:
                 continue
 
             has_visibility = len(frame) > 0 and len(frame[0]) >= 4
-            
+
             frame_array = np.array([joint[:3] for joint in frame], dtype=np.float32)
             raw_data.append(frame_array)
 
@@ -76,7 +77,7 @@ class OrthoSenseSystem:
                         visibility = frame[idx][3]
                         if visibility >= min_visibility:
                             visible_count += 1
-                
+
                 is_visible = visible_count >= 6
                 visibility_flags.append(is_visible)
             else:
@@ -86,7 +87,7 @@ class OrthoSenseSystem:
                         coords = frame[idx][:3]
                         if any(abs(c) > 0.0001 for c in coords):
                             visible_count += 1
-                
+
                 is_visible = visible_count >= 6
                 visibility_flags.append(is_visible)
 
@@ -94,13 +95,13 @@ class OrthoSenseSystem:
             return {"error": "No valid landmarks detected"}
 
         analysis_result = self.engine.analyze(raw_data, exercise_name=exercise_name)
-        
+
         analysis_tuple = (analysis_result["is_correct"], analysis_result["feedback"])
         text_report = self.reporter.generate_report(analysis_tuple, exercise_name)
 
         final_result = {
             "exercise": exercise_name,
-            "confidence": 1.0, 
+            "confidence": 1.0,
             "text_report": text_report,
             "is_correct": analysis_result["is_correct"],
             "feedback": analysis_result["feedback"],
@@ -167,7 +168,7 @@ class OrthoSenseSystem:
                 window_visibility[idx] if idx < len(window_visibility) else True
             )
             if not is_visible:
-                continue 
+                continue
 
             res = self.engine.analyze(
                 window_array, forced_exercise_name=winner_exercise

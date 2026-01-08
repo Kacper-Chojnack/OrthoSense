@@ -306,7 +306,7 @@ async def update_current_user_profile(
                 detail="Email already in use",
             )
         current_user.email = data.email
-        current_user.is_verified = False  
+        current_user.is_verified = False
 
     if data.full_name is not None:
         current_user.full_name = data.full_name
@@ -377,9 +377,7 @@ async def export_user_data(
 
     user_id = current_user.id
 
-    plans_stmt = select(TreatmentPlan).where(
-        TreatmentPlan.patient_id == user_id
-    )
+    plans_stmt = select(TreatmentPlan).where(TreatmentPlan.patient_id == user_id)
     plans_result = await session.execute(plans_stmt)
     plans_data = [
         {

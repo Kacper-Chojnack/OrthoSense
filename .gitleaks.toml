@@ -19,6 +19,8 @@ paths = [
     # Lock files
     '''pubspec\.lock''',
     '''poetry\.lock''',
+    # Example env files (contain placeholders, not real secrets)
+    '''\.env\.example''',
 ]
 
 regexTarget = "match"
