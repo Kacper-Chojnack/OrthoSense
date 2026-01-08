@@ -1,0 +1,6 @@
+[bandit]
+exclude_dirs = ["tests", "venv", ".venv", "migrations", "__pycache__"]
+skips = ["B101"]
+targets = ["app"]
+severity = ["MEDIUM", "HIGH"]
+confidence = ["MEDIUM", "HIGH"]
