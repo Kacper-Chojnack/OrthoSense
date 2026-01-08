@@ -8,16 +8,9 @@ part of 'exercise_classifier_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provides singleton instance of [ExerciseClassifierService].
-///
-/// keepAlive ensures the service persists across the app lifecycle.
 
 @ProviderFor(exerciseClassifierService)
 const exerciseClassifierServiceProvider = ExerciseClassifierServiceProvider._();
-
-/// Provides singleton instance of [ExerciseClassifierService].
-///
-/// keepAlive ensures the service persists across the app lifecycle.
 
 final class ExerciseClassifierServiceProvider
     extends
@@ -27,9 +20,6 @@ final class ExerciseClassifierServiceProvider
           ExerciseClassifierService
         >
     with $Provider<ExerciseClassifierService> {
-  /// Provides singleton instance of [ExerciseClassifierService].
-  ///
-  /// keepAlive ensures the service persists across the app lifecycle.
   const ExerciseClassifierServiceProvider._()
     : super(
         from: null,
