@@ -1,0 +1,63 @@
+title = "OrthoSense Secret Detection"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''\.git''',
+    '''node_modules''',
+    '''\.venv''',
+    '''venv''',
+    '''build''',
+    '''\.dart_tool''',
+    '''\.pub-cache''',
+    # Test files with fake secrets
+    '''backend/tests/conftest\.py''',
+    '''test/''',
+    # Lock files
+    '''pubspec\.lock''',
+    '''poetry\.lock''',
+]
+
+regexTarget = "match"
+
+[[rules]]
+id = "orthosense-api-key"
+description = "OrthoSense API Key"
+regex = '''orthosense[_-]?api[_-]?key['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9_-]{20,})'''
+secretGroup = 1
+
+[[rules]]
+id = "database-url-with-password"
+description = "Database Connection String with Password"
+regex = '''(?i)(postgres|mysql|mongodb|redis):\/\/[^:]+:[^@]+@[^\s'"]+'''
+
+[[rules]]
+id = "jwt-secret-key"
+description = "JWT Secret Key"
+regex = '''(?i)(jwt[_-]?secret|secret[_-]?key)['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9!@#$%^&*()_+-=]{32,})'''
+secretGroup = 2
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key ID"
+regex = '''(?i)aws[_-]?access[_-]?key[_-]?id['\"]?\s*[:=]\s*['\"]?(AKIA[0-9A-Z]{16})'''
+secretGroup = 1
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Access Key"
+regex = '''(?i)aws[_-]?secret[_-]?access[_-]?key['\"]?\s*[:=]\s*['\"]?([a-zA-Z0-9/+=]{40})'''
+secretGroup = 1
+
+[rules.allowlist]
+regexes = [
+    '''change-this-to-a-secure-random-string''',
+    '''test-secret-key''',
+    '''dev-secret-key''',
+    '''example\.com''',
+    '''localhost''',
+    '''your-secret-key-here''',
+]
