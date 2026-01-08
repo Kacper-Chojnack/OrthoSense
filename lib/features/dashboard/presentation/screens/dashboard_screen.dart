@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/features/auth/domain/models/user_model.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
+import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
+import 'package:orthosense/features/dashboard/presentation/widgets/progress_trend_chart.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
@@ -67,13 +69,16 @@ class DashboardScreen extends ConsumerWidget {
               const _StatsGrid(),
               const SizedBox(height: 24),
 
-              // Weekly Trend Chart Placeholder
-              const _SectionHeader(
-                title: 'Range of Motion Trend',
-                subtitle: 'Last 7 days',
+              // Range of Motion Trend Chart (F08)
+              const ProgressTrendChart(
+                metricType: TrendMetricType.rangeOfMotion,
               ),
-              const SizedBox(height: 12),
-              const _TrendChart(),
+              const SizedBox(height: 16),
+
+              // Session Score Trend Chart (F08)
+              const ProgressTrendChart(
+                metricType: TrendMetricType.sessionScore,
+              ),
               const SizedBox(height: 24),
 
               // Recent Sessions
@@ -344,99 +349,6 @@ class _StatCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TrendChart extends StatelessWidget {
-  const _TrendChart();
-
-  @override
-  Widget build(BuildContext context) {
-    // Mock ROM trend data - will integrate with fl_chart later
-    final mockData = [105, 108, 110, 112, 115, 118, 120];
-    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Chart area
-            SizedBox(
-              height: 120,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(mockData.length, (index) {
-                  final value = mockData[index];
-                  const maxValue = 130;
-                  final height = (value / maxValue) * 100;
-
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            '$value°',
-                            style: Theme.of(context).textTheme.labelSmall,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            height: height,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Day labels
-            Row(
-              children: days
-                  .map(
-                    (day) => Expanded(
-                      child: Text(
-                        day,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 12),
-            // Summary
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  _kLogoAssetPath,
-                  height: 20,
-                  color: Colors.green,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '+15° improvement this week',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
             ),
           ],
         ),
