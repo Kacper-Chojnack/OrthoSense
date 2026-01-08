@@ -842,6 +842,78 @@ class $ExerciseResultsTable extends ExerciseResults
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isCorrectMeta = const VerificationMeta(
+    'isCorrect',
+  );
+  @override
+  late final GeneratedColumn<bool> isCorrect = GeneratedColumn<bool>(
+    'is_correct',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_correct" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _feedbackJsonMeta = const VerificationMeta(
+    'feedbackJson',
+  );
+  @override
+  late final GeneratedColumn<String> feedbackJson = GeneratedColumn<String>(
+    'feedback_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _textReportMeta = const VerificationMeta(
+    'textReport',
+  );
+  @override
+  late final GeneratedColumn<String> textReport = GeneratedColumn<String>(
+    'text_report',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _performedAtMeta = const VerificationMeta(
+    'performedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> performedAt = GeneratedColumn<DateTime>(
+    'performed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -851,6 +923,12 @@ class $ExerciseResultsTable extends ExerciseResults
     setsCompleted,
     repsCompleted,
     score,
+    isCorrect,
+    feedbackJson,
+    textReport,
+    durationSeconds,
+    performedAt,
+    syncStatus,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -920,6 +998,51 @@ class $ExerciseResultsTable extends ExerciseResults
         score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
       );
     }
+    if (data.containsKey('is_correct')) {
+      context.handle(
+        _isCorrectMeta,
+        isCorrect.isAcceptableOrUnknown(data['is_correct']!, _isCorrectMeta),
+      );
+    }
+    if (data.containsKey('feedback_json')) {
+      context.handle(
+        _feedbackJsonMeta,
+        feedbackJson.isAcceptableOrUnknown(
+          data['feedback_json']!,
+          _feedbackJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('text_report')) {
+      context.handle(
+        _textReportMeta,
+        textReport.isAcceptableOrUnknown(data['text_report']!, _textReportMeta),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('performed_at')) {
+      context.handle(
+        _performedAtMeta,
+        performedAt.isAcceptableOrUnknown(
+          data['performed_at']!,
+          _performedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
     return context;
   }
 
@@ -957,6 +1080,30 @@ class $ExerciseResultsTable extends ExerciseResults
         DriftSqlType.int,
         data['${effectivePrefix}score'],
       ),
+      isCorrect: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_correct'],
+      ),
+      feedbackJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}feedback_json'],
+      ),
+      textReport: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text_report'],
+      ),
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      performedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}performed_at'],
+      )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
     );
   }
 
@@ -970,10 +1117,10 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
   /// Unique result identifier (UUID).
   final String id;
 
-  /// Parent session reference.
+  /// Foreign key to the parent session.
   final String sessionId;
 
-  /// Exercise type identifier.
+  /// Exercise ID from the catalog (for future API sync).
   final String exerciseId;
 
   /// Human-readable exercise name.
@@ -985,8 +1132,26 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
   /// Number of reps completed.
   final int repsCompleted;
 
-  /// Exercise score (0-100).
+  /// Overall score for this exercise (0-100).
   final int? score;
+
+  /// Whether the exercise form was correct.
+  final bool? isCorrect;
+
+  /// JSON-encoded feedback map (error names -> details).
+  final String? feedbackJson;
+
+  /// Detailed text report from AI analysis.
+  final String? textReport;
+
+  /// Duration of exercise analysis in seconds.
+  final int durationSeconds;
+
+  /// When the exercise was performed.
+  final DateTime performedAt;
+
+  /// Sync status for offline-first pattern.
+  final String syncStatus;
   const ExerciseResult({
     required this.id,
     required this.sessionId,
@@ -995,6 +1160,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     required this.setsCompleted,
     required this.repsCompleted,
     this.score,
+    this.isCorrect,
+    this.feedbackJson,
+    this.textReport,
+    required this.durationSeconds,
+    required this.performedAt,
+    required this.syncStatus,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1008,6 +1179,18 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<int>(score);
     }
+    if (!nullToAbsent || isCorrect != null) {
+      map['is_correct'] = Variable<bool>(isCorrect);
+    }
+    if (!nullToAbsent || feedbackJson != null) {
+      map['feedback_json'] = Variable<String>(feedbackJson);
+    }
+    if (!nullToAbsent || textReport != null) {
+      map['text_report'] = Variable<String>(textReport);
+    }
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    map['performed_at'] = Variable<DateTime>(performedAt);
+    map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
 
@@ -1022,6 +1205,18 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       score: score == null && nullToAbsent
           ? const Value.absent()
           : Value(score),
+      isCorrect: isCorrect == null && nullToAbsent
+          ? const Value.absent()
+          : Value(isCorrect),
+      feedbackJson: feedbackJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(feedbackJson),
+      textReport: textReport == null && nullToAbsent
+          ? const Value.absent()
+          : Value(textReport),
+      durationSeconds: Value(durationSeconds),
+      performedAt: Value(performedAt),
+      syncStatus: Value(syncStatus),
     );
   }
 
@@ -1038,6 +1233,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       setsCompleted: serializer.fromJson<int>(json['setsCompleted']),
       repsCompleted: serializer.fromJson<int>(json['repsCompleted']),
       score: serializer.fromJson<int?>(json['score']),
+      isCorrect: serializer.fromJson<bool?>(json['isCorrect']),
+      feedbackJson: serializer.fromJson<String?>(json['feedbackJson']),
+      textReport: serializer.fromJson<String?>(json['textReport']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      performedAt: serializer.fromJson<DateTime>(json['performedAt']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
   @override
@@ -1051,6 +1252,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
       'setsCompleted': serializer.toJson<int>(setsCompleted),
       'repsCompleted': serializer.toJson<int>(repsCompleted),
       'score': serializer.toJson<int?>(score),
+      'isCorrect': serializer.toJson<bool?>(isCorrect),
+      'feedbackJson': serializer.toJson<String?>(feedbackJson),
+      'textReport': serializer.toJson<String?>(textReport),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'performedAt': serializer.toJson<DateTime>(performedAt),
+      'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
 
@@ -1062,6 +1269,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     int? setsCompleted,
     int? repsCompleted,
     Value<int?> score = const Value.absent(),
+    Value<bool?> isCorrect = const Value.absent(),
+    Value<String?> feedbackJson = const Value.absent(),
+    Value<String?> textReport = const Value.absent(),
+    int? durationSeconds,
+    DateTime? performedAt,
+    String? syncStatus,
   }) => ExerciseResult(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -1070,6 +1283,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     setsCompleted: setsCompleted ?? this.setsCompleted,
     repsCompleted: repsCompleted ?? this.repsCompleted,
     score: score.present ? score.value : this.score,
+    isCorrect: isCorrect.present ? isCorrect.value : this.isCorrect,
+    feedbackJson: feedbackJson.present ? feedbackJson.value : this.feedbackJson,
+    textReport: textReport.present ? textReport.value : this.textReport,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    performedAt: performedAt ?? this.performedAt,
+    syncStatus: syncStatus ?? this.syncStatus,
   );
   ExerciseResult copyWithCompanion(ExerciseResultsCompanion data) {
     return ExerciseResult(
@@ -1088,6 +1307,22 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           ? data.repsCompleted.value
           : this.repsCompleted,
       score: data.score.present ? data.score.value : this.score,
+      isCorrect: data.isCorrect.present ? data.isCorrect.value : this.isCorrect,
+      feedbackJson: data.feedbackJson.present
+          ? data.feedbackJson.value
+          : this.feedbackJson,
+      textReport: data.textReport.present
+          ? data.textReport.value
+          : this.textReport,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      performedAt: data.performedAt.present
+          ? data.performedAt.value
+          : this.performedAt,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
     );
   }
 
@@ -1100,7 +1335,13 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           ..write('exerciseName: $exerciseName, ')
           ..write('setsCompleted: $setsCompleted, ')
           ..write('repsCompleted: $repsCompleted, ')
-          ..write('score: $score')
+          ..write('score: $score, ')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('feedbackJson: $feedbackJson, ')
+          ..write('textReport: $textReport, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('performedAt: $performedAt, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
@@ -1114,6 +1355,12 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
     setsCompleted,
     repsCompleted,
     score,
+    isCorrect,
+    feedbackJson,
+    textReport,
+    durationSeconds,
+    performedAt,
+    syncStatus,
   );
   @override
   bool operator ==(Object other) =>
@@ -1125,7 +1372,13 @@ class ExerciseResult extends DataClass implements Insertable<ExerciseResult> {
           other.exerciseName == this.exerciseName &&
           other.setsCompleted == this.setsCompleted &&
           other.repsCompleted == this.repsCompleted &&
-          other.score == this.score);
+          other.score == this.score &&
+          other.isCorrect == this.isCorrect &&
+          other.feedbackJson == this.feedbackJson &&
+          other.textReport == this.textReport &&
+          other.durationSeconds == this.durationSeconds &&
+          other.performedAt == this.performedAt &&
+          other.syncStatus == this.syncStatus);
 }
 
 class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
@@ -1136,6 +1389,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
   final Value<int> setsCompleted;
   final Value<int> repsCompleted;
   final Value<int?> score;
+  final Value<bool?> isCorrect;
+  final Value<String?> feedbackJson;
+  final Value<String?> textReport;
+  final Value<int> durationSeconds;
+  final Value<DateTime> performedAt;
+  final Value<String> syncStatus;
   final Value<int> rowid;
   const ExerciseResultsCompanion({
     this.id = const Value.absent(),
@@ -1145,6 +1404,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     this.setsCompleted = const Value.absent(),
     this.repsCompleted = const Value.absent(),
     this.score = const Value.absent(),
+    this.isCorrect = const Value.absent(),
+    this.feedbackJson = const Value.absent(),
+    this.textReport = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.performedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ExerciseResultsCompanion.insert({
@@ -1155,6 +1420,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     this.setsCompleted = const Value.absent(),
     this.repsCompleted = const Value.absent(),
     this.score = const Value.absent(),
+    this.isCorrect = const Value.absent(),
+    this.feedbackJson = const Value.absent(),
+    this.textReport = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.performedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        sessionId = Value(sessionId),
@@ -1168,6 +1439,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     Expression<int>? setsCompleted,
     Expression<int>? repsCompleted,
     Expression<int>? score,
+    Expression<bool>? isCorrect,
+    Expression<String>? feedbackJson,
+    Expression<String>? textReport,
+    Expression<int>? durationSeconds,
+    Expression<DateTime>? performedAt,
+    Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1178,6 +1455,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
       if (setsCompleted != null) 'sets_completed': setsCompleted,
       if (repsCompleted != null) 'reps_completed': repsCompleted,
       if (score != null) 'score': score,
+      if (isCorrect != null) 'is_correct': isCorrect,
+      if (feedbackJson != null) 'feedback_json': feedbackJson,
+      if (textReport != null) 'text_report': textReport,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (performedAt != null) 'performed_at': performedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1190,6 +1473,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     Value<int>? setsCompleted,
     Value<int>? repsCompleted,
     Value<int?>? score,
+    Value<bool?>? isCorrect,
+    Value<String?>? feedbackJson,
+    Value<String?>? textReport,
+    Value<int>? durationSeconds,
+    Value<DateTime>? performedAt,
+    Value<String>? syncStatus,
     Value<int>? rowid,
   }) {
     return ExerciseResultsCompanion(
@@ -1200,6 +1489,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
       setsCompleted: setsCompleted ?? this.setsCompleted,
       repsCompleted: repsCompleted ?? this.repsCompleted,
       score: score ?? this.score,
+      isCorrect: isCorrect ?? this.isCorrect,
+      feedbackJson: feedbackJson ?? this.feedbackJson,
+      textReport: textReport ?? this.textReport,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      performedAt: performedAt ?? this.performedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1228,6 +1523,24 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
     if (score.present) {
       map['score'] = Variable<int>(score.value);
     }
+    if (isCorrect.present) {
+      map['is_correct'] = Variable<bool>(isCorrect.value);
+    }
+    if (feedbackJson.present) {
+      map['feedback_json'] = Variable<String>(feedbackJson.value);
+    }
+    if (textReport.present) {
+      map['text_report'] = Variable<String>(textReport.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (performedAt.present) {
+      map['performed_at'] = Variable<DateTime>(performedAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1244,6 +1557,12 @@ class ExerciseResultsCompanion extends UpdateCompanion<ExerciseResult> {
           ..write('setsCompleted: $setsCompleted, ')
           ..write('repsCompleted: $repsCompleted, ')
           ..write('score: $score, ')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('feedbackJson: $feedbackJson, ')
+          ..write('textReport: $textReport, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('performedAt: $performedAt, ')
+          ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1795,6 +2114,12 @@ typedef $$ExerciseResultsTableCreateCompanionBuilder =
       Value<int> setsCompleted,
       Value<int> repsCompleted,
       Value<int?> score,
+      Value<bool?> isCorrect,
+      Value<String?> feedbackJson,
+      Value<String?> textReport,
+      Value<int> durationSeconds,
+      Value<DateTime> performedAt,
+      Value<String> syncStatus,
       Value<int> rowid,
     });
 typedef $$ExerciseResultsTableUpdateCompanionBuilder =
@@ -1806,6 +2131,12 @@ typedef $$ExerciseResultsTableUpdateCompanionBuilder =
       Value<int> setsCompleted,
       Value<int> repsCompleted,
       Value<int?> score,
+      Value<bool?> isCorrect,
+      Value<String?> feedbackJson,
+      Value<String?> textReport,
+      Value<int> durationSeconds,
+      Value<DateTime> performedAt,
+      Value<String> syncStatus,
       Value<int> rowid,
     });
 
@@ -1877,6 +2208,36 @@ class $$ExerciseResultsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isCorrect => $composableBuilder(
+    column: $table.isCorrect,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get feedbackJson => $composableBuilder(
+    column: $table.feedbackJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get textReport => $composableBuilder(
+    column: $table.textReport,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get performedAt => $composableBuilder(
+    column: $table.performedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$SessionsTableFilterComposer get sessionId {
     final $$SessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -1940,6 +2301,36 @@ class $$ExerciseResultsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isCorrect => $composableBuilder(
+    column: $table.isCorrect,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get feedbackJson => $composableBuilder(
+    column: $table.feedbackJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get textReport => $composableBuilder(
+    column: $table.textReport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get performedAt => $composableBuilder(
+    column: $table.performedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$SessionsTableOrderingComposer get sessionId {
     final $$SessionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -1998,6 +2389,34 @@ class $$ExerciseResultsTableAnnotationComposer
 
   GeneratedColumn<int> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCorrect =>
+      $composableBuilder(column: $table.isCorrect, builder: (column) => column);
+
+  GeneratedColumn<String> get feedbackJson => $composableBuilder(
+    column: $table.feedbackJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get textReport => $composableBuilder(
+    column: $table.textReport,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get performedAt => $composableBuilder(
+    column: $table.performedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
 
   $$SessionsTableAnnotationComposer get sessionId {
     final $$SessionsTableAnnotationComposer composer = $composerBuilder(
@@ -2060,6 +2479,12 @@ class $$ExerciseResultsTableTableManager
                 Value<int> setsCompleted = const Value.absent(),
                 Value<int> repsCompleted = const Value.absent(),
                 Value<int?> score = const Value.absent(),
+                Value<bool?> isCorrect = const Value.absent(),
+                Value<String?> feedbackJson = const Value.absent(),
+                Value<String?> textReport = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<DateTime> performedAt = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseResultsCompanion(
                 id: id,
@@ -2069,6 +2494,12 @@ class $$ExerciseResultsTableTableManager
                 setsCompleted: setsCompleted,
                 repsCompleted: repsCompleted,
                 score: score,
+                isCorrect: isCorrect,
+                feedbackJson: feedbackJson,
+                textReport: textReport,
+                durationSeconds: durationSeconds,
+                performedAt: performedAt,
+                syncStatus: syncStatus,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2080,6 +2511,12 @@ class $$ExerciseResultsTableTableManager
                 Value<int> setsCompleted = const Value.absent(),
                 Value<int> repsCompleted = const Value.absent(),
                 Value<int?> score = const Value.absent(),
+                Value<bool?> isCorrect = const Value.absent(),
+                Value<String?> feedbackJson = const Value.absent(),
+                Value<String?> textReport = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<DateTime> performedAt = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExerciseResultsCompanion.insert(
                 id: id,
@@ -2089,6 +2526,12 @@ class $$ExerciseResultsTableTableManager
                 setsCompleted: setsCompleted,
                 repsCompleted: repsCompleted,
                 score: score,
+                isCorrect: isCorrect,
+                feedbackJson: feedbackJson,
+                textReport: textReport,
+                durationSeconds: durationSeconds,
+                performedAt: performedAt,
+                syncStatus: syncStatus,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

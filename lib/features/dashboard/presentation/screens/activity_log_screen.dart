@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orthosense/core/database/repositories/exercise_results_repository.dart';
+import 'package:orthosense/core/services/report_export_service.dart';
 
 /// Screen showing history of exercise sessions (Activity Log).
 /// Data flows from Drift database (SSOT) via Riverpod providers.
@@ -17,7 +19,7 @@ class ActivityLogScreen extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
             tooltip: 'Export Options',
-            onSelected: (value) => _handleExport(context, value),
+            onSelected: (value) => _handleExport(context, ref, value),
             itemBuilder: (context) => [
               const PopupMenuItem(
                 value: 'pdf',
@@ -100,25 +102,75 @@ class ActivityLogScreen extends ConsumerWidget {
     );
   }
 
-  void _handleExport(BuildContext context, String type) {
-    final message = switch (type) {
-      'pdf' => 'Generating PDF report...',
-      'csv' => 'Exporting to CSV...',
-      'share' => 'Preparing report for sharing...',
-      _ => 'Unknown export type',
-    };
+  Future<void> _handleExport(
+    BuildContext context,
+    WidgetRef ref,
+    String type,
+  ) async {
+    final exportService = ref.read(reportExportServiceProvider);
+    final repository = ref.read(exerciseResultsRepositoryProvider);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        action: SnackBarAction(
-          label: 'View',
-          onPressed: () {
-            // TODO(user): Open generated file
-          },
-        ),
-      ),
-    );
+    // Get sessions from database
+    final results = await repository.getRecent(limit: 100);
+
+    if (results.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No sessions to export')),
+        );
+      }
+      return;
+    }
+
+    // Convert to SessionReportData
+    final sessions = results.map((r) {
+      return SessionReportData(
+        date: r.performedAt,
+        exerciseName: r.exerciseName,
+        durationSeconds: r.durationSeconds,
+        score: r.score ?? 0,
+        isCorrect: r.isCorrect ?? false,
+        feedback: ExerciseResultsRepository.parseFeedback(r.feedbackJson),
+        textReport: r.textReport,
+      );
+    }).toList();
+
+    try {
+      switch (type) {
+        case 'pdf':
+        case 'share':
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Generating PDF...')),
+            );
+          }
+          final pdfFile = await exportService.generateActivityLogPdf(
+            sessions: sessions,
+            startDate: sessions.last.date,
+            endDate: sessions.first.date,
+          );
+          await exportService.sharePdf(
+            pdfFile,
+            subject: 'OrthoSense Activity Report',
+          );
+        case 'csv':
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Generating CSV...')),
+            );
+          }
+          final csvFile = await exportService.generateActivityLogCsv(
+            sessions: sessions,
+          );
+          await exportService.shareCsv(csvFile);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
   }
 }
 

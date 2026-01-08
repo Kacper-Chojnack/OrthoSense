@@ -70,7 +70,7 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
 
     try {
       final poseService = ref.read(poseDetectionServiceProvider);
-      
+
       final landmarks = await poseService.extractLandmarksFromVideo(
         _selectedVideo!,
         onProgress: (progress) {
@@ -103,7 +103,8 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       if (validFrames.isEmpty) {
         if (mounted) {
           setState(() {
-            _error = 'Insufficient body visibility detected. Please ensure your full body is visible in the video.';
+            _error =
+                'Insufficient body visibility detected. Please ensure your full body is visible in the video.';
             _isAnalyzing = false;
             _isExtractingLandmarks = false;
           });
@@ -111,7 +112,10 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         return;
       }
 
-      final validLandmarks = PoseLandmarks(frames: validFrames, fps: landmarks.fps);
+      final validLandmarks = PoseLandmarks(
+        frames: validFrames,
+        fps: landmarks.fps,
+      );
 
       if (mounted) {
         setState(() {
@@ -124,9 +128,15 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       final classification = await classifier.classify(validLandmarks);
 
       final diagnostics = ref.read(movementDiagnosticsServiceProvider);
-      final diagnosticsResult = diagnostics.diagnose(classification.exercise, validLandmarks);
+      final diagnosticsResult = diagnostics.diagnose(
+        classification.exercise,
+        validLandmarks,
+      );
 
-      final textReport = diagnostics.generateReport(diagnosticsResult, classification.exercise);
+      final textReport = diagnostics.generateReport(
+        diagnosticsResult,
+        classification.exercise,
+      );
 
       if (mounted) {
         setState(() {
@@ -476,7 +486,7 @@ class _ResultCard extends StatelessWidget {
     final isCorrect = result['is_correct'] == true;
     final confidence = (result['confidence'] as num? ?? 0) * 100;
     final exercise = result['exercise'] as String? ?? 'Unknown Exercise';
-    
+
     final feedbackRaw = result['feedback'];
     final String feedback;
     if (feedbackRaw is Map<String, dynamic>) {
@@ -484,9 +494,7 @@ class _ResultCard extends StatelessWidget {
         feedback = 'No feedback available';
       } else {
         feedback = feedbackRaw.entries
-            .map((e) => e.value == true 
-                ? e.key 
-                : '${e.key}: ${e.value}')
+            .map((e) => e.value == true ? e.key : '${e.key}: ${e.value}')
             .join('\n');
       }
     } else if (feedbackRaw is String) {
@@ -494,7 +502,7 @@ class _ResultCard extends StatelessWidget {
     } else {
       feedback = 'No feedback available';
     }
-    
+
     final textReport = result['text_report'] as String?;
 
     return Card(
