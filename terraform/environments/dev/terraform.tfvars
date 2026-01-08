@@ -36,9 +36,6 @@ apprunner_min_size        = 1
 apprunner_max_size        = 2
 apprunner_max_concurrency = 50
 
-# Frontend
-cloudfront_price_class = "PriceClass_100"
-
 # Security
 allowed_cors_origins = [
   "http://localhost:8080",
@@ -59,6 +56,9 @@ log_retention_days         = 30
 # GitHub
 github_org  = "kacper-chojnack"
 github_repo = "OrthoSense"
+
+# App Runner
+create_apprunner_service = true  # App Runner service is already deployed
 
 # Tags
 project_tags = {
