@@ -31,6 +31,7 @@ class ExerciseClassifierService {
   static const int _numChannels = 3;
   static const int _modelSequenceLength = 60;
   static const int _numClasses = 3;
+  static const double _scaleEps = 1e-6;
 
   Future<void> _initialize() async {
     try {
@@ -102,6 +103,23 @@ class ExerciseClassifierService {
       }
     }
 
+
+    for (var t = 0; t < T; t++) {
+      final ls = data[t][11]; // left shoulder
+      final rs = data[t][12]; // right shoulder
+      final dx = ls[0] - rs[0];
+      final dy = ls[1] - rs[1];
+      final dz = ls[2] - rs[2];
+      final scale = math.sqrt(dx * dx + dy * dy + dz * dz).abs();
+      final denom = scale < _scaleEps ? 1.0 : scale;
+
+      for (var v = 0; v < _numJoints; v++) {
+        for (var c = 0; c < _numChannels; c++) {
+          data[t][v][c] = data[t][v][c] / denom;
+        }
+      }
+    }
+
     List<List<List<double>>> interpolatedData = data;
     if (T != _modelSequenceLength) {
       interpolatedData = _interpolateFrames(data, T, _modelSequenceLength);
@@ -137,32 +155,25 @@ class ExerciseClassifierService {
       ),
     );
 
-    for (var v = 0; v < _numJoints; v++) {
-      for (var c = 0; c < _numChannels; c++) {
-        final sequence = List.generate(
-          currentFrames,
-          (t) => data[t][v][c],
-        );
+    if (targetFrames == 1) {
+      final midIndex = (currentFrames / 2).floor().clamp(0, currentFrames - 1);
+      for (var v = 0; v < _numJoints; v++) {
+        for (var c = 0; c < _numChannels; c++) {
+          interpolated[0][v][c] = data[midIndex][v][c];
+        }
+      }
+      return interpolated;
+    }
 
-        if (targetFrames == 1) {
-          final midIndex = (currentFrames / 2).floor();
-          interpolated[0][v][c] =
-              sequence[midIndex.clamp(0, currentFrames - 1)];
-        } else {
-          for (var t = 0; t < targetFrames; t++) {
-            final ratio = t / (targetFrames - 1);
-            final sourceIndex = ratio * (currentFrames - 1);
-            final lower = sourceIndex.floor();
-            final upper = sourceIndex.ceil().clamp(0, currentFrames - 1);
-            final fraction = sourceIndex - lower;
-
-            if (lower == upper) {
-              interpolated[t][v][c] = sequence[lower];
-            } else {
-              interpolated[t][v][c] =
-                  sequence[lower] * (1 - fraction) + sequence[upper] * fraction;
-            }
-          }
+    for (var t = 0; t < targetFrames; t++) {
+      final ratio = t / (targetFrames - 1);
+      final sourceIndex = (ratio * (currentFrames - 1)).round().clamp(
+        0,
+        currentFrames - 1,
+      );
+      for (var v = 0; v < _numJoints; v++) {
+        for (var c = 0; c < _numChannels; c++) {
+          interpolated[t][v][c] = data[sourceIndex][v][c];
         }
       }
     }
@@ -218,6 +229,14 @@ class ExerciseClassifierService {
       String exerciseName =
           _exerciseLabels[predictedClass] ?? 'Unknown Exercise';
       double finalConfidence = maxProb;
+
+      if (kDebugMode) {
+        debugPrint(
+          '[TFLite] T=${landmarks.frames.length} fps=${landmarks.fps} '
+          'raw=$rawOutput probs=$probabilities '
+          'pred=$predictedClass("$exerciseName") conf=${finalConfidence.toStringAsFixed(3)}',
+        );
+      }
 
       return ExerciseClassification(
         exercise: exerciseName,

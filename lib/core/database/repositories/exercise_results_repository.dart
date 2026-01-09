@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:orthosense/core/database/app_database.dart';
+import 'package:orthosense/core/providers/database_provider.dart' as db_provider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,5 +80,5 @@ ExerciseResultsRepository exerciseResultsRepository(Ref ref) {
 
 @Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
-  return AppDatabase();
+  return ref.watch(db_provider.appDatabaseProvider);
 }

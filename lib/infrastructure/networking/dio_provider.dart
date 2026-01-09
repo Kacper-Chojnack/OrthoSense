@@ -20,8 +20,9 @@ String _getBaseUrl() {
 
   // iOS Simulator, Linux, Windows
   // Using local IP for physical device debugging
-  // return 'http://192.168.0.27:8000'; // Zosia
-  return 'http://192.168.0.17:8000'; // Kacper
+  // return 'http://172.19.240.61:8000';
+  return 'http://192.168.0.27:8000'; // Zosia
+  // return 'http://192.168.0.17:8000'; // Kacper
 }
 
 /// Provides configured [Dio] instance for API calls.
