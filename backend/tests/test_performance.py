@@ -1,16 +1,18 @@
 import time
 
 import numpy as np
+import pytest
 
 from app.ai.core.engine import OrthoSensePredictor
 
 
+@pytest.mark.asyncio
 async def test_inference_latency():
     engine = OrthoSensePredictor()
     dummy_input = np.random.rand(60, 33, 3).astype(np.float32)
 
     async def predict():
-        return engine.analyze(dummy_input)
+        return engine.analyze(dummy_input, "squat")
 
     times = []
     for _ in range(100):

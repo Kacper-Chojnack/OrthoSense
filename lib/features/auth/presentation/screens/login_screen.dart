@@ -74,19 +74,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     // Show error message if login failed
     ref.listen<AuthState>(authProvider, (previous, next) {
+      debugPrint('Auth state changed: $previous -> $next');
+      
       final message = switch (next) {
         AuthStateUnauthenticated(:final message) => message,
         AuthStateError(:final message) => message,
         _ => null,
       };
 
-      if (message != null && mounted) {
+      debugPrint('Error message: $message');
+
+      if (message != null && message.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+          ),
           ),
         );
       }

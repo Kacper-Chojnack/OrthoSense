@@ -7,8 +7,8 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 def utc_now() -> datetime:
-    """Return current UTC datetime."""
-    return datetime.now(UTC)
+    """Return current UTC datetime (naive, for PostgreSQL compatibility)."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class ProtocolBase(SQLModel):

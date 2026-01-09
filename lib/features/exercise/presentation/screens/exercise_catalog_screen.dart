@@ -49,7 +49,6 @@ class ExerciseCatalogScreen extends ConsumerWidget {
             'Maintain balance and control while stepping over the hurdle. '
             'Keep your standing leg stable.',
         assetPath: 'assets/videos/hurdle_step_demo.mp4',
-        viewAngle: 'front',
       ),
     ),
     ExerciseInfo(
@@ -70,7 +69,6 @@ class ExerciseCatalogScreen extends ConsumerWidget {
             'Raise arms smoothly to shoulder height. '
             'Avoid shrugging or leaning.',
         assetPath: 'assets/videos/shoulder_abduction_demo.mp4',
-        viewAngle: 'front',
       ),
     ),
   ];
@@ -99,7 +97,7 @@ class ExerciseCatalogScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => GalleryAnalysisScreen(),
+                  builder: (_) => const GalleryAnalysisScreen(),
                 ),
               );
             },
@@ -335,52 +333,6 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                       );
                     }),
                     const SizedBox(height: 24),
-                    // Real-time analysis unavailable notice
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.tertiaryContainer.withValues(
-                          alpha: 0.5,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: colorScheme.tertiary.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.construction_rounded,
-                            color: colorScheme.tertiary,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Real-Time Analysis Coming Soon',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onTertiaryContainer,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Use Gallery Analysis to analyze recorded '
-                                  'videos.',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onTertiaryContainer
-                                        .withValues(alpha: 0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     // Gallery Analysis Button (Primary action)
                     SizedBox(
                       width: double.infinity,
@@ -389,7 +341,7 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                           Navigator.of(context).pop();
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
-                              builder: (_) => GalleryAnalysisScreen(),
+                              builder: (_) => const GalleryAnalysisScreen(),
                             ),
                           );
                         },

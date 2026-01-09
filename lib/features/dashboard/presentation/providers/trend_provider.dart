@@ -1,6 +1,7 @@
-import 'dart:math';
-
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:orthosense/core/database/app_database.dart';
+import 'package:orthosense/core/providers/database_provider.dart';
 import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -18,95 +19,244 @@ class SelectedTrendPeriod extends _$SelectedTrendPeriod {
 }
 
 /// Provider for trend chart data based on metric type and selected period.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Uses real data from Drift database.
 @riverpod
 Future<TrendChartData> trendData(
   Ref ref,
   TrendMetricType metricType,
 ) async {
   final period = ref.watch(selectedTrendPeriodProvider);
+  final db = ref.watch(appDatabaseProvider);
 
-  // Simulate network delay for realistic UX
-  await Future<void>.delayed(const Duration(milliseconds: 300));
+  final now = DateTime.now();
+  final startDate = now.subtract(Duration(days: period.days));
 
-  // Generate mock data based on period and metric type
-  // In production, this will query Drift database
-  return _generateMockTrendData(period, metricType);
+  // Query exercise results for the selected period
+  final results =
+      await (db.select(db.exerciseResults)
+            ..where((t) => t.performedAt.isBiggerOrEqualValue(startDate))
+            ..orderBy([(t) => OrderingTerm.asc(t.performedAt)]))
+          .get();
+
+  return _generateTrendDataFromResults(results, period, metricType);
 }
 
 /// Provider for dashboard statistics summary.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Fetches real data from Drift database.
 @riverpod
 Future<DashboardStats> dashboardStats(Ref ref) async {
-  await Future<void>.delayed(const Duration(milliseconds: 200));
+  final db = ref.watch(appDatabaseProvider);
+  final stats = await db.getExerciseStats();
 
-  // Mock stats - replace with Drift queries
-  return const DashboardStats(
-    totalSessions: 12,
-    sessionsThisWeek: 3,
-    averageScore: 87.5,
-    scoreChange: 5.2,
-    activeStreakDays: 3,
-    totalTimeThisMonth: Duration(hours: 4, minutes: 20),
-    completionRate: 92.0,
+  // Get all results to calculate total time and streak
+  final allResults = await db.select(db.exerciseResults).get();
+
+  // Calculate total time in minutes
+  final totalSeconds = allResults.fold<int>(
+    0,
+    (sum, r) => sum + r.durationSeconds,
+  );
+  final totalTimeMinutes = totalSeconds ~/ 60;
+
+  // Calculate active streak days
+  final activeStreak = _calculateActiveStreak(allResults);
+
+  // Calculate score change (difference between this week and previous week)
+  final now = DateTime.now();
+  final weekAgo = now.subtract(const Duration(days: 7));
+  final twoWeeksAgo = now.subtract(const Duration(days: 14));
+
+  final thisWeekResults = allResults.where(
+    (r) => r.performedAt.isAfter(weekAgo),
+  );
+  final prevWeekResults = allResults.where(
+    (r) =>
+        r.performedAt.isAfter(twoWeeksAgo) && r.performedAt.isBefore(weekAgo),
+  );
+
+  final thisWeekAvg = thisWeekResults.isEmpty
+      ? 0.0
+      : thisWeekResults
+                .where((r) => r.score != null)
+                .map((r) => r.score!)
+                .fold<int>(0, (a, b) => a + b) /
+            thisWeekResults.length;
+  final prevWeekAvg = prevWeekResults.isEmpty
+      ? 0.0
+      : prevWeekResults
+                .where((r) => r.score != null)
+                .map((r) => r.score!)
+                .fold<int>(0, (a, b) => a + b) /
+            prevWeekResults.length;
+  final scoreChange = thisWeekAvg - prevWeekAvg;
+
+  return DashboardStats(
+    totalSessions: stats.totalSessions,
+    sessionsThisWeek: stats.thisWeekSessions,
+    averageScore: stats.averageScore.toDouble(),
+    scoreChange: scoreChange,
+    activeStreakDays: activeStreak,
+    totalTimeThisMonth: Duration(minutes: totalTimeMinutes),
+    completionRate: stats.correctPercentage.toDouble(),
   );
 }
 
+/// Calculate consecutive days with at least one session.
+int _calculateActiveStreak(List<ExerciseResult> results) {
+  if (results.isEmpty) return 0;
+
+  // Group by date
+  final sessionDates =
+      results
+          .map(
+            (r) => DateTime(
+              r.performedAt.year,
+              r.performedAt.month,
+              r.performedAt.day,
+            ),
+          )
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a)); // newest first
+
+  if (sessionDates.isEmpty) return 0;
+
+  final today = DateTime.now();
+  final todayDate = DateTime(today.year, today.month, today.day);
+  final yesterday = todayDate.subtract(const Duration(days: 1));
+
+  // Check if streak is current (today or yesterday)
+  if (sessionDates.first != todayDate && sessionDates.first != yesterday) {
+    return 0; // Streak broken
+  }
+
+  int streak = 1;
+  for (int i = 0; i < sessionDates.length - 1; i++) {
+    final diff = sessionDates[i].difference(sessionDates[i + 1]).inDays;
+    if (diff == 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/// Stream provider for recent exercise results (reactive updates).
+/// Uses standard Riverpod syntax for Drift compatibility.
+final recentExerciseResultsProvider = StreamProvider<List<ExerciseResult>>((
+  ref,
+) {
+  final db = ref.watch(appDatabaseProvider);
+  return (db.select(db.exerciseResults)
+        ..orderBy([(t) => OrderingTerm.desc(t.performedAt)])
+        ..limit(10))
+      .watch();
+});
+
 /// Provider for mini trend data used in stat cards.
+/// Uses real data from Drift database.
 @riverpod
 Future<List<double>> miniTrendData(
   Ref ref,
   TrendMetricType metricType,
 ) async {
-  await Future<void>.delayed(const Duration(milliseconds: 100));
+  final db = ref.watch(appDatabaseProvider);
+  final now = DateTime.now();
+  final startDate = now.subtract(const Duration(days: 7));
 
-  // Return last 7 values for mini chart
-  final random = Random(metricType.hashCode);
-  return List.generate(7, (i) {
-    switch (metricType) {
-      case TrendMetricType.rangeOfMotion:
-        return 100.0 + random.nextDouble() * 20 + i * 2;
-      case TrendMetricType.sessionScore:
-        return 75.0 + random.nextDouble() * 15 + i * 1.5;
-      case TrendMetricType.exerciseDuration:
-        return 15.0 + random.nextDouble() * 10;
-      case TrendMetricType.completionRate:
-        return 80.0 + random.nextDouble() * 15 + i;
-      case TrendMetricType.painLevel:
-        return 6.0 - random.nextDouble() * 2 - i * 0.3;
+  // Query last 7 days of results
+  final results =
+      await (db.select(db.exerciseResults)
+            ..where((t) => t.performedAt.isBiggerOrEqualValue(startDate))
+            ..orderBy([(t) => OrderingTerm.asc(t.performedAt)]))
+          .get();
+
+  if (results.isEmpty) {
+    return <double>[];
+  }
+
+  // Group by date and calculate metric per day
+  final dailyData = <DateTime, List<double>>{};
+  for (final result in results) {
+    final date = DateTime(
+      result.performedAt.year,
+      result.performedAt.month,
+      result.performedAt.day,
+    );
+    dailyData.putIfAbsent(date, () => []);
+    final value = _extractMetricValue(result, metricType);
+    if (value != null) {
+      dailyData[date]!.add(value);
     }
-  });
+  }
+
+  // Calculate daily averages
+  final sortedDates = dailyData.keys.toList()..sort();
+  return sortedDates.map((date) {
+    final values = dailyData[date]!;
+    return values.isEmpty
+        ? 0.0
+        : values.reduce((a, b) => a + b) / values.length;
+  }).toList();
 }
 
 // --- Private Helpers ---
 
-TrendChartData _generateMockTrendData(
+/// Generate trend data from real exercise results.
+TrendChartData _generateTrendDataFromResults(
+  List<ExerciseResult> results,
   TrendPeriod period,
   TrendMetricType metricType,
 ) {
-  final now = DateTime.now();
-  final random = Random(period.days * metricType.hashCode);
+  if (results.isEmpty) {
+    return TrendChartData(
+      dataPoints: [],
+      period: period,
+      metricType: metricType,
+      minValue: _getMinValue(metricType),
+      maxValue: _getMaxValue(metricType),
+      averageValue: 0,
+      changePercent: 0,
+    );
+  }
+
+  // Group results by date
+  final dailyData = <DateTime, List<double>>{};
+  for (final result in results) {
+    final date = DateTime(
+      result.performedAt.year,
+      result.performedAt.month,
+      result.performedAt.day,
+    );
+    dailyData.putIfAbsent(date, () => []);
+    final value = _extractMetricValue(result, metricType);
+    if (value != null) {
+      dailyData[date]!.add(value);
+    }
+  }
+
+  // Convert to data points (daily averages)
+  final sortedDates = dailyData.keys.toList()..sort();
   final dataPoints = <TrendDataPoint>[];
 
-  // Generate data points for the selected period
-  for (var i = period.days - 1; i >= 0; i--) {
-    // Skip some days randomly to simulate missing sessions
-    if (random.nextDouble() < 0.3 && i != 0 && i != period.days - 1) {
-      continue;
-    }
+  for (var i = 0; i < sortedDates.length; i++) {
+    final date = sortedDates[i];
+    final values = dailyData[date]!;
+    if (values.isEmpty) continue;
 
-    final date = now.subtract(Duration(days: i));
-    final baseValue = _getBaseValue(metricType);
-    final trend = (period.days - i) * _getTrendFactor(metricType);
-    final noise = (random.nextDouble() - 0.5) * _getNoiseFactor(metricType);
-    final value = baseValue + trend + noise;
+    final avgValue = values.reduce((a, b) => a + b) / values.length;
 
     dataPoints.add(
       TrendDataPoint(
         date: date,
-        value: value.clamp(_getMinValue(metricType), _getMaxValue(metricType)),
+        value: avgValue.clamp(
+          _getMinValue(metricType),
+          _getMaxValue(metricType),
+        ),
         label: _formatDateLabel(date, period),
-        isHighlighted: i == 0, // Highlight most recent
+        isHighlighted: i == sortedDates.length - 1, // Highlight most recent
       ),
     );
   }
@@ -138,48 +288,23 @@ TrendChartData _generateMockTrendData(
   );
 }
 
-double _getBaseValue(TrendMetricType type) {
-  switch (type) {
+/// Extract metric value from an exercise result.
+double? _extractMetricValue(ExerciseResult result, TrendMetricType metricType) {
+  switch (metricType) {
     case TrendMetricType.rangeOfMotion:
-      return 95;
+      // No direct range of motion in schema, use score as proxy
+      return result.score?.toDouble();
     case TrendMetricType.sessionScore:
-      return 75;
+      return result.score?.toDouble();
     case TrendMetricType.exerciseDuration:
-      return 20;
+      return result.durationSeconds / 60.0; // Convert to minutes
     case TrendMetricType.completionRate:
-      return 80;
+      // Use isCorrect boolean - 100 if correct, 0 if not
+      if (result.isCorrect == null) return null;
+      return result.isCorrect! ? 100.0 : 0.0;
     case TrendMetricType.painLevel:
-      return 5;
-  }
-}
-
-double _getTrendFactor(TrendMetricType type) {
-  switch (type) {
-    case TrendMetricType.rangeOfMotion:
-      return 0.3;
-    case TrendMetricType.sessionScore:
-      return 0.2;
-    case TrendMetricType.exerciseDuration:
-      return 0.1;
-    case TrendMetricType.completionRate:
-      return 0.15;
-    case TrendMetricType.painLevel:
-      return -0.05; // Pain should decrease
-  }
-}
-
-double _getNoiseFactor(TrendMetricType type) {
-  switch (type) {
-    case TrendMetricType.rangeOfMotion:
-      return 8;
-    case TrendMetricType.sessionScore:
-      return 10;
-    case TrendMetricType.exerciseDuration:
-      return 5;
-    case TrendMetricType.completionRate:
-      return 8;
-    case TrendMetricType.painLevel:
-      return 1;
+      // Pain level not stored in current schema, return null
+      return null;
   }
 }
 

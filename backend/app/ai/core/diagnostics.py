@@ -6,30 +6,31 @@ MOVEMENT_CORRECT = "Movement correct."
 
 
 class MovementDiagnostician:
-    """
-    Diagnoses movement quality using MediaPipe 33 landmarks.
-    """
+    """Movement quality analysis using MediaPipe 33 landmarks."""
+
+    # landmark indices
+    MP = {
+        "NOSE": 0,
+        "LEFT_SHOULDER": 11,
+        "RIGHT_SHOULDER": 12,
+        "LEFT_ELBOW": 13,
+        "RIGHT_ELBOW": 14,
+        "LEFT_WRIST": 15,
+        "RIGHT_WRIST": 16,
+        "LEFT_HIP": 23,
+        "RIGHT_HIP": 24,
+        "LEFT_KNEE": 25,
+        "RIGHT_KNEE": 26,
+        "LEFT_ANKLE": 27,
+        "RIGHT_ANKLE": 28,
+        "LEFT_HEEL": 29,
+        "RIGHT_HEEL": 30,
+        "LEFT_FOOT_INDEX": 31,
+        "RIGHT_FOOT_INDEX": 32,
+    }
 
     def __init__(self):
-        self.MP = {
-            "NOSE": 0,
-            "LEFT_SHOULDER": 11,
-            "RIGHT_SHOULDER": 12,
-            "LEFT_ELBOW": 13,
-            "RIGHT_ELBOW": 14,
-            "LEFT_WRIST": 15,
-            "RIGHT_WRIST": 16,
-            "LEFT_HIP": 23,
-            "RIGHT_HIP": 24,
-            "LEFT_KNEE": 25,
-            "RIGHT_KNEE": 26,
-            "LEFT_ANKLE": 27,
-            "RIGHT_ANKLE": 28,
-            "LEFT_HEEL": 29,
-            "RIGHT_HEEL": 30,
-            "LEFT_FOOT_INDEX": 31,
-            "RIGHT_FOOT_INDEX": 32,
-        }
+        pass  # stateless
 
     def _get_coords(self, frame, joint_name):
         return np.array(frame[self.MP[joint_name]])
@@ -53,10 +54,7 @@ class MovementDiagnostician:
 
     @staticmethod
     def calculate_projected_angle(a, b, c):
-        """
-        Calculates angle in 2D plane (ignoring depth) usually for Frontal Plane Projection Angle (FPPA).
-        Points are [x, y, z]. We use x, y.
-        """
+        """2D angle (frontal plane) - ignores depth."""
         a = np.array([a[0], a[1]])
         b = np.array([b[0], b[1]])
         c = np.array([c[0], c[1]])
@@ -69,10 +67,7 @@ class MovementDiagnostician:
         return angle
 
     def detect_variant(self, exercise_name, buffer_data):
-        """
-        Analyzes a buffer of frames (e.g., from the first 5 seconds)
-        to determine active side.
-        """
+        """Detect LEFT/RIGHT/BOTH from initial frames."""
         if buffer_data is None or len(buffer_data) == 0:
             return "BOTH"
 
@@ -126,11 +121,7 @@ class MovementDiagnostician:
         return "BOTH"
 
     def diagnose(self, exercise_name, skeleton_data, forced_variant=None):
-        """
-        Real-time analysis entry point.
-        If 'forced_variant' is provided (from calibration), it skips detection.
-        'skeleton_data' can be a single frame (list of 1) or a batch.
-        """
+        """Main entry - analyzes skeleton frames for given exercise."""
         if skeleton_data is None or len(skeleton_data) == 0:
             return False, {"System": "No data."}
 
@@ -148,24 +139,7 @@ class MovementDiagnostician:
         return True, {"System": "No specific analysis."}
 
     def _analyze_squat(self, skeleton_data):
-        """
-        Analyzes the Deep Squat movement based on NASM and FMS standards.
-        Assumes Frontal View.
-
-        Medical & Biomechanical References:
-        1. Cook, G., et al. (2010). "Functional Movement Systems".
-           - Criteria: Femur below horizontal, heels flat, knees aligned over feet.
-           - Foot alignment: Excessive external rotation (>30 deg) indicates ankle restriction.
-        2. Myer, G. D., et al. (2014). "The mechanism of the valgus collapse".
-           - ACL injury risk assessment via knee kinematics.
-        3. Schoenfeld, B. J. (2010). "Squatting kinematics and kinetics".
-           - Importance of maintaining an upright torso (parallel to tibia).
-
-        Key Analysis Points:
-        - Depth: Hips below knees.
-        - Alignment: Knees tracking over toes (No Valgus).
-        - Stability: Heels flat, Torso upright (not collapsing forward), No excessive foot turnout.
-        """
+        """Deep squat - checks depth, valgus, heels, trunk."""
         errors = {}
 
         max_hip_y = float("-inf")
@@ -266,24 +240,7 @@ class MovementDiagnostician:
         return False, errors
 
     def _analyze_hurdle_step(self, skeleton_data, variant="LEFT"):
-        """
-        Analyzes the Hurdle Step movement based on FMS (Functional Movement Systems) guidelines
-        and biomechanical standards for single-leg stability.
-
-        Medical & Biomechanical References:
-        1. Cook, G. (2010). "Movement: Functional Movement Systems".
-           - Defines the standard hurdle height (tibial tuberosity).
-           - Criteria for "Hip Hiking" vs "Hip Drop" and external rotation compensation.
-        2. Powers, C. M. (2010). "The influence of altered lower-extremity kinematics on patellofemoral joint dysfunction".
-           - Basis for Dynamic Knee Valgus detection (medial collapse).
-        3. Hardman, J., et al. (2009). "The effect of the Trendelenburg position on pelvic stability".
-           - Basis for Pelvic Drop analysis (Gluteus Medius weakness).
-
-        Key Analysis Points:
-        - Clearance: Ankle must rise above the stance leg knee (Tibial Tuberosity).
-        - Alignment: Dynamic Valgus check, Foot External Rotation.
-        - Stability: Pelvic Tilt (Trendelenburg/Hiking) and Torso control.
-        """
+        """Hurdle step - single leg stance stability checks."""
 
         peak_frame = None
         min_knee_y = float("inf")
@@ -395,28 +352,12 @@ class MovementDiagnostician:
         return False, final_errors
 
     def _analyze_shoulder_abduction(self, skeleton_data, variant="BOTH"):
-        """
-        Analyzes Standing Shoulder Abduction for rehabilitation compliance.
-        Focuses on Scapulohumeral Rhythm and avoidance of Subacromial Impingement.
+        """Shoulder abduction - ROM and compensation checks."""
+        check_left = variant in ["LEFT", "BOTH"]
+        check_right = variant in ["RIGHT", "BOTH"]
 
-        Medical & Biomechanical References:
-        1. Kisner, C., & Colby, L. A. (2012). "Therapeutic Exercise: Foundations and Techniques".
-           - Defines correct abduction mechanics vs trunk lateral flexion (compensation).
-        2. Neumann, D. A. (2010). "Kinesiology of the Musculoskeletal System".
-           - Scapulohumeral rhythm mechanics.
-        3. Kibler, W. B., et al. (2013). "Clinical implications of scapular dyskinesis".
-           - Standards for detecting scapular elevation (Shrugging).
-        4. Neer, C. S. (1983). "Impingement lesions".
-           - Basis for limiting ROM to <100 deg to avoid impingement zone in early rehab.
-
-        Key Analysis Points:
-        - Safety: Alerts if arm > 100 deg (Impingement Zone).
-        - Efficacy: Alerts if arm < 80 deg (Insufficient ROM).
-        - Quality: Detects Shrugging (Upper Trapezius dominance) and Trunk Lean.
-        """
-
-        error_counts = Counter()
-        frames_analyzed = 0
+        err_cnt = Counter()
+        frames_done = 0
 
         max_angle_l = 0
         max_angle_r = 0
@@ -441,7 +382,7 @@ class MovementDiagnostician:
             if not is_active:
                 continue
 
-            frames_analyzed += 1
+            frames_done += 1
 
             nose = self._get_coords(frame, "NOSE")
             sh_l = self._get_coords(frame, "LEFT_SHOULDER")
@@ -453,10 +394,7 @@ class MovementDiagnostician:
             sh_mid = (sh_l + sh_r) / 2
             shoulder_width = float(self.calculate_distance(sh_l, sh_r))
 
-            # shrugging
-            check_left = variant in ["LEFT", "BOTH"]
-            check_right = variant in ["RIGHT", "BOTH"]
-
+            # shrugging check
             if shoulder_width > 0:
                 dist_ratio_left = float(
                     self.calculate_distance(nose, sh_l) / shoulder_width
@@ -465,9 +403,9 @@ class MovementDiagnostician:
                     self.calculate_distance(nose, sh_r) / shoulder_width
                 )
                 if check_left and dist_ratio_left < 0.40:
-                    error_counts["Shoulder elevation (Shrugging)"] += 1
+                    err_cnt["Shoulder elevation (Shrugging)"] += 1
                 if check_right and dist_ratio_right < 0.40:
-                    error_counts["Shoulder elevation (Shrugging)"] += 1
+                    err_cnt["Shoulder elevation (Shrugging)"] += 1
 
             # trunk lean
             spine_vec = sh_mid - hip_mid
@@ -481,22 +419,22 @@ class MovementDiagnostician:
                     max_trunk_angle = angle_trunk
 
                 if angle_trunk > 15:
-                    error_counts["Excessive trunk lean"] += 1
+                    err_cnt["Excessive trunk lean"] += 1
 
-            # non-working arm movement
+            # non-working arm
             if (variant == "LEFT" and wrist_r_y < elbow_r_y) or (
                 variant == "RIGHT" and wrist_l_y < elbow_l_y
             ):
-                error_counts["Unstable non-working arm"] += 1
+                err_cnt["Unstable non-working arm"] += 1
 
             # arm asymmetry
             if variant == "BOTH":
                 wr_l = self._get_coords(frame, "LEFT_WRIST")
                 wr_r = self._get_coords(frame, "RIGHT_WRIST")
                 if float(abs(wr_l[1] - wr_r[1])) > 0.15:
-                    error_counts["Arm asymmetry"] += 1
+                    err_cnt["Arm asymmetry"] += 1
 
-            # range of motion safety check
+            # ROM safety
             vertical_down = np.array([0, 1])
 
             if check_left:
@@ -510,7 +448,7 @@ class MovementDiagnostician:
                         max_angle_l = angle_l
 
                     if angle_l > 100:
-                        error_counts["Arm raised too high (>100°)"] += 1
+                        err_cnt["Arm raised too high (>100°)"] += 1
 
             if check_right:
                 arm_vec_r = self._get_coords(frame, "RIGHT_ELBOW") - sh_r
@@ -523,33 +461,33 @@ class MovementDiagnostician:
                         max_angle_r = angle_r
 
                     if angle_r > 100:
-                        error_counts["Arm raised too high (>100°)"] += 1
+                        err_cnt["Arm raised too high (>100°)"] += 1
 
-        if frames_analyzed == 0:
-            return False, {"System": "No movement detected"}
+        if frames_done == 0:
+            return False, {"System": "No movement"}
 
-        threshold = frames_analyzed * 0.3
-        final_errors = {}
+        threshold = frames_done * 0.3
+        issues = {}
 
-        if error_counts["Shoulder elevation (Shrugging)"] > threshold:
-            final_errors["Shoulder elevation (Shrugging)"] = True
+        if err_cnt["Shoulder elevation (Shrugging)"] > threshold:
+            issues["Shoulder elevation (Shrugging)"] = True
 
-        if error_counts["Excessive trunk lean"] > threshold:
-            final_errors["Excessive trunk lean"] = f"{int(max_trunk_angle)}°"
+        if err_cnt["Excessive trunk lean"] > threshold:
+            issues["Excessive trunk lean"] = f"{int(max_trunk_angle)}°"
 
-        if error_counts["Unstable non-working arm"] > threshold:
-            final_errors["Unstable non-working arm"] = True
+        if err_cnt["Unstable non-working arm"] > threshold:
+            issues["Unstable non-working arm"] = True
 
-        if error_counts["Arm asymmetry"] > threshold:
-            final_errors["Arm asymmetry"] = True
+        if err_cnt["Arm asymmetry"] > threshold:
+            issues["Arm asymmetry"] = True
 
-        if error_counts["Arm raised too high (>100°)"] > threshold:
+        if err_cnt["Arm raised too high (>100°)"] > threshold:
             vals = []
             if variant in ["LEFT", "BOTH"]:
                 vals.append(f"L:{int(max_angle_l)}°")
             if variant in ["RIGHT", "BOTH"]:
                 vals.append(f"R:{int(max_angle_r)}°")
-            final_errors["Arm raised too high (>100°)"] = ", ".join(vals)
+            issues["Arm raised too high (>100°)"] = ", ".join(vals)
 
         rom_too_shallow = False
         vals_shallow = []
@@ -568,45 +506,42 @@ class MovementDiagnostician:
                 vals_shallow.append(f"R:{int(max_angle_r)}°")
 
         if rom_too_shallow:
-            final_errors["Movement too shallow (<80°)"] = ", ".join(vals_shallow)
+            issues["Movement too shallow (<80°)"] = ", ".join(vals_shallow)
 
-        if not final_errors:
+        if not issues:
             return True, MOVEMENT_CORRECT
 
-        return False, final_errors
+        return False, issues
 
 
 class ReportGenerator:
-    """
-    Generates text reports based on diagnostic results.
-    Adapted to handle (is_correct, feedback_dict) tuples returned by MovementDiagnostician.
-    """
+    """Generates text reports from diagnostic results."""
 
-    def generate_report(self, analysis_result_tuple, exercise_name):
-        if not analysis_result_tuple:
-            return "No result provided."
+    def generate_report(self, analysis_tuple, exercise_name):
+        if not analysis_tuple:
+            return "No result."
 
-        is_correct, feedback = analysis_result_tuple
+        is_ok, feedback = analysis_tuple
 
-        report = f"Exercise Analysis: {exercise_name}\n"
+        lines = [f"Exercise: {exercise_name}"]
 
-        if is_correct:
-            report += f"Status: {MOVEMENT_CORRECT}\n"
-            report += "Conclusion: Excellent form! Keep it up."
+        if is_ok:
+            lines.append(f"Status: {MOVEMENT_CORRECT}")
+            lines.append("Good form - keep it up!")
         else:
-            report += "Status: Technique needs improvement.\n\n"
-            report += "DETECTED ERRORS:\n"
+            lines.append("Status: Needs improvement\n")
+            lines.append("Issues:")
 
             if isinstance(feedback, dict):
-                for error_name, details in feedback.items():
-                    if details is True:
-                        report += f"- {error_name}\n"
+                for err, detail in feedback.items():
+                    if detail is True:
+                        lines.append(f"  - {err}")
                     else:
-                        report += f"- {error_name}: {details}\n"
+                        lines.append(f"  - {err}: {detail}")
 
             elif isinstance(feedback, str):
-                report += f"- {feedback}\n"
+                lines.append(f"  - {feedback}")
 
-            report += "\nRecommendation: Lower intensity and focus on correcting these specific patterns."
+            lines.append("\nTip: Slow down and focus on form.")
 
-        return report
+        return "\n".join(lines)

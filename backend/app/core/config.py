@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     # Frontend URL for email links
     frontend_url: str = "http://localhost:8080"
 
+    # Resend Email Configuration (HTTP API)
+    resend_api_key: str = ""  # Resend API key (re_...)
+    resend_from_email: str = "onboarding@resend.dev"  # Verified sender
+    resend_from_name: str = "OrthoSense"
+    email_enabled: bool = True  # Set to False to use mock (logging only)
+
     max_upload_size_mb: int = 100
     upload_temp_dir: str = os.path.join(tempfile.gettempdir(), "orthosense_uploads")
 

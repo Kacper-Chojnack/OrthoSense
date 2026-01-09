@@ -69,13 +69,13 @@ abstract class _$SelectedTrendPeriod extends $Notifier<TrendPeriod> {
 }
 
 /// Provider for trend chart data based on metric type and selected period.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Uses real data from Drift database.
 
 @ProviderFor(trendData)
 const trendDataProvider = TrendDataFamily._();
 
 /// Provider for trend chart data based on metric type and selected period.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Uses real data from Drift database.
 
 final class TrendDataProvider
     extends
@@ -86,7 +86,7 @@ final class TrendDataProvider
         >
     with $FutureModifier<TrendChartData>, $FutureProvider<TrendChartData> {
   /// Provider for trend chart data based on metric type and selected period.
-  /// TODO(data): Replace mock data with actual Drift database queries.
+  /// Uses real data from Drift database.
   const TrendDataProvider._({
     required TrendDataFamily super.from,
     required TrendMetricType super.argument,
@@ -131,10 +131,10 @@ final class TrendDataProvider
   }
 }
 
-String _$trendDataHash() => r'c624466f0fc03ac69c6e76843ce3ce3f2a10f0d4';
+String _$trendDataHash() => r'acc5552d4cdbc9aec4b3a2d0aca3470609161d52';
 
 /// Provider for trend chart data based on metric type and selected period.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Uses real data from Drift database.
 
 final class TrendDataFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<TrendChartData>, TrendMetricType> {
@@ -148,7 +148,7 @@ final class TrendDataFamily extends $Family
       );
 
   /// Provider for trend chart data based on metric type and selected period.
-  /// TODO(data): Replace mock data with actual Drift database queries.
+  /// Uses real data from Drift database.
 
   TrendDataProvider call(TrendMetricType metricType) =>
       TrendDataProvider._(argument: metricType, from: this);
@@ -158,13 +158,13 @@ final class TrendDataFamily extends $Family
 }
 
 /// Provider for dashboard statistics summary.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Fetches real data from Drift database.
 
 @ProviderFor(dashboardStats)
 const dashboardStatsProvider = DashboardStatsProvider._();
 
 /// Provider for dashboard statistics summary.
-/// TODO(data): Replace mock data with actual Drift database queries.
+/// Fetches real data from Drift database.
 
 final class DashboardStatsProvider
     extends
@@ -175,7 +175,7 @@ final class DashboardStatsProvider
         >
     with $FutureModifier<DashboardStats>, $FutureProvider<DashboardStats> {
   /// Provider for dashboard statistics summary.
-  /// TODO(data): Replace mock data with actual Drift database queries.
+  /// Fetches real data from Drift database.
   const DashboardStatsProvider._()
     : super(
         from: null,
@@ -202,14 +202,16 @@ final class DashboardStatsProvider
   }
 }
 
-String _$dashboardStatsHash() => r'ff3f69d72820ced4716e5ad36c70a7c28f3850f6';
+String _$dashboardStatsHash() => r'a538a8599bec7b78b3c93b5ddf6aca057eaae48c';
 
 /// Provider for mini trend data used in stat cards.
+/// Uses real data from Drift database.
 
 @ProviderFor(miniTrendData)
 const miniTrendDataProvider = MiniTrendDataFamily._();
 
 /// Provider for mini trend data used in stat cards.
+/// Uses real data from Drift database.
 
 final class MiniTrendDataProvider
     extends
@@ -220,6 +222,7 @@ final class MiniTrendDataProvider
         >
     with $FutureModifier<List<double>>, $FutureProvider<List<double>> {
   /// Provider for mini trend data used in stat cards.
+  /// Uses real data from Drift database.
   const MiniTrendDataProvider._({
     required MiniTrendDataFamily super.from,
     required TrendMetricType super.argument,
@@ -264,9 +267,10 @@ final class MiniTrendDataProvider
   }
 }
 
-String _$miniTrendDataHash() => r'dbabd4288c8e92870a5d7f17ed9d482d1c1cb601';
+String _$miniTrendDataHash() => r'175f033a7a530f11863b1b8b754cdc6cc1431562';
 
 /// Provider for mini trend data used in stat cards.
+/// Uses real data from Drift database.
 
 final class MiniTrendDataFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<double>>, TrendMetricType> {
@@ -280,6 +284,7 @@ final class MiniTrendDataFamily extends $Family
       );
 
   /// Provider for mini trend data used in stat cards.
+  /// Uses real data from Drift database.
 
   MiniTrendDataProvider call(TrendMetricType metricType) =>
       MiniTrendDataProvider._(argument: metricType, from: this);

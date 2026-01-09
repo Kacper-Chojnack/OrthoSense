@@ -182,20 +182,34 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   String _extractErrorMessage(DioException e) {
+    // Handle network errors first (no response)
+    if (_isNetworkError(e)) {
+      return 'Unable to connect to server. Please check your internet connection.';
+    }
+
+    // Handle server response errors
     final data = e.response?.data;
     if (data is Map<String, dynamic> && data.containsKey('detail')) {
-      return data['detail'].toString();
+      final detail = data['detail'];
+      // Handle validation errors array
+      if (detail is List) {
+        return detail.map((e) => e['msg'] ?? e.toString()).join(', ');
+      }
+      return detail.toString();
     }
-    if (e.response?.statusCode == 401) {
-      return 'Invalid email or password';
-    }
-    if (e.response?.statusCode == 400) {
-      return 'Invalid request. Please check your input.';
-    }
-    if (_isNetworkError(e)) {
-      return 'Network error. Please check your connection.';
-    }
-    return 'An error occurred. Please try again.';
+
+    // Handle specific status codes
+    return switch (e.response?.statusCode) {
+      401 => 'Invalid email or password',
+      400 => 'Invalid request. Please check your input.',
+      403 => 'Access denied. Please try again.',
+      404 => 'Service not found. Please try again later.',
+      500 => 'Server error. Please try again later.',
+      502 ||
+      503 ||
+      504 => 'Server is temporarily unavailable. Please try again.',
+      _ => 'An error occurred. Please try again.',
+    };
   }
 }
 

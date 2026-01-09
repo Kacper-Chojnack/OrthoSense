@@ -33,6 +33,11 @@ class LandmarksAnalysisRequest(BaseModel):
         le=120.0,
         description="Video frames per second",
     )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VideoAnalysisResponse(BaseModel):
     """Response model for video analysis initiation."""
 
     model_config = ConfigDict(from_attributes=True)

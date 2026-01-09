@@ -52,6 +52,11 @@ class PreferencesService {
   Future<void> setNotificationsEnabled({required bool value}) =>
       _prefs.setBool(keyNotificationsEnabled, value);
 
+  // Generic string getter/setter for schedule and other data
+  String? getString(String key) => _prefs.getString(key);
+  Future<void> setString(String key, String value) =>
+      _prefs.setString(key, value);
+
   // Exercise Video Demo Skip Preferences
   // Returns true if user chose to skip demo video for this exercise
   bool shouldSkipExerciseVideo(int exerciseId) =>

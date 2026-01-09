@@ -14,6 +14,8 @@ from fastapi import (
 
 from app.ai.core.config import EXERCISE_NAMES
 from app.ai.core.system import OrthoSenseSystem
+from app.core.config import settings
+from app.core.exceptions import InternalServerError
 from app.core.logging import get_logger
 from app.models.analysis import LandmarksAnalysisRequest
 
@@ -74,7 +76,10 @@ async def analyze_landmarks(
         raise
     except Exception as e:
         logger.error("landmarks_analysis_failed", error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Analysis failed: {e!s}",
-        ) from e
+        if settings.debug:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Analysis failed: {e!s}",
+            ) from e
+        # In production, use sanitized error
+        raise InternalServerError(original_error=e) from e

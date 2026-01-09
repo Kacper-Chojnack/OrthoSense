@@ -10,6 +10,8 @@ import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/providers/tts_provider.dart';
 import 'package:orthosense/core/services/movement_diagnostics_service.dart';
+import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
+import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/exercise/data/analysis_result_saver.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:orthosense/features/exercise/presentation/widgets/countdown_overlay.dart';
@@ -39,6 +41,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   bool _isInitialized = false;
   AnalysisPhase _currentPhase = AnalysisPhase.idle;
   Timer? _phaseTimer;
+  bool _isStreaming = false;
 
   final List<PoseFrame> _rawBuffer = [];
   static const _windowSize = 60;
@@ -208,12 +211,17 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       }
     });
 
-    _controller!.startImageStream(_processCameraFrame).catchError((
-      Object error,
-    ) {
-      debugPrint('Error starting image stream: $error');
-      _handleError('Failed to start camera stream');
-    });
+    _controller!
+        .startImageStream(_processCameraFrame)
+        .then((_) {
+          _isStreaming = true;
+        })
+        .catchError((
+          Object error,
+        ) {
+          debugPrint('Error starting image stream: $error');
+          _handleError('Failed to start camera stream');
+        });
 
     _phaseTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && _currentPhase == AnalysisPhase.setup) {
@@ -312,10 +320,19 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       isSuccess = result.isCorrect;
     }
 
+    // Invalidate dashboard stats and trend providers to refresh after new result
+    ref.invalidate(dashboardStatsProvider);
+    ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
+    ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
+    ref.invalidate(miniTrendDataProvider(TrendMetricType.rangeOfMotion));
+    ref.invalidate(miniTrendDataProvider(TrendMetricType.sessionScore));
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
       builder: (ctx) => Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.75,
@@ -415,10 +432,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               padding: const EdgeInsets.all(24),
               child: FilledButton.icon(
                 onPressed: () {
-                  Navigator.of(ctx).pop();
-                  setState(() {
-                    _currentPhase = AnalysisPhase.idle;
-                  });
+                  Navigator.of(ctx).pop(); // Close bottom sheet
+                  Navigator.of(context).pop(); // Return to dashboard
                 },
                 icon: const Icon(Icons.check),
                 label: const Text('Done'),
@@ -768,10 +783,25 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     _sessionTimer?.cancel();
     _sessionTimer = null;
     _pulseController.stop();
-    _controller?.stopImageStream();
-    setState(() {
-      _debugPose = null;
-    });
+
+    // Only stop image stream if actually streaming
+    if (_isStreaming &&
+        _controller != null &&
+        _controller!.value.isInitialized) {
+      try {
+        _controller!.stopImageStream();
+      } catch (e) {
+        debugPrint('Error stopping image stream: $e');
+      }
+      _isStreaming = false;
+    }
+
+    // Don't call setState if already disposed
+    if (mounted) {
+      setState(() {
+        _debugPose = null;
+      });
+    }
   }
 
   String _getPhaseTitle() {

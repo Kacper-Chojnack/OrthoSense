@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:orthosense/core/database/app_database.dart';
 import 'package:orthosense/core/database/repositories/exercise_results_repository.dart';
+import 'package:orthosense/core/providers/database_provider.dart';
 import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/services/movement_diagnostics_service.dart';
 import 'package:uuid/uuid.dart';

@@ -13,7 +13,19 @@ class ProfileImageNotifier extends _$ProfileImageNotifier {
   @override
   Future<String?> build() async {
     final repository = ref.watch(settingsRepositoryProvider);
-    return repository.loadProfileImagePath();
+    final savedPath = await repository.loadProfileImagePath();
+
+    // Verify the file still exists
+    if (savedPath != null) {
+      final file = File(savedPath);
+      if (!file.existsSync()) {
+        // File was deleted, clear the saved path
+        await repository.saveProfileImagePath(null);
+        return null;
+      }
+    }
+
+    return savedPath;
   }
 
   /// Save new profile image.

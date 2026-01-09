@@ -4,6 +4,7 @@ import 'package:orthosense/features/auth/domain/models/user_model.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
 import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
+import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/widgets/progress_trend_chart.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
@@ -45,7 +46,14 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO(user): Refresh stats from database
+          // Invalidate providers to refresh data from database
+          ref.invalidate(dashboardStatsProvider);
+          ref.invalidate(recentExerciseResultsProvider);
+          // Invalidate trend providers to refresh charts
+          ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
+          ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
+          ref.invalidate(miniTrendDataProvider(TrendMetricType.rangeOfMotion));
+          ref.invalidate(miniTrendDataProvider(TrendMetricType.sessionScore));
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -228,74 +236,97 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (subtitle != null)
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                subtitle!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-          ],
+              if (subtitle != null)
+                Text(
+                  subtitle!,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
         ),
-        ?action,
+        if (action != null) action!,
       ],
     );
   }
 }
 
-class _StatsGrid extends StatelessWidget {
+class _StatsGrid extends ConsumerWidget {
   const _StatsGrid();
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data - will be replaced with Drift stream
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
-      children: const [
-        _StatCard(
-          label: 'Sessions',
-          value: '12',
-          trend: '+3 this week',
-          color: Colors.blue,
-          icon: Icons.fitness_center_rounded,
-        ),
-        _StatCard(
-          label: 'Avg Score',
-          value: '87%',
-          trend: '+5% vs last week',
-          color: Colors.green,
-          icon: Icons.trending_up_rounded,
-        ),
-        _StatCard(
-          label: 'Active Streak',
-          value: '3',
-          trend: 'days',
-          color: Colors.orange,
-          icon: Icons.local_fire_department_rounded,
-        ),
-        _StatCard(
-          label: 'Total Time',
-          value: '4h 20m',
-          trend: 'this month',
-          color: Colors.purple,
-          icon: Icons.timer_outlined,
-        ),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(dashboardStatsProvider);
+
+    return statsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(child: Text('Error: $error')),
+      data: (stats) => GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.4,
+        children: [
+          _StatCard(
+            label: 'Sessions',
+            value: stats.totalSessions.toString(),
+            trend: stats.sessionsThisWeek > 0
+                ? '+${stats.sessionsThisWeek} this week'
+                : 'No sessions yet',
+            color: Colors.blue,
+            icon: Icons.fitness_center_rounded,
+          ),
+          _StatCard(
+            label: 'Avg Score',
+            value: stats.totalSessions > 0
+                ? '${stats.averageScore.toStringAsFixed(0)}%'
+                : '--',
+            trend: stats.scoreChange != 0
+                ? '${stats.scoreChange >= 0 ? '+' : ''}${stats.scoreChange.toStringAsFixed(1)} vs last week'
+                : 'Complete a session',
+            color: Colors.green,
+            icon: Icons.trending_up_rounded,
+          ),
+          _StatCard(
+            label: 'Active Streak',
+            value: stats.activeStreakDays.toString(),
+            trend: 'days',
+            color: Colors.orange,
+            icon: Icons.local_fire_department_rounded,
+          ),
+          _StatCard(
+            label: 'Total Time',
+            value: _formatDuration(stats.totalTimeThisMonth),
+            trend: 'this month',
+            color: Colors.purple,
+            icon: Icons.timer_outlined,
+          ),
+        ],
+      ),
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    if (duration.inMinutes == 0) return '0m';
+    if (duration.inHours == 0) return '${duration.inMinutes}m';
+    final hours = duration.inHours;
+    final mins = duration.inMinutes % 60;
+    return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
   }
 }
 
@@ -329,6 +360,7 @@ class _StatCard extends StatelessWidget {
             Flexible(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
                 child: Text(
                   value,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -338,16 +370,22 @@ class _StatCard extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-            Text(
-              trend,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                trend,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],
@@ -357,34 +395,87 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _RecentSessionsList extends StatelessWidget {
+class _RecentSessionsList extends ConsumerWidget {
   const _RecentSessionsList();
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data - will be replaced with Drift stream
-    return const Column(
-      children: [
-        _RecentSessionTile(
-          title: 'Knee Rehabilitation',
-          subtitle: 'Today • 25 mins',
-          score: 92,
-          isPending: true,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultsAsync = ref.watch(recentExerciseResultsProvider);
+
+    return resultsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Error loading sessions: $error'),
         ),
-        _RecentSessionTile(
-          title: 'Full Leg Workout',
-          subtitle: 'Yesterday • 30 mins',
-          score: 88,
-          isPending: false,
-        ),
-        _RecentSessionTile(
-          title: 'Knee Rehabilitation',
-          subtitle: '2 days ago • 22 mins',
-          score: 85,
-          isPending: false,
-        ),
-      ],
+      ),
+      data: (results) {
+        if (results.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        return Column(
+          children: results
+              .take(5)
+              .map(
+                (result) => _RecentSessionTile(
+                  title: result.exerciseName,
+                  subtitle: _formatDate(result.performedAt),
+                  score: result.score ?? 0,
+                  isPending: result.syncStatus == 'pending',
+                ),
+              )
+              .toList(),
+        );
+      },
     );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.fitness_center_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No sessions yet',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Start your first exercise session to see your progress here',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return 'Today, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }
 

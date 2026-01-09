@@ -37,7 +37,7 @@ final class ProfileImageNotifierProvider
 }
 
 String _$profileImageNotifierHash() =>
-    r'bc5bcef46e5d8d5a1925305272783937e19f38da';
+    r'5f9b416bb846f36dc69e72dfb93aab9cf9f5ae48';
 
 /// Manages profile image state with persistence.
 

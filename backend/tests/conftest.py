@@ -7,8 +7,10 @@ from uuid import uuid4
 # Set environment variables BEFORE importing app modules
 os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
 
 import pytest
+import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -20,7 +22,7 @@ from app.main import app
 from app.models.user import User
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def async_engine():
     """Create in-memory SQLite engine for tests."""
     engine = create_async_engine(
@@ -34,7 +36,7 @@ async def async_engine():
     await engine.dispose()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def session(async_engine) -> AsyncGenerator[AsyncSession]:
     """Provide test database session."""
     async_session_factory = sessionmaker(
@@ -46,7 +48,7 @@ async def session(async_engine) -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     """Provide test HTTP client with overridden dependencies."""
 
@@ -64,7 +66,7 @@ async def client(session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_user(session: AsyncSession) -> User:
     """Create a test user in the database."""
     user = User(
@@ -80,7 +82,7 @@ async def test_user(session: AsyncSession) -> User:
     return user
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def unverified_user(session: AsyncSession) -> User:
     """Create an unverified test user."""
     user = User(
