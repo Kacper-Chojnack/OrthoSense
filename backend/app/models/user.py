@@ -4,13 +4,15 @@ from datetime import UTC, datetime
 from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.core.sanitizer import contains_xss
 
 
 def utc_now() -> datetime:
-    """Get current UTC datetime."""
-    return datetime.now(UTC)
+    """Get current UTC datetime (naive, for PostgreSQL compatibility)."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class UserRole(str, Enum):
@@ -54,7 +56,21 @@ class UserCreate(SQLModel):
     email: EmailStr
     password: str = Field(min_length=8)
     full_name: str = ""
+    name: str = ""  # Alias for full_name (frontend compatibility)
     role: UserRole = UserRole.PATIENT
+
+    @field_validator("full_name", "name", mode="before")
+    @classmethod
+    def validate_no_xss_content(cls, v: str) -> str:
+        """Reject XSS payloads in name fields."""
+        if v and contains_xss(v):
+            raise ValueError("Input contains potentially dangerous content")
+        return v
+
+    def model_post_init(self, __context) -> None:
+        """Set full_name from name if provided."""
+        if self.name and not self.full_name:
+            self.full_name = self.name
 
 
 class UserLogin(SQLModel):

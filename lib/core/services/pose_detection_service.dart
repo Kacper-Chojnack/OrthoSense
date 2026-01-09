@@ -17,25 +17,18 @@ class PoseDetectionService {
     _initializeDetector();
   }
 
-  ml_kit.PoseDetector? _streamDetector;
-  ml_kit.PoseDetector? _singleDetector;
+  ml_kit.PoseDetector? _detector;
   bool _isInitialized = false;
 
   void _initializeDetector() {
     if (_isInitialized) return;
 
-    final streamOptions = ml_kit.PoseDetectorOptions(
+    final options = ml_kit.PoseDetectorOptions(
       model: ml_kit.PoseDetectionModel.base,
       mode: ml_kit.PoseDetectionMode.stream,
     );
 
-    final singleOptions = ml_kit.PoseDetectorOptions(
-      model: ml_kit.PoseDetectionModel.base,
-      mode: ml_kit.PoseDetectionMode.single,
-    );
-
-    _streamDetector = ml_kit.PoseDetector(options: streamOptions);
-    _singleDetector = ml_kit.PoseDetector(options: singleOptions);
+    _detector = ml_kit.PoseDetector(options: options);
     _isInitialized = true;
   }
 
@@ -54,27 +47,21 @@ class PoseDetectionService {
     final frames = <PoseFrame>[];
 
     final frameSkip = duration.inSeconds > 10 ? 3 : 2;
-    final stepMs = ((1000 / fps) * frameSkip).round();
+    final stepMs = ((1000 / 30) * frameSkip).round();
     final totalFrames = (duration.inMilliseconds / stepMs).ceil();
     int processedFrames = 0;
 
-    if (kDebugMode) {
-      debugPrint(
-        '[VideoPose] durationMs=${duration.inMilliseconds} fps=$fps '
-        'frameSkip=$frameSkip stepMs=$stepMs totalFrames=$totalFrames',
-      );
-    }
-
-    double fingerprint = 0.0;
-
-    for (int frameIdx = 0; frameIdx < totalFrames; frameIdx++) {
-      final positionMs = (frameIdx * stepMs).clamp(0, duration.inMilliseconds);
+    for (
+      int positionMs = 0;
+      positionMs < duration.inMilliseconds;
+      positionMs += stepMs
+    ) {
       try {
         final thumbnailPath = await vt.VideoThumbnail.thumbnailFile(
           video: videoFile.path,
-          imageFormat: vt.ImageFormat.PNG,
+          imageFormat: vt.ImageFormat.JPEG,
           timeMs: positionMs,
-          quality: 100,
+          quality: 50,
           maxWidth: 480,
         );
 
@@ -84,17 +71,6 @@ class PoseDetectionService {
             final landmarks = await _detectPoseFromFile(thumbnailFile);
             if (landmarks != null) {
               frames.add(landmarks);
-
-              if (kDebugMode && frames.length <= 10) {
-                const idxs = [0, 11, 12, 23, 24, 25, 26];
-                for (final idx in idxs) {
-                  if (idx < landmarks.landmarks.length) {
-                    final p = landmarks.landmarks[idx];
-                    fingerprint +=
-                        (p.x * 1000.0) + (p.y * 10000.0) + (p.z * 100000.0);
-                  }
-                }
-              }
             }
             try {
               await thumbnailFile.delete();
@@ -112,18 +88,11 @@ class PoseDetectionService {
 
     if (frames.isEmpty) throw Exception('No pose detected in video');
 
-    if (kDebugMode) {
-      debugPrint(
-        '[VideoPose] detectedFrames=${frames.length}/${totalFrames} '
-        'fingerprint10=${fingerprint.toStringAsFixed(3)}',
-      );
-    }
-
     return PoseLandmarks(frames: frames, fps: fps);
   }
 
   Future<PoseFrame?> _detectPoseFromFile(File imageFile) async {
-    if (_singleDetector == null) return null;
+    if (_detector == null) return null;
 
     try {
       final bytes = await imageFile.readAsBytes();
@@ -133,7 +102,7 @@ class PoseDetectionService {
       image.dispose();
 
       final inputImage = ml_kit.InputImage.fromFilePath(imageFile.path);
-      final poses = await _singleDetector!.processImage(inputImage);
+      final poses = await _detector!.processImage(inputImage);
       if (poses.isEmpty) return null;
 
       if (width > height) {
@@ -159,7 +128,7 @@ class PoseDetectionService {
     CameraImage image,
     CameraDescription description,
   ) async {
-    if (_streamDetector == null) return null;
+    if (_detector == null) return null;
 
     try {
       final WriteBuffer allBytes = WriteBuffer();
@@ -172,8 +141,11 @@ class PoseDetectionService {
         image.width.toDouble(),
         image.height.toDouble(),
       );
+      final rawFormat = image.format.raw;
       final inputImageFormat =
-          ml_kit.InputImageFormatValue.fromRawValue(image.format.raw) ??
+          ml_kit.InputImageFormatValue.fromRawValue(
+            rawFormat is int ? rawFormat : 0,
+          ) ??
           ml_kit.InputImageFormat.nv21;
       final rotation =
           ml_kit.InputImageRotationValue.fromRawValue(
@@ -193,7 +165,7 @@ class PoseDetectionService {
         metadata: inputImageData,
       );
 
-      final poses = await _streamDetector!.processImage(inputImage);
+      final poses = await _detector!.processImage(inputImage);
       if (poses.isEmpty) return null;
 
       double width = image.width.toDouble();
@@ -304,14 +276,10 @@ class PoseDetectionService {
       getLandmark(ml_kit.PoseLandmarkType.rightEar) ??
           PoseLandmark(x: 0, y: 0, z: 0),
     );
-    landmarks.add(
-      getLandmark(ml_kit.PoseLandmarkType.leftMouth) ??
-          PoseLandmark(x: 0, y: 0, z: 0),
-    );
-    landmarks.add(
-      getLandmark(ml_kit.PoseLandmarkType.rightMouth) ??
-          PoseLandmark(x: 0, y: 0, z: 0),
-    );
+    //9-10: mouth
+    final nose = getLandmark(ml_kit.PoseLandmarkType.nose);
+    landmarks.add(nose ?? PoseLandmark(x: 0, y: 0, z: 0));
+    landmarks.add(nose ?? PoseLandmark(x: 0, y: 0, z: 0));
     //11-12: shoulders
     landmarks.add(
       getLandmark(ml_kit.PoseLandmarkType.leftShoulder) ??
@@ -416,10 +384,7 @@ class PoseDetectionService {
   }
 
   Future<void> dispose() async {
-    await _streamDetector?.close();
-    await _singleDetector?.close();
-    _streamDetector = null;
-    _singleDetector = null;
+    await _detector?.close();
     _isInitialized = false;
   }
 }

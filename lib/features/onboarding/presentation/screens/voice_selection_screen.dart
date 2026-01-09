@@ -49,6 +49,20 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
             );
           }
 
+          // Auto-select first voice if none selected and preview it
+          if (_selectedVoice == null && voices.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (mounted && _selectedVoice == null) {
+                final firstVoice = voices.first;
+                setState(() {
+                  _selectedVoice = firstVoice;
+                });
+                // Preview the auto-selected voice
+                await _previewVoice(firstVoice);
+              }
+            });
+          }
+
           return Column(
             children: [
               Padding(
@@ -60,15 +74,25 @@ class _VoiceSelectionScreenState extends ConsumerState<VoiceSelectionScreen> {
                 ),
               ),
               Expanded(
-                child: RadioGroup<Map<String, String>?>(
-                  groupValue: _selectedVoice,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVoice = value;
-                    });
-                    if (value != null) {
-                      _previewVoice(value);
-                    }
+                child: ListView.builder(
+                  itemCount: voices.length,
+                  itemBuilder: (context, index) {
+                    final voice = voices[index];
+
+                    return RadioListTile<Map<String, String>>(
+                      title: Text(voice['name'] ?? 'Unknown Voice'),
+                      subtitle: Text(_getFlag(voice['locale'] ?? '')),
+                      value: voice,
+                      groupValue: _selectedVoice,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVoice = value;
+                        });
+                        if (value != null) {
+                          _previewVoice(value);
+                        }
+                      },
+                    );
                   },
                   child: ListView.builder(
                     itemCount: voices.length,

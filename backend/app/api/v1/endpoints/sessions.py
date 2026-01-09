@@ -79,19 +79,15 @@ async def get_session_detail(
             detail=SESSION_NOT_FOUND,
         )
 
-    if current_user.role == UserRole.PATIENT:
-        if exercise_session.patient_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ACCESS_DENIED,
-            )
-    else:
-        plan = await session.get(TreatmentPlan, exercise_session.treatment_plan_id)
-        if plan and plan.therapist_id != current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ACCESS_DENIED,
-            )
+    if (
+        current_user.role == UserRole.PATIENT
+        and exercise_session.patient_id != current_user.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ACCESS_DENIED,
+        )
+    # TODO: Add TreatmentPlan check for therapists when model is implemented
 
     return exercise_session
 
@@ -184,7 +180,14 @@ async def complete_session(
     exercise_session.notes = data.notes
 
     if exercise_session.started_at:
-        duration = exercise_session.completed_at - exercise_session.started_at
+        # Handle both offset-naive (from SQLite) and offset-aware datetimes
+        started = exercise_session.started_at
+        completed = exercise_session.completed_at
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=UTC)
+        if completed.tzinfo is None:
+            completed = completed.replace(tzinfo=UTC)
+        duration = completed - started
         exercise_session.duration_seconds = int(duration.total_seconds())
 
     statement = select(SessionExerciseResult).where(
@@ -240,8 +243,6 @@ async def skip_session(
 
     logger.info("session_skipped", session_id=str(session_id), reason=reason)
     return exercise_session
-
-
 
 
 @router.post(

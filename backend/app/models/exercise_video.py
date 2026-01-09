@@ -11,8 +11,8 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 def utc_now() -> datetime:
-    """Get current UTC datetime."""
-    return datetime.now(UTC)
+    """Get current UTC datetime (naive, for PostgreSQL compatibility)."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class ExerciseVideoBase(SQLModel):

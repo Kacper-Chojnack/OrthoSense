@@ -95,26 +95,33 @@ class _ChartHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Text(
-              selectedPeriod.longLabel,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              Text(
+                selectedPeriod.longLabel,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        _PeriodSelector(
-          selectedPeriod: selectedPeriod,
-          onPeriodChanged: onPeriodChanged,
+        const SizedBox(width: 8),
+        Flexible(
+          child: _PeriodSelector(
+            selectedPeriod: selectedPeriod,
+            onPeriodChanged: onPeriodChanged,
+          ),
         ),
       ],
     );
@@ -132,31 +139,27 @@ class _PeriodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<TrendPeriod>(
-      segments: TrendPeriod.values
+    return DropdownButton<TrendPeriod>(
+      value: selectedPeriod,
+      underline: const SizedBox.shrink(),
+      isDense: true,
+      icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+      items: TrendPeriod.values
           .map(
-            (period) => ButtonSegment<TrendPeriod>(
+            (period) => DropdownMenuItem<TrendPeriod>(
               value: period,
-              label: Text(
+              child: Text(
                 period.shortLabel,
                 style: const TextStyle(fontSize: 12),
               ),
             ),
           )
           .toList(),
-      selected: {selectedPeriod},
-      onSelectionChanged: (selection) {
-        if (selection.isNotEmpty) {
-          onPeriodChanged(selection.first);
+      onChanged: (value) {
+        if (value != null) {
+          onPeriodChanged(value);
         }
       },
-      style: ButtonStyle(
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: WidgetStateProperty.all(
-          const EdgeInsets.symmetric(horizontal: 8),
-        ),
-      ),
     );
   }
 }

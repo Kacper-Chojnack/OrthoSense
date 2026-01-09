@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:orthosense/core/database/app_database.dart';
 import 'package:orthosense/core/database/repositories/exercise_results_repository.dart';
 import 'package:orthosense/core/services/report_export_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'activity_log_screen.g.dart';
+
+/// Filter type for Activity Log
+enum ActivityFilter { all, thisWeek, thisMonth, pendingSync }
+
+@riverpod
+class ActivityFilterNotifier extends _$ActivityFilterNotifier {
+  @override
+  ActivityFilter build() => ActivityFilter.all;
+
+  /// Sets the current filter for activity log
+  void setFilter(ActivityFilter filter) {
+    state = filter;
+  }
+}
+
+/// Provider that watches exercise results stream from database
+final exerciseResultsStreamProvider =
+    StreamProvider.autoDispose<List<ExerciseResult>>(
+      (ref) {
+        final repository = ref.watch(exerciseResultsRepositoryProvider);
+        return repository.watchAll();
+      },
+    );
 
 /// Screen showing history of exercise sessions (Activity Log).
 /// Data flows from Drift database (SSOT) via Riverpod providers.
@@ -52,54 +80,176 @@ class ActivityLogScreen extends ConsumerWidget {
       body: Column(
         children: [
           // Filter chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                FilterChip(
-                  label: const Text('All'),
-                  selected: true,
-                  onSelected: (_) {},
+          Consumer(
+            builder: (context, ref, _) {
+              final currentFilter = ref.watch(activityFilterProvider);
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('This Week'),
-                  onSelected: (_) {},
+                child: Row(
+                  children: [
+                    FilterChip(
+                      label: const Text('All'),
+                      selected: currentFilter == ActivityFilter.all,
+                      onSelected: (_) => ref
+                          .read(activityFilterProvider.notifier)
+                          .setFilter(ActivityFilter.all),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('This Week'),
+                      selected: currentFilter == ActivityFilter.thisWeek,
+                      onSelected: (_) => ref
+                          .read(activityFilterProvider.notifier)
+                          .setFilter(ActivityFilter.thisWeek),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('This Month'),
+                      selected: currentFilter == ActivityFilter.thisMonth,
+                      onSelected: (_) => ref
+                          .read(activityFilterProvider.notifier)
+                          .setFilter(ActivityFilter.thisMonth),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Pending Sync'),
+                      selected: currentFilter == ActivityFilter.pendingSync,
+                      onSelected: (_) => ref
+                          .read(activityFilterProvider.notifier)
+                          .setFilter(ActivityFilter.pendingSync),
+                      avatar: Icon(
+                        Icons.sync_problem_rounded,
+                        size: 18,
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('This Month'),
-                  onSelected: (_) {},
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('Pending Sync'),
-                  onSelected: (_) {},
-                  avatar: Icon(
-                    Icons.sync_problem_rounded,
-                    size: 18,
-                    color: colorScheme.error,
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
 
           const Divider(height: 1),
 
-          // Session list
+          // Session list from database (SSOT)
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: 8, // Mock count - will be replaced with Drift stream
-              itemBuilder: (context, index) =>
-                  _SessionCard(index: index, colorScheme: colorScheme),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final AsyncValue<List<ExerciseResult>> resultsAsync = ref.watch(
+                  exerciseResultsStreamProvider,
+                );
+                final filter = ref.watch(activityFilterProvider);
+
+                return resultsAsync.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  error: (Object error, StackTrace stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load sessions',
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () =>
+                              ref.invalidate(exerciseResultsStreamProvider),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  data: (List<ExerciseResult> results) {
+                    // Apply filter
+                    final filteredResults = _applyFilter(results, filter);
+
+                    if (filteredResults.isEmpty) {
+                      return _buildEmptyState(colorScheme, results.isEmpty);
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredResults.length,
+                      itemBuilder: (context, index) => _SessionCard(
+                        result: filteredResults[index],
+                        colorScheme: colorScheme,
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme, bool noDataAtAll) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            noDataAtAll ? Icons.fitness_center_outlined : Icons.filter_list_off,
+            size: 64,
+            color: colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            noDataAtAll
+                ? 'No exercise sessions yet'
+                : 'No sessions match this filter',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          if (noDataAtAll) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Complete an exercise to see your activity history',
+              style: TextStyle(color: colorScheme.outline),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  List<ExerciseResult> _applyFilter(
+    List<ExerciseResult> results,
+    ActivityFilter filter,
+  ) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (filter) {
+      case ActivityFilter.all:
+        return results;
+      case ActivityFilter.thisWeek:
+        final weekStart = today.subtract(Duration(days: today.weekday - 1));
+        return results.where((r) => r.performedAt.isAfter(weekStart)).toList();
+      case ActivityFilter.thisMonth:
+        final monthStart = DateTime(now.year, now.month);
+        return results.where((r) => r.performedAt.isAfter(monthStart)).toList();
+      case ActivityFilter.pendingSync:
+        return results.where((r) => r.syncStatus == 'pending').toList();
+    }
   }
 
   Future<void> _handleExport(
@@ -108,22 +258,29 @@ class ActivityLogScreen extends ConsumerWidget {
     String type,
   ) async {
     final exportService = ref.read(reportExportServiceProvider);
-    final repository = ref.read(exerciseResultsRepositoryProvider);
 
-    // Get sessions from database
-    final results = await repository.getRecent(limit: 100);
+    // Get current results from stream
+    final AsyncValue<List<ExerciseResult>> resultsAsync = ref.read(
+      exerciseResultsStreamProvider,
+    );
+    final List<ExerciseResult>? results = resultsAsync.value;
 
-    if (results.isEmpty) {
+    if (results == null || results.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No sessions to export')),
+          const SnackBar(
+            content: Text(
+              'No sessions to export. Complete some exercises first!',
+            ),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
       return;
     }
 
     // Convert to SessionReportData
-    final sessions = results.map((r) {
+    final List<SessionReportData> sessions = results.map((ExerciseResult r) {
       return SessionReportData(
         date: r.performedAt,
         exerciseName: r.exerciseName,
@@ -138,7 +295,6 @@ class ActivityLogScreen extends ConsumerWidget {
     try {
       switch (type) {
         case 'pdf':
-        case 'share':
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Generating PDF...')),
@@ -152,6 +308,21 @@ class ActivityLogScreen extends ConsumerWidget {
           await exportService.sharePdf(
             pdfFile,
             subject: 'OrthoSense Activity Report',
+          );
+        case 'share':
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Preparing report to share...')),
+            );
+          }
+          final pdfFile = await exportService.generateActivityLogPdf(
+            sessions: sessions,
+            startDate: sessions.last.date,
+            endDate: sessions.first.date,
+          );
+          await exportService.sharePdf(
+            pdfFile,
+            subject: 'OrthoSense Activity Report - Share with Doctor',
           );
         case 'csv':
           if (context.mounted) {
@@ -174,26 +345,25 @@ class ActivityLogScreen extends ConsumerWidget {
   }
 }
 
-class _SessionCard extends StatelessWidget {
+class _SessionCard extends ConsumerWidget {
   const _SessionCard({
-    required this.index,
+    required this.result,
     required this.colorScheme,
   });
 
-  final int index;
+  final ExerciseResult result;
   final ColorScheme colorScheme;
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data - will be replaced with real Session model
-    final isPending = index == 0;
-    final score = 85 + (index * 2) % 15;
-    final daysAgo = index;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final score = result.score ?? 0;
+    final isPending = result.syncStatus == 'pending';
+    final durationMinutes = (result.durationSeconds / 60).ceil();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: () => _showSessionDetails(context),
+        onTap: () => _showSessionDetails(context, ref),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -229,19 +399,15 @@ class _SessionCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Knee Rehabilitation',
+                          result.exerciseName,
                           style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getDateString(daysAgo),
+                          _formatDate(result.performedAt),
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -277,17 +443,17 @@ class _SessionCard extends StatelessWidget {
                   _StatItem(
                     icon: Icons.timer_outlined,
                     label: 'Duration',
-                    value: '${20 + index * 2} min',
+                    value: '$durationMinutes min',
                   ),
                   _StatItem(
-                    icon: Icons.repeat,
-                    label: 'Exercises',
-                    value: '${4 + index % 3}',
+                    icon: Icons.check_circle_outline,
+                    label: 'Form',
+                    value: (result.isCorrect ?? false) ? 'Good' : 'Needs Work',
                   ),
                   _StatItem(
                     icon: Icons.trending_up,
-                    label: 'ROM',
-                    value: '${110 + index * 5}°',
+                    label: 'Score',
+                    value: '$score%',
                   ),
                 ],
               ),
@@ -305,13 +471,29 @@ class _SessionCard extends StatelessWidget {
     return Colors.red;
   }
 
-  String _getDateString(int daysAgo) {
-    if (daysAgo == 0) return 'Today • 10:30 AM';
-    if (daysAgo == 1) return 'Yesterday • 09:15 AM';
-    return '$daysAgo days ago • 11:00 AM';
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final sessionDate = DateTime(date.year, date.month, date.day);
+
+    final timeFormat = DateFormat('h:mm a');
+    final time = timeFormat.format(date);
+
+    if (sessionDate == today) {
+      return 'Today • $time';
+    } else if (sessionDate == yesterday) {
+      return 'Yesterday • $time';
+    } else {
+      final diff = today.difference(sessionDate).inDays;
+      if (diff < 7) {
+        return '$diff days ago • $time';
+      }
+      return DateFormat('MMM d').format(date);
+    }
   }
 
-  void _showSessionDetails(BuildContext context) {
+  void _showSessionDetails(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -321,7 +503,9 @@ class _SessionCard extends StatelessWidget {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => _SessionDetailsSheet(
+          result: result,
           scrollController: scrollController,
+          ref: ref,
         ),
       ),
     );
@@ -363,15 +547,29 @@ class _StatItem extends StatelessWidget {
 }
 
 class _SessionDetailsSheet extends StatelessWidget {
-  const _SessionDetailsSheet({required this.scrollController});
+  const _SessionDetailsSheet({
+    required this.result,
+    required this.scrollController,
+    required this.ref,
+  });
 
+  final ExerciseResult result;
   final ScrollController scrollController;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dateFormat = DateFormat("EEEE 'at' h:mm a");
+    final feedback = ExerciseResultsRepository.parseFeedback(
+      result.feedbackJson,
+    );
+    final score = result.score ?? 0;
+    final scoreColor = _getScoreColor(score);
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -382,7 +580,7 @@ class _SessionDetailsSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -403,16 +601,16 @@ class _SessionDetailsSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Today at 10:30 AM',
+                        dateFormat.format(result.performedAt),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _shareSession(context),
                   icon: const Icon(Icons.share, size: 18),
                   label: const Text('Share'),
                 ),
@@ -422,32 +620,108 @@ class _SessionDetailsSheet extends StatelessWidget {
 
           const Divider(height: 1),
 
-          // Exercise list
+          // Exercise details
           Expanded(
             child: ListView(
               controller: scrollController,
               padding: const EdgeInsets.all(16),
-              children: const [
-                _ExerciseResultTile(
-                  name: 'Knee Flexion',
-                  score: 92,
-                  reps: '3x10',
-                  rom: '125°',
-                  feedback: 'Excellent form! Range of motion improved.',
-                ),
-                _ExerciseResultTile(
-                  name: 'Quad Stretch',
-                  score: 88,
-                  reps: '3x30s',
-                  rom: '110°',
-                  feedback: 'Good progress. Keep the hold steady.',
-                ),
-                _ExerciseResultTile(
-                  name: 'Heel Slides',
-                  score: 85,
-                  reps: '2x15',
-                  rom: '115°',
-                  feedback: 'Smooth movement. Try to extend a bit more.',
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                result.exerciseName,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scoreColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '$score%',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: scoreColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _DetailChip(
+                              icon: Icons.timer_outlined,
+                              label:
+                                  '${(result.durationSeconds / 60).ceil()} min',
+                            ),
+                            const SizedBox(width: 8),
+                            _DetailChip(
+                              icon: (result.isCorrect ?? false)
+                                  ? Icons.check_circle
+                                  : Icons.warning,
+                              label: (result.isCorrect ?? false)
+                                  ? 'Correct Form'
+                                  : 'Needs Work',
+                            ),
+                          ],
+                        ),
+                        if (result.textReport != null &&
+                            result.textReport!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            result.textReport!,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                          ),
+                        ],
+                        if (feedback.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'Feedback',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          ...feedback.entries.map(
+                            (e) => Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('• '),
+                                  Expanded(
+                                    child: Text(
+                                      '${e.key}: ${e.value}',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -456,81 +730,54 @@ class _SessionDetailsSheet extends StatelessWidget {
       ),
     );
   }
-}
 
-class _ExerciseResultTile extends StatelessWidget {
-  const _ExerciseResultTile({
-    required this.name,
-    required this.score,
-    required this.reps,
-    required this.rom,
-    required this.feedback,
-  });
+  Color _getScoreColor(int score) {
+    if (score >= 90) return Colors.green;
+    if (score >= 75) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
+  }
 
-  final String name;
-  final int score;
-  final String reps;
-  final String rom;
-  final String feedback;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '$score%',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _DetailChip(icon: Icons.repeat, label: reps),
-                const SizedBox(width: 8),
-                _DetailChip(icon: Icons.straighten, label: rom),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              feedback,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _shareSession(BuildContext context) async {
+    final exportService = ref.read(reportExportServiceProvider);
+    final feedback = ExerciseResultsRepository.parseFeedback(
+      result.feedbackJson,
     );
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Generating PDF...')),
+      );
+
+      final sessions = [
+        SessionReportData(
+          date: result.performedAt,
+          exerciseName: result.exerciseName,
+          durationSeconds: result.durationSeconds,
+          score: result.score ?? 0,
+          isCorrect: result.isCorrect ?? false,
+          feedback: feedback,
+          textReport: result.textReport,
+        ),
+      ];
+
+      final pdfFile = await exportService.generateActivityLogPdf(
+        sessions: sessions,
+        startDate: result.performedAt,
+        endDate: result.performedAt,
+      );
+
+      await exportService.sharePdf(
+        pdfFile,
+        subject: 'OrthoSense Session Report - ${result.exerciseName}',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
   }
 }
 

@@ -7,9 +7,29 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'dio_provider.g.dart';
 
-/// Returns appropriate base URL based on platform.
-/// Android emulator uses 10.0.2.2 to reach host localhost.
+/// Production API URL - set via --dart-define=API_URL=https://your-app.eu-central-1.awsapprunner.com
+const String _productionApiUrl = String.fromEnvironment(
+  'API_URL',
+  defaultValue: '',
+);
+
+/// Returns appropriate base URL based on build mode and platform.
+/// In release mode: uses API_URL from dart-define or throws if not set.
+/// In debug mode: uses localhost with platform-specific addresses.
 String _getBaseUrl() {
+  // Release mode - use production URL
+  if (kReleaseMode) {
+    if (_productionApiUrl.isNotEmpty) {
+      return _productionApiUrl;
+    }
+    // Fallback for testing release builds locally
+    throw StateError(
+      'API_URL not configured. Build with: '
+      'flutter build apk --dart-define=API_URL=https://your-api.awsapprunner.com',
+    );
+  }
+
+  // Debug mode - local development
   if (Platform.isAndroid) {
     return 'http://10.0.2.2:8000';
   }
@@ -20,9 +40,8 @@ String _getBaseUrl() {
 
   // iOS Simulator, Linux, Windows
   // Using local IP for physical device debugging
-  // return 'http://172.19.240.61:8000';
-  return 'http://192.168.0.27:8000'; // Zosia
-  // return 'http://192.168.0.17:8000'; // Kacper
+  // return 'http://192.168.0.27:8000'; // Zosia
+  return 'http://192.168.0.17:8000'; // Kacper
 }
 
 /// Provides configured [Dio] instance for API calls.

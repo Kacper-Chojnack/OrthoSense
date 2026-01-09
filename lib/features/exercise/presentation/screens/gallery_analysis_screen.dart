@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:orthosense/core/providers/exercise_classifier_provider.dart';
@@ -99,12 +98,6 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         if (poseService.checkPoseVisibility(frame)) {
           validFrames.add(frame);
         }
-      }
-
-      if (kDebugMode) {
-        debugPrint(
-          '[Gallery] extracted=${landmarks.frames.length} valid=${validFrames.length} fps=${landmarks.fps}',
-        );
       }
 
       if (validFrames.isEmpty) {

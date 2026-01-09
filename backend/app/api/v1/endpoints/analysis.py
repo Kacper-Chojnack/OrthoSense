@@ -14,6 +14,8 @@ from fastapi import (
 
 from app.ai.core.config import EXERCISE_NAMES
 from app.ai.core.system import OrthoSenseSystem
+from app.core.config import settings
+from app.core.exceptions import InternalServerError
 from app.core.logging import get_logger
 from app.models.analysis import LandmarksAnalysisRequest
 
@@ -55,14 +57,14 @@ async def analyze_landmarks(
                     detail=f"Frame {i} has {len(frame)} joints, expected 33 (BlazePose topology)",
                 )
             if len(frame) > 0 and len(frame[0]) not in [3, 4]:
-                 raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Frame {i} joint format invalid. Expected [x,y,z] or [x,y,z,visibility]",
-                    )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Frame {i} joint format invalid. Expected [x,y,z] or [x,y,z,visibility]",
+                )
 
         system = OrthoSenseSystem()
         result = system.analyze_landmarks(request.landmarks, request.exercise_name)
-        
+
         if "error" in result:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"]
@@ -74,7 +76,10 @@ async def analyze_landmarks(
         raise
     except Exception as e:
         logger.error("landmarks_analysis_failed", error=str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Analysis failed: {e!s}",
-        ) from e
+        if settings.debug:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Analysis failed: {e!s}",
+            ) from e
+        # In production, use sanitized error
+        raise InternalServerError(original_error=e) from e

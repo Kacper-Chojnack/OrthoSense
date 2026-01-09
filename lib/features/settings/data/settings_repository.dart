@@ -57,16 +57,22 @@ class SettingsRepository {
         );
   }
 
-  /// Save profile image path.
-  Future<void> saveProfileImagePath(String path) async {
-    await _db
-        .into(_db.settings)
-        .insertOnConflictUpdate(
-          SettingsCompanion.insert(
-            key: SettingsKeys.profileImagePath,
-            value: path,
-          ),
-        );
+  /// Save profile image path, or clear it if null.
+  Future<void> saveProfileImagePath(String? path) async {
+    if (path == null) {
+      await (_db.delete(
+        _db.settings,
+      )..where((t) => t.key.equals(SettingsKeys.profileImagePath))).go();
+    } else {
+      await _db
+          .into(_db.settings)
+          .insertOnConflictUpdate(
+            SettingsCompanion.insert(
+              key: SettingsKeys.profileImagePath,
+              value: path,
+            ),
+          );
+    }
   }
 }
 

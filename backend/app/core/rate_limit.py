@@ -162,6 +162,9 @@ class RateLimiter:
 
 # Pre-configured limiters for common use cases
 auth_limiter = RateLimiter(requests=5, window_seconds=60)  # 5 req/min for auth
+auth_strict_limiter = RateLimiter(
+    requests=3, window_seconds=300
+)  # 3 req/5min for login/register (brute force protection)
 api_limiter = RateLimiter(
     requests=100, window_seconds=60
 )  # 100 req/min for general API

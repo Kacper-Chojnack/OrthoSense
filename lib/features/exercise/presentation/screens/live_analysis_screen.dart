@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +10,8 @@ import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/providers/tts_provider.dart';
 import 'package:orthosense/core/services/movement_diagnostics_service.dart';
+import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
+import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/exercise/data/analysis_result_saver.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:orthosense/features/exercise/presentation/widgets/countdown_overlay.dart';
@@ -40,21 +41,13 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   bool _isInitialized = false;
   AnalysisPhase _currentPhase = AnalysisPhase.idle;
   Timer? _phaseTimer;
-
-  static const bool _debugLogs = kDebugMode;
-  DateTime? _lastPerfLogAt;
-  int _processedFramesSinceLog = 0;
+  bool _isStreaming = false;
 
   final List<PoseFrame> _rawBuffer = [];
   static const _windowSize = 60;
   static const _predictionInterval = 5;
 
   final List<String> _calibrationVotes = [];
-  static const int _calibrationVoteMinFrameGap = 15;
-  int _lastCalibrationVoteFrame = -999999;
-  int? _calibrationStartFrame;
-  static const int _calibrationWarmupFrames = 25; // ~1s at ~25 FPS
-  static const int _minCalibrationVotes = 3;
 
   String? _detectedExercise;
   String? _detectedVariant;
@@ -62,30 +55,28 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   bool _hasError = false;
 
   DateTime? _lastFrameProcessTime;
-  static const _frameProcessingInterval = Duration(milliseconds: 33);
-  bool _isProcessingFrame = false;
+  static const _frameProcessingInterval = Duration(milliseconds: 66);
   int _frameCount = 0;
 
   final List<bool> _visibilityBuffer = [];
   static const _visibilityWindowSize = 30;
   static const _minVisibilityRatio = 0.7;
 
-  static const bool _enableRenderSmoothing = true;
-  static const double _renderSmoothingAlpha = 0.35;
-
   PoseFrame? _debugPose;
-  PoseFrame? _lastRenderPose;
+  PoseFrame? _lastSmoothedPose;
   Size? _sourceImageSize;
 
   final Map<String, int> _sessionErrorCounts = {};
   int _totalAnalysisFrames = 0;
   int _correctFrames = 0;
 
+  // Animation controllers
   late AnimationController _feedbackAnimationController;
   late AnimationController _pulseController;
   late Animation<double> _feedbackScaleAnimation;
   late Animation<double> _pulseAnimation;
 
+  // Session timer
   DateTime? _sessionStartTime;
   Timer? _sessionTimer;
   Duration _sessionDuration = Duration.zero;
@@ -194,8 +185,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       _currentPhase = AnalysisPhase.setup;
       _rawBuffer.clear();
       _calibrationVotes.clear();
-      _lastCalibrationVoteFrame = -999999;
-      _calibrationStartFrame = null;
       _detectedExercise = null;
       _detectedVariant = null;
       _currentFeedback = null;
@@ -203,9 +192,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       _visibilityBuffer.clear();
       _frameCount = 0;
       _debugPose = null;
-      _lastRenderPose = null;
-      _lastPerfLogAt = null;
-      _processedFramesSinceLog = 0;
+      _lastSmoothedPose = null;
       _sessionErrorCounts.clear();
       _totalAnalysisFrames = 0;
       _correctFrames = 0;
@@ -224,26 +211,28 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       }
     });
 
-    _controller!.startImageStream(_processCameraFrame).catchError((
-      Object error,
-    ) {
-      debugPrint('Error starting image stream: $error');
-      _handleError('Failed to start camera stream');
-    });
+    _controller!
+        .startImageStream(_processCameraFrame)
+        .then((_) {
+          _isStreaming = true;
+        })
+        .catchError((
+          Object error,
+        ) {
+          debugPrint('Error starting image stream: $error');
+          _handleError('Failed to start camera stream');
+        });
 
-    _phaseTimer = Timer(const Duration(seconds: 5), () {
+    _phaseTimer = Timer(const Duration(seconds: 3), () {
       if (mounted && _currentPhase == AnalysisPhase.setup) {
         setState(() {
           _currentPhase = AnalysisPhase.calibrationClassification;
-          _calibrationStartFrame = _frameCount;
         });
         final tts = ref.read(ttsServiceProvider);
         tts.speak('Analyzing your exercise. Keep moving.');
 
         _phaseTimer = Timer(const Duration(seconds: 6), () {
-          if (mounted && _currentPhase == AnalysisPhase.calibrationClassification) {
-            _performClassification();
-          }
+          _performClassification();
         });
       }
     });
@@ -290,8 +279,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       feedback: finalFeedback,
     );
 
+    // Calculate score based on correct ratio
     final score = (correctRatio * 100).round().clamp(0, 100);
 
+    // Save result to Drift database (async, non-blocking)
     _saveAnalysisResultToDb(score, isSessionCorrect);
 
     _showResultsDialog(finalResult);
@@ -329,10 +320,19 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       isSuccess = result.isCorrect;
     }
 
+    // Invalidate dashboard stats and trend providers to refresh after new result
+    ref.invalidate(dashboardStatsProvider);
+    ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
+    ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
+    ref.invalidate(miniTrendDataProvider(TrendMetricType.rangeOfMotion));
+    ref.invalidate(miniTrendDataProvider(TrendMetricType.sessionScore));
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      isDismissible: false,
+      enableDrag: false,
       builder: (ctx) => Container(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.75,
@@ -432,10 +432,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
               padding: const EdgeInsets.all(24),
               child: FilledButton.icon(
                 onPressed: () {
-                  Navigator.of(ctx).pop();
-                  setState(() {
-                    _currentPhase = AnalysisPhase.idle;
-                  });
+                  Navigator.of(ctx).pop(); // Close bottom sheet
+                  Navigator.of(context).pop(); // Return to dashboard
                 },
                 icon: const Icon(Icons.check),
                 label: const Text('Done'),
@@ -457,18 +455,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   Future<void> _performClassification() async {
-    if (!mounted || _currentPhase != AnalysisPhase.calibrationClassification) {
-      if (_debugLogs) {
-        debugPrint('[Classification] Skipped (phase=$_currentPhase)');
-      }
-      return;
-    }
-
     debugPrint(
       '[Classification] Starting classification with ${_calibrationVotes.length} votes',
     );
 
-    if (_calibrationVotes.length < _minCalibrationVotes) {
+    if (_calibrationVotes.isEmpty) {
       _handleError('Unable to detect exercise, please try again');
       return;
     }
@@ -476,10 +467,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     final voteCounts = <String, int>{};
     for (final vote in _calibrationVotes) {
       voteCounts[vote] = (voteCounts[vote] ?? 0) + 1;
-    }
-
-    if (_debugLogs) {
-      debugPrint('[Classification] Vote distribution: $voteCounts');
     }
 
     String? winnerExercise;
@@ -566,23 +553,18 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     }
   }
 
-  PoseFrame _smoothPoseForRender(PoseFrame newPose) {
-    if (_lastRenderPose == null) {
-      _lastRenderPose = newPose;
+  PoseFrame _smoothPose(PoseFrame newPose) {
+    if (_lastSmoothedPose == null) {
+      _lastSmoothedPose = newPose;
       return newPose;
     }
 
-    const double alpha = _renderSmoothingAlpha;
+    const double alpha = 0.6;
     final smoothedLandmarks = <PoseLandmark>[];
 
     for (int i = 0; i < newPose.landmarks.length; i++) {
-      final prevLm = _lastRenderPose!.landmarks[i];
+      final prevLm = _lastSmoothedPose!.landmarks[i];
       final newLm = newPose.landmarks[i];
-
-      if (newLm.x == 0 && newLm.y == 0 && newLm.z == 0) {
-        smoothedLandmarks.add(prevLm);
-        continue;
-      }
 
       final smoothedX = (prevLm.x * (1 - alpha)) + (newLm.x * alpha);
       final smoothedY = (prevLm.y * (1 - alpha)) + (newLm.y * alpha);
@@ -599,16 +581,13 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
     final smoothedPose = PoseFrame(landmarks: smoothedLandmarks);
 
-    _lastRenderPose = smoothedPose;
+    _lastSmoothedPose = smoothedPose;
 
     return smoothedPose;
   }
 
   Future<void> _processCameraFrame(CameraImage image) async {
     final now = DateTime.now();
-    if (_isProcessingFrame) {
-      return;
-    }
     if (_lastFrameProcessTime != null &&
         now.difference(_lastFrameProcessTime!) < _frameProcessingInterval) {
       return;
@@ -618,7 +597,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     if (_controller == null) return;
 
     try {
-      _isProcessingFrame = true;
       final poseService = ref.read(poseDetectionServiceProvider);
       final poseFrame = await poseService.detectPoseFromCameraImage(
         image,
@@ -627,14 +605,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
       if (poseFrame == null) return;
 
-      _frameCount++;
-
-      final renderPose =
-          _enableRenderSmoothing ? _smoothPoseForRender(poseFrame) : poseFrame;
-
       if (mounted) {
+        final smoothedPose = _smoothPose(poseFrame);
+
         setState(() {
-          _debugPose = renderPose;
+          _debugPose = smoothedPose;
           _sourceImageSize = Size(
             image.width.toDouble(),
             image.height.toDouble(),
@@ -643,28 +618,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       }
 
       if (!mounted) return;
-
-      if (_debugLogs) {
-        _processedFramesSinceLog++;
-        _lastPerfLogAt ??= now;
-        final dt = now.difference(_lastPerfLogAt!);
-        if (dt.inMilliseconds >= 1000) {
-          final fps = _processedFramesSinceLog / (dt.inMilliseconds / 1000.0);
-          final visibleCount = _visibilityBuffer.where((v) => v).length;
-          final visibilityRatio = _visibilityBuffer.isEmpty
-              ? 0.0
-              : visibleCount / _visibilityBuffer.length;
-          debugPrint(
-            '[Live] phase=$_currentPhase fps=${fps.toStringAsFixed(1)} '
-            'rawBuffer=${_rawBuffer.length}/${_windowSize} '
-            'vis=${visibilityRatio.toStringAsFixed(2)} '
-            'votes=${_calibrationVotes.length} '
-            'frameCount=$_frameCount',
-          );
-          _lastPerfLogAt = now;
-          _processedFramesSinceLog = 0;
-        }
-      }
 
       final isVisible = poseService.checkPoseVisibility(poseFrame);
 
@@ -713,8 +666,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       }
     } catch (e) {
       debugPrint('Frame processing error: $e');
-    } finally {
-      _isProcessingFrame = false;
     }
   }
 
@@ -732,15 +683,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     if (_rawBuffer.length < 60) return;
 
     try {
-      if (_calibrationStartFrame != null &&
-          _frameCount - _calibrationStartFrame! < _calibrationWarmupFrames) {
-        return;
-      }
-
-      if (_frameCount - _lastCalibrationVoteFrame < _calibrationVoteMinFrameGap) {
-        return;
-      }
-
       final poseService = ref.read(poseDetectionServiceProvider);
       final classifier = ref.read(exerciseClassifierServiceProvider);
 
@@ -761,23 +703,10 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       final classification = await classifier.classify(landmarks);
 
       final exName = classification.exercise;
-      if (_debugLogs) {
-        debugPrint(
-          '[Calibration] ex=$exName conf=${classification.confidence.toStringAsFixed(3)} '
-          'validFrames=${validFrames.length}/${windowFrames.length} '
-          'rawBuffer=${_rawBuffer.length} frameCount=$_frameCount',
-        );
-      }
       if (exName != 'Unknown Exercise' &&
           exName != 'No Exercise Detected' &&
-          classification.confidence > 0.55) {
+          classification.confidence > 0.50) {
         _calibrationVotes.add(exName);
-        if (_debugLogs) {
-          debugPrint(
-            '[Calibration] vote added: $exName (votes=${_calibrationVotes.length})',
-          );
-        }
-        _lastCalibrationVoteFrame = _frameCount;
       }
     } catch (e) {
       debugPrint('Calibration analysis error: $e');
@@ -854,10 +783,25 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     _sessionTimer?.cancel();
     _sessionTimer = null;
     _pulseController.stop();
-    _controller?.stopImageStream();
-    setState(() {
-      _debugPose = null;
-    });
+
+    // Only stop image stream if actually streaming
+    if (_isStreaming &&
+        _controller != null &&
+        _controller!.value.isInitialized) {
+      try {
+        _controller!.stopImageStream();
+      } catch (e) {
+        debugPrint('Error stopping image stream: $e');
+      }
+      _isStreaming = false;
+    }
+
+    // Don't call setState if already disposed
+    if (mounted) {
+      setState(() {
+        _debugPose = null;
+      });
+    }
   }
 
   String _getPhaseTitle() {
@@ -933,18 +877,24 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Camera preview
           _buildCameraPreview(),
 
+          // Gradient overlays
           _buildGradientOverlays(),
 
+          // Top status bar
           _buildTopBar(theme, colorScheme),
 
+          // Feedback indicator
           if (_currentFeedback != null &&
               _currentPhase == AnalysisPhase.analyzing)
             _buildFeedbackIndicator(theme, colorScheme),
 
+          // Bottom controls
           _buildBottomControls(theme, colorScheme),
 
+          // Countdown overlay
           if (_currentPhase == AnalysisPhase.countdown)
             CountdownOverlay(
               onComplete: _onCountdownComplete,

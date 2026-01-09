@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/settings/presentation/providers/profile_image_provider.dart';
+import 'package:orthosense/features/settings/presentation/screens/notification_settings_screen.dart';
 import 'package:orthosense/features/settings/presentation/screens/settings_screen.dart';
 
 /// Profile screen showing user info and settings navigation.
@@ -38,23 +39,35 @@ class ProfileScreen extends ConsumerWidget {
 
     if (source == null) return;
 
-    final pickedFile = await picker.pickImage(
-      source: source,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 85,
-    );
+    try {
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
 
-    if (pickedFile != null) {
-      await ref
-          .read(profileImageProvider.notifier)
-          .setImage(File(pickedFile.path));
+      if (pickedFile != null && context.mounted) {
+        await ref
+            .read(profileImageProvider.notifier)
+            .setImage(File(pickedFile.path));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final profileImageAsync = ref.watch(profileImageProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -81,17 +94,43 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       GestureDetector(
                         onTap: () => _pickImage(context, ref),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: colorScheme.primaryContainer,
-                          child: Text(
-                            user.fullName.isNotEmpty
-                                ? user.fullName[0].toUpperCase()
-                                : user.email[0].toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimaryContainer,
+                        child: profileImageAsync.when(
+                          data: (imagePath) => CircleAvatar(
+                            radius: 50,
+                            backgroundColor: colorScheme.primaryContainer,
+                            backgroundImage: imagePath != null
+                                ? FileImage(File(imagePath))
+                                : null,
+                            child: imagePath == null
+                                ? Text(
+                                    user.fullName.isNotEmpty
+                                        ? user.fullName[0].toUpperCase()
+                                        : user.email[0].toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          loading: () => CircleAvatar(
+                            radius: 50,
+                            backgroundColor: colorScheme.primaryContainer,
+                            child: const CircularProgressIndicator(),
+                          ),
+                          error: (_, _) => CircleAvatar(
+                            radius: 50,
+                            backgroundColor: colorScheme.primaryContainer,
+                            child: Text(
+                              user.fullName.isNotEmpty
+                                  ? user.fullName[0].toUpperCase()
+                                  : user.email[0].toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
                             ),
                           ),
                         ),
@@ -109,11 +148,8 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                           ),
                           child: IconButton(
-                            icon: Image.asset(
-                              'assets/images/logo.png',
-                              height: 20,
-                              color: colorScheme.onPrimary,
-                            ),
+                            icon: const Icon(Icons.camera_alt),
+                            iconSize: 20,
                             color: colorScheme.onPrimary,
                             onPressed: () => _pickImage(context, ref),
                             constraints: const BoxConstraints(
@@ -152,7 +188,7 @@ class ProfileScreen extends ConsumerWidget {
                           label: 'Member Since',
                           value: user.createdAt != null
                               ? DateFormat.yMMMMd().format(user.createdAt!)
-                              : 'Unknown',
+                              : 'Recently joined',
                         ),
                       ],
                     ),
@@ -169,8 +205,11 @@ class ProfileScreen extends ConsumerWidget {
                         title: const Text('Notifications'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Coming soon!')),
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  const NotificationSettingsScreen(),
+                            ),
                           );
                         },
                       ),

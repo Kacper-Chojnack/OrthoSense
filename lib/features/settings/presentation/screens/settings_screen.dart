@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:orthosense/core/providers/notification_provider.dart';
 import 'package:orthosense/core/providers/preferences_provider.dart';
 import 'package:orthosense/features/auth/domain/models/models.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
@@ -8,6 +7,8 @@ import 'package:orthosense/features/onboarding/presentation/screens/voice_select
 import 'package:orthosense/features/settings/data/account_service.dart';
 import 'package:orthosense/features/settings/presentation/providers/theme_mode_provider.dart';
 import 'package:orthosense/features/settings/presentation/screens/edit_profile_screen.dart';
+import 'package:orthosense/features/settings/presentation/screens/legal_screen.dart';
+import 'package:orthosense/features/settings/presentation/screens/licenses_screen.dart';
 
 /// Settings screen with appearance, account, and about sections.
 class SettingsScreen extends ConsumerWidget {
@@ -27,11 +28,6 @@ class SettingsScreen extends ConsumerWidget {
           // Appearance Section
           const _SectionHeader(title: 'Appearance'),
           _AppearanceSection(),
-          const SizedBox(height: 16),
-
-          // Notifications Section
-          const _SectionHeader(title: 'Notifications'),
-          const _NotificationSection(),
           const SizedBox(height: 16),
 
           // Voice Assistant Section
@@ -132,21 +128,19 @@ class _AppearanceSection extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: SegmentedButton<ThemeMode>(
-                segments: [
+                showSelectedIcon: false,
+                segments: const [
                   ButtonSegment(
                     value: ThemeMode.system,
-                    icon: Image.asset('assets/images/logo.png', height: 20),
-                    label: const Text('System'),
+                    label: Text('Auto'),
                   ),
                   ButtonSegment(
                     value: ThemeMode.light,
-                    icon: Image.asset('assets/images/logo.png', height: 20),
-                    label: const Text('Light'),
+                    label: Text('Light'),
                   ),
                   ButtonSegment(
                     value: ThemeMode.dark,
-                    icon: Image.asset('assets/images/logo.png', height: 20),
-                    label: const Text('Dark'),
+                    label: Text('Dark'),
                   ),
                 ],
                 selected: {themeMode},
@@ -222,9 +216,8 @@ class _AccountSection extends ConsumerWidget {
             ListTile(
               leading: CircleAvatar(
                 backgroundColor: colorScheme.primaryContainer,
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 24,
+                child: Icon(
+                  Icons.person,
                   color: colorScheme.onPrimaryContainer,
                 ),
               ),
@@ -234,15 +227,13 @@ class _AccountSection extends ConsumerWidget {
           ],
           // Edit Profile
           ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            leading: Icon(
+              Icons.edit_outlined,
               color: colorScheme.onSurfaceVariant,
             ),
             title: const Text('Edit Profile'),
-            trailing: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            trailing: Icon(
+              Icons.chevron_right,
               color: colorScheme.onSurfaceVariant,
             ),
             onTap: isLoading
@@ -258,9 +249,8 @@ class _AccountSection extends ConsumerWidget {
           const Divider(height: 1),
           // Download My Data (GDPR)
           ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            leading: Icon(
+              Icons.download_outlined,
               color: colorScheme.primary,
             ),
             title: const Text('Download My Data'),
@@ -271,9 +261,8 @@ class _AccountSection extends ConsumerWidget {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Image.asset(
-                    'assets/images/logo.png',
-                    height: 24,
+                : Icon(
+                    Icons.chevron_right,
                     color: colorScheme.onSurfaceVariant,
                   ),
             onTap: isLoading ? null : () => _handleDownloadData(context, ref),
@@ -398,9 +387,9 @@ class _AccountSection extends ConsumerWidget {
     final firstConfirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: Image.asset(
-          'assets/images/logo.png',
-          height: 48,
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          size: 48,
           color: Colors.red,
         ),
         title: const Text('Delete Account?'),
@@ -514,9 +503,8 @@ class _AboutSection extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            leading: Icon(
+              Icons.info_outline,
               color: colorScheme.onSurfaceVariant,
             ),
             title: const Text('Version'),
@@ -529,145 +517,64 @@ class _AboutSection extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            leading: Icon(
+              Icons.description_outlined,
               color: colorScheme.onSurfaceVariant,
             ),
             title: const Text('Licenses'),
-            trailing: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            trailing: Icon(
+              Icons.chevron_right,
               color: colorScheme.onSurfaceVariant,
             ),
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: 'OrthoSense',
-              applicationVersion: '1.0.0',
-              applicationIcon: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 64,
-                  width: 64,
-                  color: colorScheme.primary,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const LicensesScreen(),
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: Icon(
+              Icons.privacy_tip_outlined,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            title: const Text('Privacy Policy'),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const LegalScreen(
+                  title: 'Privacy Policy',
+                  content: privacyPolicyContent,
                 ),
               ),
             ),
           ),
           const Divider(height: 1),
           ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            title: const Text('Privacy Policy'),
-            trailing: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Privacy policy coming soon')),
-              );
-            },
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            leading: Icon(
+              Icons.gavel_outlined,
               color: colorScheme.onSurfaceVariant,
             ),
             title: const Text('Terms of Service'),
-            trailing: Image.asset(
-              'assets/images/logo.png',
-              height: 24,
+            trailing: Icon(
+              Icons.chevron_right,
               color: colorScheme.onSurfaceVariant,
             ),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Terms of service coming soon')),
-              );
-            },
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const LegalScreen(
+                  title: 'Terms of Service',
+                  content: termsOfServiceContent,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
-  }
-}
-
-class _NotificationSection extends ConsumerStatefulWidget {
-  const _NotificationSection();
-
-  @override
-  ConsumerState<_NotificationSection> createState() =>
-      _NotificationSectionState();
-}
-
-class _NotificationSectionState extends ConsumerState<_NotificationSection> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final prefs = ref.watch(preferencesServiceProvider);
-    final enabled = prefs.areNotificationsEnabled;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: SwitchListTile(
-        secondary: Image.asset(
-          'assets/images/logo.png',
-          height: 24,
-          color: colorScheme.primary,
-        ),
-        title: const Text('Session Reminders'),
-        subtitle: const Text('Get notified 15 min before sessions'),
-        value: enabled,
-        onChanged: _isLoading ? null : _handleToggle,
-      ),
-    );
-  }
-
-  Future<void> _handleToggle(bool value) async {
-    setState(() => _isLoading = true);
-
-    try {
-      if (value) {
-        // Request permissions when enabling
-        final granted = await ref
-            .read(notificationServiceProvider)
-            .requestPermissions();
-
-        if (!granted) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Notification permission denied. '
-                  'Please enable in system settings.',
-                ),
-              ),
-            );
-          }
-          return;
-        }
-      } else {
-        // Cancel all notifications when disabling
-        await ref.read(notificationServiceProvider).cancelAll();
-      }
-
-      await ref
-          .read(preferencesServiceProvider)
-          .setNotificationsEnabled(value: value);
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
   }
 }
 
@@ -676,20 +583,20 @@ class _VoiceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ListTile(
-        leading: Image.asset(
-          'assets/images/logo.png',
-          height: 24,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        leading: Icon(
+          Icons.record_voice_over_outlined,
+          color: colorScheme.onSurfaceVariant,
         ),
         title: const Text('Assistant Voice'),
         subtitle: const Text('Change the voice of your exercise assistant'),
-        trailing: Image.asset(
-          'assets/images/logo.png',
-          height: 24,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        trailing: Icon(
+          Icons.chevron_right,
+          color: colorScheme.onSurfaceVariant,
         ),
         onTap: () {
           Navigator.of(context).push(

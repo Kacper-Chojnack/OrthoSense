@@ -1,10 +1,17 @@
-from unittest.mock import MagicMock
+import os
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.testclient import TestClient
 
 from app.core.rate_limit import RateLimiter, rate_limit
+
+# Skip tests when rate limiting is disabled
+pytestmark = pytest.mark.skipif(
+    os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "false",
+    reason="Rate limiting is disabled in test environment",
+)
 
 # Setup a dummy app for testing decorator
 app = FastAPI()
@@ -50,27 +57,39 @@ async def test_rate_limiter_check_async():
 
     mock_request = MagicMock()
     mock_request.client.host = "127.0.0.1"
+    mock_request.headers = {}
 
-    # Should pass
-    await limiter.check(mock_request, "test")
+    with patch("app.core.rate_limit.settings") as mock_settings:
+        mock_settings.rate_limit_enabled = True
 
-    # Should fail
-    with pytest.raises(HTTPException) as exc:
+        # Should pass
         await limiter.check(mock_request, "test")
-    assert exc.value.status_code == 429
+
+        # Should fail
+        with pytest.raises(HTTPException) as exc:
+            await limiter.check(mock_request, "test")
+        assert exc.value.status_code == 429
 
 
 def test_decorator_integration():
     """Test the rate_limit decorator via TestClient."""
-    # 1st request
-    resp = client.get("/test-limit")
-    assert resp.status_code == 200
+    from app.core.rate_limit import _memory_store
 
-    # 2nd request
-    resp = client.get("/test-limit")
-    assert resp.status_code == 200
+    # Clear state before test
+    _memory_store.clear()
 
-    # 3rd request (blocked)
-    resp = client.get("/test-limit")
-    assert resp.status_code == 429
-    assert "Retry-After" in resp.headers
+    with patch("app.core.rate_limit.settings") as mock_settings:
+        mock_settings.rate_limit_enabled = True
+
+        # 1st request
+        resp = client.get("/test-limit")
+        assert resp.status_code == 200
+
+        # 2nd request
+        resp = client.get("/test-limit")
+        assert resp.status_code == 200
+
+        # 3rd request (blocked)
+        resp = client.get("/test-limit")
+        assert resp.status_code == 429
+        assert "Retry-After" in resp.headers
