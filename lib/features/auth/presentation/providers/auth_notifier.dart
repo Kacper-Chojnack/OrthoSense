@@ -93,7 +93,8 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// Login with email and password.
-  Future<void> login({
+  /// Returns error message if login failed, null if successful.
+  Future<String?> login({
     required String email,
     required String password,
   }) async {
@@ -112,14 +113,23 @@ class AuthNotifier extends _$AuthNotifier {
         user: user,
         accessToken: tokens.accessToken,
       );
+      return null; // Success
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);
-      state = AuthState.unauthenticated(message: message);
+      debugPrint('Login DioException: $e');
+      debugPrint('Extracted message: $message');
+      final errorMsg = message.isNotEmpty
+          ? message
+          : 'Login failed. Please try again.';
+      state = AuthState.unauthenticated(message: errorMsg);
+      return errorMsg;
     } catch (e, stackTrace) {
       // Log unexpected errors for debugging
       debugPrint('Login error: $e');
       debugPrint('Stack trace: $stackTrace');
-      state = AuthState.error(message: e.toString());
+      final errorMsg = 'An unexpected error occurred: ${e.toString()}';
+      state = AuthState.unauthenticated(message: errorMsg);
+      return errorMsg;
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:orthosense/features/auth/domain/models/models.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/register_screen.dart';
 import 'package:orthosense/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:orthosense/main.dart';
 
 /// Login screen with email and password form.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,12 +30,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref
-        .read(authProvider.notifier)
-        .login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+    // Get error color before async operation
+    final errorColor = Theme.of(context).colorScheme.error;
+
+    // Clear any existing snackbars before attempting login
+    rootScaffoldMessengerKey.currentState?.clearSnackBars();
+
+    // Store notifier reference before async gap
+    final notifier = ref.read(authProvider.notifier);
+
+    final errorMessage = await notifier.login(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    // Show error using global scaffold messenger (survives widget unmount)
+    if (errorMessage != null) {
+      debugPrint('_handleLogin: SHOWING SNACKBAR with: $errorMessage');
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: errorColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   Future<void> _handleForgotPassword() async {
@@ -71,32 +92,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AuthStateLoading;
-
-    // Show error message if login failed
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      debugPrint('Auth state changed: $previous -> $next');
-      
-      final message = switch (next) {
-        AuthStateUnauthenticated(:final message) => message,
-        AuthStateError(:final message) => message,
-        _ => null,
-      };
-
-      debugPrint('Error message: $message');
-
-      if (message != null && message.isNotEmpty && mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 5),
-          ),
-          ),
-        );
-      }
-    });
 
     return Scaffold(
       body: SafeArea(

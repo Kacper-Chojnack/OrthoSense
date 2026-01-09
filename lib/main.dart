@@ -10,6 +10,9 @@ import 'package:orthosense/features/settings/presentation/providers/theme_mode_p
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+/// Global key for accessing ScaffoldMessenger from anywhere
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -42,6 +45,7 @@ class OrthoSenseApp extends ConsumerWidget {
     return MaterialApp(
       title: 'OrthoSense',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       highContrastTheme: AppTheme.lightHighContrastTheme,

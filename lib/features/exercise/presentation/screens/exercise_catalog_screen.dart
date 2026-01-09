@@ -81,7 +81,7 @@ class ExerciseCatalogScreen extends ConsumerWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.camera_alt),
+            icon: const Icon(Icons.photo_camera_outlined),
             tooltip: 'Live Analysis',
             onPressed: () {
               Navigator.of(context).push(
@@ -92,7 +92,7 @@ class ExerciseCatalogScreen extends ConsumerWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.video_library),
+            icon: const Icon(Icons.play_circle_outline),
             tooltip: 'Analyze from Gallery',
             onPressed: () {
               Navigator.of(context).push(

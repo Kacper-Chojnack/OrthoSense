@@ -49,16 +49,17 @@ enum TrendPeriod {
 
 /// Types of metrics that can be displayed in trend charts.
 enum TrendMetricType {
-  rangeOfMotion('Range of Motion', '°'),
-  sessionScore('Session Score', '%'),
-  exerciseDuration('Exercise Duration', 'min'),
-  completionRate('Completion Rate', '%'),
-  painLevel('Pain Level', '/10');
+  rangeOfMotion('Range of Motion', '°', 180),
+  sessionScore('Session Score', '%', 100),
+  exerciseDuration('Exercise Duration', 'min', 60),
+  completionRate('Completion Rate', '%', 100),
+  painLevel('Pain Level', '/10', 10);
 
-  const TrendMetricType(this.displayName, this.unit);
+  const TrendMetricType(this.displayName, this.unit, this.maxValue);
 
   final String displayName;
   final String unit;
+  final double maxValue;
 }
 
 /// Summary statistics for the dashboard.
