@@ -155,7 +155,9 @@ void main() {
   group('Error Handling', () {
     test('handles invalid landmark count gracefully', () {
       final invalidLandmarks = [
-        [[0.0, 0.0, 0.0] for _ in range(10)], // Only 10 joints instead of 33
+        [
+          for (var i = 0; i < 10; i++) [0.0, 0.0, 0.0],
+        ], // Only 10 joints instead of 33
       ];
 
       expect(
@@ -226,7 +228,8 @@ class ModelState {
     this.errorMessage,
   });
 
-  factory ModelState.loading() => ModelState._(isLoaded: false, isLoading: true);
+  factory ModelState.loading() =>
+      ModelState._(isLoaded: false, isLoading: true);
   factory ModelState.loaded() => ModelState._(isLoaded: true);
   factory ModelState.error(String message) =>
       ModelState._(isLoaded: false, errorMessage: message);
@@ -308,7 +311,9 @@ void _validateLandmarks(List<List<List<double>>> landmarks) {
   }
   for (final frame in landmarks) {
     if (frame.length != 33) {
-      throw InvalidLandmarksException('Expected 33 landmarks, got ${frame.length}');
+      throw InvalidLandmarksException(
+        'Expected 33 landmarks, got ${frame.length}',
+      );
     }
   }
 }
