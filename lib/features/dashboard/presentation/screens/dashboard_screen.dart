@@ -7,6 +7,7 @@ import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dar
 import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/widgets/progress_trend_chart.dart';
+import 'package:orthosense/features/dashboard/presentation/widgets/weekly_activity_chart.dart';
 import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
@@ -46,14 +47,11 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Invalidate providers to refresh data from database
           ref.invalidate(dashboardStatsProvider);
           ref.invalidate(recentExerciseResultsProvider);
-          // Invalidate trend providers to refresh charts
-          ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
+          // Invalidate chart providers to refresh charts
+          ref.invalidate(weeklyActivityDataProvider);
           ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
-          ref.invalidate(miniTrendDataProvider(TrendMetricType.rangeOfMotion));
-          ref.invalidate(miniTrendDataProvider(TrendMetricType.sessionScore));
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -73,10 +71,8 @@ class DashboardScreen extends ConsumerWidget {
               const _StatsGrid(),
               const SizedBox(height: 24),
 
-              // Range of Motion Trend Chart (F08)
-              const ProgressTrendChart(
-                metricType: TrendMetricType.rangeOfMotion,
-              ),
+              // Weekly Activity (Consistency)
+              const WeeklyActivityChart(),
               const SizedBox(height: 16),
 
               // Session Score Trend Chart (F08)

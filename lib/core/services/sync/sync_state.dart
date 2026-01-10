@@ -19,7 +19,7 @@ enum SyncStatus {
 
 /// State of the sync service.
 @freezed
-class SyncState with _$SyncState {
+abstract class SyncState with _$SyncState {
   const factory SyncState({
     @Default(SyncStatus.idle) SyncStatus status,
     @Default(0) int pendingCount,

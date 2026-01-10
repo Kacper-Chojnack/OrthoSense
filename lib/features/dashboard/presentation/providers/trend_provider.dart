@@ -349,3 +349,84 @@ String _formatDateLabel(DateTime date, TrendPeriod period) {
       return '${date.day}/${date.month}';
   }
 }
+
+enum WeeklyActivityMetric { sessions, minutes }
+
+class WeeklyActivityDay {
+  const WeeklyActivityDay({
+    required this.date,
+    required this.value,
+    required this.label,
+    required this.isToday,
+  });
+
+  final DateTime date;
+  final double value;
+  final String label;
+  final bool isToday;
+}
+
+class SelectedWeeklyActivityMetricNotifier extends Notifier<WeeklyActivityMetric> {
+  @override
+  WeeklyActivityMetric build() => WeeklyActivityMetric.sessions;
+
+  void setMetric(WeeklyActivityMetric metric) {
+    state = metric;
+  }
+}
+
+final selectedWeeklyActivityMetricProvider =
+    NotifierProvider<SelectedWeeklyActivityMetricNotifier, WeeklyActivityMetric>(
+  SelectedWeeklyActivityMetricNotifier.new,
+);
+
+final weeklyActivityDataProvider = FutureProvider<List<WeeklyActivityDay>>((
+  ref,
+) async {
+  final metric = ref.watch(selectedWeeklyActivityMetricProvider);
+  final db = ref.watch(appDatabaseProvider);
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final startDate = today.subtract(const Duration(days: 6));
+
+  final results =
+      await (db.select(db.exerciseResults)
+            ..where((t) => t.performedAt.isBiggerOrEqualValue(startDate))
+            ..orderBy([(t) => OrderingTerm.asc(t.performedAt)]))
+          .get();
+
+  final byDay = <DateTime, double>{
+    for (var i = 0; i < 7; i++)
+      startDate.add(Duration(days: i)): 0,
+  };
+
+  for (final r in results) {
+    final day = DateTime(r.performedAt.year, r.performedAt.month, r.performedAt.day);
+    if (day.isBefore(startDate) || day.isAfter(today)) continue;
+
+    switch (metric) {
+      case WeeklyActivityMetric.sessions:
+        byDay[day] = (byDay[day] ?? 0) + 1;
+      case WeeklyActivityMetric.minutes:
+        byDay[day] = (byDay[day] ?? 0) + (r.durationSeconds / 60.0);
+    }
+  }
+
+  final sortedDays = byDay.keys.toList()..sort();
+  return sortedDays
+      .map(
+        (d) => WeeklyActivityDay(
+          date: d,
+          value: byDay[d] ?? 0,
+          label: _formatEnglishWeekdayShort(d),
+          isToday: d == today,
+        ),
+      )
+      .toList();
+});
+
+String _formatEnglishWeekdayShort(DateTime date) {
+  const en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return en[date.weekday - 1];
+}

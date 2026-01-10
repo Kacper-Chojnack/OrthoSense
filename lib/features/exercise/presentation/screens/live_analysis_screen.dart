@@ -324,10 +324,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     }
 
     ref.invalidate(dashboardStatsProvider);
-    ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
+    ref.invalidate(weeklyActivityDataProvider);
     ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
-    ref.invalidate(miniTrendDataProvider(TrendMetricType.rangeOfMotion));
-    ref.invalidate(miniTrendDataProvider(TrendMetricType.sessionScore));
 
     showModalBottomSheet<void>(
       context: context,

@@ -26,7 +26,7 @@ enum SyncEntityType {
 
 /// Represents an item in the sync queue (Outbox Pattern).
 @freezed
-class SyncItem with _$SyncItem {
+abstract class SyncItem with _$SyncItem {
   const factory SyncItem({
     required String id,
     required SyncEntityType entityType,
