@@ -7,10 +7,35 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart'
     as ml_kit;
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart'
     show PoseLandmark, PoseFrame, PoseLandmarks;
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart' as vt;
+
+class PoseAnalysisCancellationToken {
+  bool _isCancelled = false;
+
+  bool get isCancelled => _isCancelled;
+
+  void cancel() {
+    _isCancelled = true;
+  }
+
+  void throwIfCancelled() {
+    if (_isCancelled) {
+      throw const PoseAnalysisCancelledException();
+    }
+  }
+}
+
+class PoseAnalysisCancelledException implements Exception {
+  const PoseAnalysisCancelledException();
+
+  @override
+  String toString() => 'PoseAnalysisCancelledException';
+}
 
 class PoseDetectionService {
   PoseDetectionService() {
@@ -35,64 +60,173 @@ class PoseDetectionService {
   Future<PoseLandmarks> extractLandmarksFromVideo(
     File videoFile, {
     ValueChanged<double>? onProgress,
+    PoseAnalysisCancellationToken? cancelToken,
   }) async {
-    if (!_isInitialized) _initializeDetector();
+    final runDetector = ml_kit.PoseDetector(
+      options: ml_kit.PoseDetectorOptions(
+        model: ml_kit.PoseDetectionModel.base,
+        mode: ml_kit.PoseDetectionMode.single,
+      ),
+    );
 
     final controller = VideoPlayerController.file(videoFile);
     await controller.initialize();
     final duration = controller.value.duration;
-    final fps = 30.0;
+    const fps = 30.0;
     await controller.dispose();
 
     final frames = <PoseFrame>[];
+    int validFrames = 0;
 
-    final frameSkip = duration.inSeconds > 10 ? 3 : 2;
-    final stepMs = ((1000 / 30) * frameSkip).round();
-    final totalFrames = (duration.inMilliseconds / stepMs).ceil();
-    int processedFrames = 0;
+    final tmpDir = await getTemporaryDirectory();
+    final thumbsDir = Directory(
+      p.join(
+        tmpDir.path,
+        'orthosense_thumbs_${DateTime.now().microsecondsSinceEpoch}',
+      ),
+    );
+    try {
+      await thumbsDir.create(recursive: true);
+    } catch (_) {}
 
-    for (
-      int positionMs = 0;
-      positionMs < duration.inMilliseconds;
-      positionMs += stepMs
-    ) {
-      try {
-        final thumbnailPath = await vt.VideoThumbnail.thumbnailFile(
-          video: videoFile.path,
-          imageFormat: vt.ImageFormat.JPEG,
-          timeMs: positionMs,
-          quality: 50,
-          maxWidth: 480,
-        );
+    const int targetFrameCount = 60;
+    const int minValidFrames = 30;
+    const List<int> retryOffsetsMs = [-100, 100, -200, 200];
+    final int durationMs = duration.inMilliseconds;
 
-        if (thumbnailPath != null) {
-          final thumbnailFile = File(thumbnailPath);
-          if (await thumbnailFile.exists()) {
-            final landmarks = await _detectPoseFromFile(thumbnailFile);
-            if (landmarks != null) {
-              frames.add(landmarks);
+    cancelToken?.throwIfCancelled();
+
+    try {
+      for (int frameIdx = 0; frameIdx < targetFrameCount; frameIdx++) {
+        int positionMs = 0;
+        try {
+          cancelToken?.throwIfCancelled();
+
+          positionMs = targetFrameCount <= 1
+              ? 0
+              : ((frameIdx / (targetFrameCount - 1)) * durationMs)
+                  .round()
+                  .clamp(0, durationMs);
+
+          final thumbnailPath = await vt.VideoThumbnail.thumbnailFile(
+            video: videoFile.path,
+            thumbnailPath: thumbsDir.path,
+            imageFormat: vt.ImageFormat.PNG,
+            timeMs: positionMs,
+            quality: 100,
+            maxWidth: 480,
+            maxHeight: 480,
+          );
+
+          if (thumbnailPath != null) {
+            cancelToken?.throwIfCancelled();
+
+            final thumbnailFile = File(thumbnailPath);
+            if (await thumbnailFile.exists()) {
+              if (frameIdx < 3) {
+                int? thumbBytes;
+                try {
+                  thumbBytes = await thumbnailFile.length();
+                } catch (_) {}
+              }
+
+              cancelToken?.throwIfCancelled();
+              PoseFrame? landmarks = await _detectPoseFromFile(
+                thumbnailFile,
+                detector: runDetector,
+              );
+              bool accepted =
+                  landmarks != null && checkPoseVisibility(landmarks);
+
+              if (!accepted) {
+                for (final offsetMs in retryOffsetsMs) {
+                  cancelToken?.throwIfCancelled();
+                  final retryMs =
+                      (positionMs + offsetMs).clamp(0, durationMs);
+                  final retryPath = await vt.VideoThumbnail.thumbnailFile(
+                    video: videoFile.path,
+                    thumbnailPath: thumbsDir.path,
+                    imageFormat: vt.ImageFormat.PNG,
+                    timeMs: retryMs,
+                    quality: 100,
+                    maxWidth: 480,
+                    maxHeight: 480,
+                  );
+                  if (retryPath == null) continue;
+
+                  final retryFile = File(retryPath);
+                  try {
+                    if (await retryFile.exists()) {
+                      final retryLandmarks = await _detectPoseFromFile(
+                        retryFile,
+                        detector: runDetector,
+                      );
+                      if (retryLandmarks != null &&
+                          checkPoseVisibility(retryLandmarks)) {
+                        landmarks = retryLandmarks;
+                        accepted = true;
+                        break;
+                      }
+                    }
+                  } finally {
+                    try {
+                      await retryFile.delete();
+                    } catch (_) {}
+                  }
+                }
+              }
+              if (accepted && landmarks != null) {
+                frames.add(landmarks);
+                validFrames++;
+              } else if (frames.isNotEmpty) {
+                frames.add(frames.last);
+              } else {
+                frames.add(
+                  PoseFrame(
+                    landmarks: List<PoseLandmark>.generate(
+                      33,
+                      (_) => const PoseLandmark(x: 0, y: 0, z: 0),
+                    ),
+                  ),
+                );
+              }
+              try {
+                await thumbnailFile.delete();
+              } catch (_) {}
             }
-            try {
-              await thumbnailFile.delete();
-            } catch (_) {}
           }
-        }
 
-        processedFrames++;
-        final progress = (processedFrames / totalFrames).clamp(0.0, 1.0);
-        onProgress?.call(progress);
-      } catch (e) {
-        debugPrint('Error processing frame at ${positionMs}ms: $e');
+          final progress = ((frameIdx + 1) / targetFrameCount).clamp(0.0, 1.0);
+          cancelToken?.throwIfCancelled();
+          onProgress?.call(progress);
+        } catch (e) {
+          if (e is PoseAnalysisCancelledException) rethrow;
+        }
       }
+    } finally {
+      await runDetector.close();
+      try {
+        if (await thumbsDir.exists()) {
+          await thumbsDir.delete(recursive: true);
+        }
+      } catch (_) {}
     }
 
-    if (frames.isEmpty) throw Exception('No pose detected in video');
+    if (validFrames < minValidFrames) {
+      throw Exception(
+        'Insufficient pose frames detected: $validFrames/$targetFrameCount (need >= $minValidFrames)',
+      );
+    }
 
     return PoseLandmarks(frames: frames, fps: fps);
   }
 
-  Future<PoseFrame?> _detectPoseFromFile(File imageFile) async {
-    if (_detector == null) return null;
+  Future<PoseFrame?> _detectPoseFromFile(
+    File imageFile, {
+    ml_kit.PoseDetector? detector,
+  }) async {
+    final activeDetector = detector ?? _detector;
+    if (activeDetector == null) return null;
 
     try {
       final bytes = await imageFile.readAsBytes();
@@ -102,7 +236,7 @@ class PoseDetectionService {
       image.dispose();
 
       final inputImage = ml_kit.InputImage.fromFilePath(imageFile.path);
-      final poses = await _detector!.processImage(inputImage);
+      final poses = await activeDetector.processImage(inputImage);
       if (poses.isEmpty) return null;
 
       if (width > height) {
@@ -201,7 +335,7 @@ class PoseDetectionService {
     for (var idx in requiredIndices) {
       if (idx < frame.landmarks.length) {
         final p = frame.landmarks[idx];
-        if (p.x != 0 && p.y != 0) {
+        if (p.x > 0.05 && p.x < 0.95 && p.y > 0.05 && p.y < 0.95) {
           visibleCount++;
         }
       }
@@ -217,6 +351,14 @@ class PoseDetectionService {
   ) {
     final landmarks = <PoseLandmark>[];
     final mlKitLandmarks = pose.landmarks;
+
+    void swap(int a, int b) {
+      if (a < 0 || b < 0) return;
+      if (a >= landmarks.length || b >= landmarks.length) return;
+      final tmp = landmarks[a];
+      landmarks[a] = landmarks[b];
+      landmarks[b] = tmp;
+    }
 
     PoseLandmark? getLandmark(ml_kit.PoseLandmarkType type) {
       final mlKitLandmark = mlKitLandmarks[type];
@@ -379,6 +521,31 @@ class PoseDetectionService {
       getLandmark(ml_kit.PoseLandmarkType.rightFootIndex) ??
           PoseLandmark(x: 0, y: 0, z: 0),
     );
+
+    // Front camera previews are typically mirrored; many pipelines end up with
+    // left/right semantics flipped relative to the user. Swap paired landmarks
+    // so "LEFT/RIGHT" variants match the user's body side.
+    if (isFrontCamera && landmarks.length == 33) {
+      // Eyes
+      swap(1, 4);
+      swap(2, 5);
+      swap(3, 6);
+      // Ears
+      swap(7, 8);
+      // Shoulders/arms
+      swap(11, 12);
+      swap(13, 14);
+      swap(15, 16);
+      swap(17, 18);
+      swap(19, 20);
+      swap(21, 22);
+      // Hips/legs/feet
+      swap(23, 24);
+      swap(25, 26);
+      swap(27, 28);
+      swap(29, 30);
+      swap(31, 32);
+    }
 
     return landmarks;
   }

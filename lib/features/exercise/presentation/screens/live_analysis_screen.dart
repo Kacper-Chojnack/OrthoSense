@@ -42,6 +42,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   AnalysisPhase _currentPhase = AnalysisPhase.idle;
   Timer? _phaseTimer;
   bool _isStreaming = false;
+  int _liveAnalysisRunId = 0;
+  bool _isStoppingAnalysis = false;
 
   final List<PoseFrame> _rawBuffer = [];
   static const _windowSize = 60;
@@ -53,6 +55,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   String? _detectedVariant;
   String? _currentFeedback;
   bool _hasError = false;
+  String? _lastSpokenFeedback;
+  DateTime? _lastSpokenAt;
+  static const Duration _feedbackTtsCooldown = Duration(seconds: 3);
 
   DateTime? _lastFrameProcessTime;
   static const _frameProcessingInterval = Duration(milliseconds: 66);
@@ -70,13 +75,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   int _totalAnalysisFrames = 0;
   int _correctFrames = 0;
 
-  // Animation controllers
   late AnimationController _feedbackAnimationController;
   late AnimationController _pulseController;
   late Animation<double> _feedbackScaleAnimation;
   late Animation<double> _pulseAnimation;
 
-  // Session timer
   DateTime? _sessionStartTime;
   Timer? _sessionTimer;
   Duration _sessionDuration = Duration.zero;
@@ -181,6 +184,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   void _startAnalysis() {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
+    _liveAnalysisRunId++;
+
     setState(() {
       _currentPhase = AnalysisPhase.setup;
       _rawBuffer.clear();
@@ -238,8 +243,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     });
   }
 
-  void _finishAndShowReport() {
-    _stopAnalysis();
+  Future<void> _finishAndShowReport() async {
+    await _stopAnalysisAsync();
 
     final tts = ref.read(ttsServiceProvider);
     tts.speak('Analysis complete. Great job!');
@@ -279,10 +284,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       feedback: finalFeedback,
     );
 
-    // Calculate score based on correct ratio
     final score = (correctRatio * 100).round().clamp(0, 100);
 
-    // Save result to Drift database (async, non-blocking)
     _saveAnalysisResultToDb(score, isSessionCorrect);
 
     _showResultsDialog(finalResult);
@@ -320,7 +323,6 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       isSuccess = result.isCorrect;
     }
 
-    // Invalidate dashboard stats and trend providers to refresh after new result
     ref.invalidate(dashboardStatsProvider);
     ref.invalidate(trendDataProvider(TrendMetricType.rangeOfMotion));
     ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
@@ -455,9 +457,12 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   Future<void> _performClassification() async {
+    final runId = _liveAnalysisRunId;
     debugPrint(
       '[Classification] Starting classification with ${_calibrationVotes.length} votes',
     );
+
+    if (_isStoppingAnalysis || runId != _liveAnalysisRunId) return;
 
     if (_calibrationVotes.isEmpty) {
       _handleError('Unable to detect exercise, please try again');
@@ -491,7 +496,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       return;
     }
 
-    if (mounted) {
+    if (mounted && !_isStoppingAnalysis && runId == _liveAnalysisRunId) {
       setState(() {
         _detectedExercise = winnerExercise;
         _currentPhase = AnalysisPhase.calibrationVariant;
@@ -507,6 +512,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   Future<void> _performVariantDetection() async {
+    final runId = _liveAnalysisRunId;
+    if (_isStoppingAnalysis || runId != _liveAnalysisRunId) return;
     if (_detectedExercise == null) {
       _handleError('Unable to detect exercise, please try again');
       return;
@@ -538,7 +545,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         skeletonData,
       );
 
-      if (mounted) {
+      if (mounted && !_isStoppingAnalysis && runId == _liveAnalysisRunId) {
         setState(() {
           _detectedVariant = variant;
           _currentPhase = AnalysisPhase.analyzing;
@@ -587,6 +594,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   Future<void> _processCameraFrame(CameraImage image) async {
+    final runId = _liveAnalysisRunId;
     final now = DateTime.now();
     if (_lastFrameProcessTime != null &&
         now.difference(_lastFrameProcessTime!) < _frameProcessingInterval) {
@@ -595,6 +603,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     _lastFrameProcessTime = now;
 
     if (_controller == null) return;
+    if (_isStoppingAnalysis || runId != _liveAnalysisRunId) return;
+    if (!_isStreaming) return;
 
     try {
       final poseService = ref.read(poseDetectionServiceProvider);
@@ -602,6 +612,9 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         image,
         _controller!.description,
       );
+
+      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId) return;
+      if (!_isStreaming) return;
 
       if (poseFrame == null) return;
 
@@ -618,6 +631,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
       }
 
       if (!mounted) return;
+      if (_isStoppingAnalysis || runId != _liveAnalysisRunId) return;
+      if (!_isStreaming) return;
 
       final isVisible = poseService.checkPoseVisibility(poseFrame);
 
@@ -670,16 +685,38 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   void _updateFeedback(String? feedback, {required bool isError}) {
+    if (!mounted) return;
+    if (_isStoppingAnalysis) return;
     if (_currentFeedback != feedback) {
       setState(() {
         _currentFeedback = feedback;
         _hasError = isError;
       });
       _feedbackAnimationController.forward(from: 0);
+
+      if (_currentPhase == AnalysisPhase.analyzing &&
+          isError &&
+          feedback != null) {
+        final msg = feedback.trim();
+        if (msg.isNotEmpty && msg != _lastSpokenFeedback) {
+          final now = DateTime.now();
+          final last = _lastSpokenAt;
+          final okByTime =
+              last == null || now.difference(last) >= _feedbackTtsCooldown;
+          if (okByTime) {
+            _lastSpokenFeedback = msg;
+            _lastSpokenAt = now;
+            final tts = ref.read(ttsServiceProvider);
+            unawaited(tts.enqueue(msg));
+          }
+        }
+      }
     }
   }
 
   Future<void> _analyzeCalibrationFrame() async {
+    final runId = _liveAnalysisRunId;
+    if (_isStoppingAnalysis || runId != _liveAnalysisRunId) return;
     if (_rawBuffer.length < 60) return;
 
     try {
@@ -701,6 +738,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
       final landmarks = PoseLandmarks(frames: validFrames, fps: 30.0);
       final classification = await classifier.classify(landmarks);
+      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId) return;
 
       final exName = classification.exercise;
       if (exName != 'Unknown Exercise' &&
@@ -778,29 +816,43 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
   }
 
   void _stopAnalysis() {
-    _phaseTimer?.cancel();
-    _phaseTimer = null;
-    _sessionTimer?.cancel();
-    _sessionTimer = null;
-    _pulseController.stop();
+    unawaited(_stopAnalysisAsync());
+  }
 
-    // Only stop image stream if actually streaming
-    if (_isStreaming &&
-        _controller != null &&
-        _controller!.value.isInitialized) {
-      try {
-        _controller!.stopImageStream();
-      } catch (e) {
-        debugPrint('Error stopping image stream: $e');
+  Future<void> _stopAnalysisAsync() async {
+    if (_isStoppingAnalysis) return;
+    _isStoppingAnalysis = true;
+
+    try {
+      _liveAnalysisRunId++;
+
+      _phaseTimer?.cancel();
+      _phaseTimer = null;
+      _sessionTimer?.cancel();
+      _sessionTimer = null;
+      _pulseController.stop();
+
+      if (_controller != null && _controller!.value.isInitialized) {
+        final isStreamingImages = _controller!.value.isStreamingImages;
+        if (isStreamingImages) {
+          try {
+            await _controller!.stopImageStream();
+          } catch (e) {
+            debugPrint('Error stopping image stream: $e');
+          }
+        }
+        _isStreaming = false;
       }
-      _isStreaming = false;
-    }
 
-    // Don't call setState if already disposed
-    if (mounted) {
-      setState(() {
-        _debugPose = null;
-      });
+      if (mounted) {
+        setState(() {
+          _debugPose = null;
+        });
+      }
+    } catch (e) {
+      debugPrint('[LiveAnalysis] stop failed: $e');
+    } finally {
+      _isStoppingAnalysis = false;
     }
   }
 
@@ -849,58 +901,78 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    Widget wrapWithStopOnPop(Widget child) {
+      return PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) {
+          if (didPop) return;
+          unawaited(() async {
+            await _stopAnalysisAsync();
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          }());
+        },
+        child: child,
+      );
+    }
+
     if (!_isInitialized || _controller == null) {
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(
-                color: colorScheme.primary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Initializing Camera...',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+      return wrapWithStopOnPop(
+        Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: colorScheme.primary,
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Text(
+                  'Initializing Camera...',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Camera preview
-          _buildCameraPreview(),
+    return wrapWithStopOnPop(
+      Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Camera preview
+            _buildCameraPreview(),
 
-          // Gradient overlays
-          _buildGradientOverlays(),
+            // Gradient overlays
+            _buildGradientOverlays(),
 
-          // Top status bar
-          _buildTopBar(theme, colorScheme),
+            // Top status bar
+            _buildTopBar(theme, colorScheme),
 
-          // Feedback indicator
-          if (_currentFeedback != null &&
-              _currentPhase == AnalysisPhase.analyzing)
-            _buildFeedbackIndicator(theme, colorScheme),
+            // Feedback indicator
+            if (_currentFeedback != null &&
+                _currentPhase == AnalysisPhase.analyzing)
+              _buildFeedbackIndicator(theme, colorScheme),
 
-          // Bottom controls
-          _buildBottomControls(theme, colorScheme),
+            // Bottom controls
+            _buildBottomControls(theme, colorScheme),
 
-          // Countdown overlay
-          if (_currentPhase == AnalysisPhase.countdown)
-            CountdownOverlay(
-              onComplete: _onCountdownComplete,
-              onCountdown: _onCountdownTick,
-            ),
-        ],
+            // Countdown overlay
+            if (_currentPhase == AnalysisPhase.countdown)
+              CountdownOverlay(
+                onComplete: _onCountdownComplete,
+                onCountdown: _onCountdownTick,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1212,7 +1284,7 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
   Widget _buildStopButton(ColorScheme colorScheme) {
     return GestureDetector(
-      onTap: _finishAndShowReport,
+      onTap: () => unawaited(_finishAndShowReport()),
       child: Container(
         width: 80,
         height: 80,

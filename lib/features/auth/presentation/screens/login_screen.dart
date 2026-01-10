@@ -93,7 +93,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 5),
           ),
-          ),
         );
       }
     });

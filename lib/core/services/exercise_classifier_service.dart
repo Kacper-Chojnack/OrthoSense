@@ -1,3 +1,4 @@
+import 'dart:async' show FutureOr;
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -20,6 +21,8 @@ class ExerciseClassifierService {
 
   Interpreter? _interpreter;
   bool _isModelLoaded = false;
+  Future<void> _inferenceQueue = Future.value();
+  bool _isDisposing = false;
 
   static const Map<int, String> _exerciseLabels = {
     0: 'Deep Squat',
@@ -45,7 +48,8 @@ class ExerciseClassifierService {
 
     try {
       final modelPath = 'assets/models/exercise_classifier.tflite';
-      _interpreter = await Interpreter.fromAsset(modelPath);
+      final options = InterpreterOptions()..threads = 1;
+      _interpreter = await Interpreter.fromAsset(modelPath, options: options);
       _isModelLoaded = true;
     } catch (e) {
       debugPrint('Failed to load TFLite model: $e');
@@ -102,9 +106,50 @@ class ExerciseClassifierService {
       }
     }
 
-    List<List<List<double>>> interpolatedData = data;
-    if (T != _modelSequenceLength) {
-      interpolatedData = _interpolateFrames(data, T, _modelSequenceLength);
+    const eps = 1e-6;
+    double scaleSum = 0.0;
+    int scaleCount = 0;
+    for (var t = 0; t < T; t++) {
+      final shoulderCx = (data[t][11][0] + data[t][12][0]) / 2.0;
+      final shoulderCy = (data[t][11][1] + data[t][12][1]) / 2.0;
+      final shoulderCz = (data[t][11][2] + data[t][12][2]) / 2.0;
+      final torso = math.sqrt(
+        (shoulderCx * shoulderCx) +
+            (shoulderCy * shoulderCy) +
+            (shoulderCz * shoulderCz),
+      );
+      if (torso.isFinite && torso > eps) {
+        scaleSum += torso;
+        scaleCount++;
+      }
+    }
+    final scale = scaleCount > 0 ? (scaleSum / scaleCount) : 1.0;
+    final safeScale = scale.abs() < eps ? 1.0 : scale;
+    for (var t = 0; t < T; t++) {
+      for (var v = 0; v < _numJoints; v++) {
+        for (var c = 0; c < _numChannels; c++) {
+          data[t][v][c] = data[t][v][c] / safeScale;
+        }
+      }
+    }
+
+    List<List<List<double>>> sequenceData;
+    String resizeMode;
+    if (T == _modelSequenceLength) {
+      sequenceData = data;
+      resizeMode = 'none';
+    } else if (T > _modelSequenceLength) {
+      sequenceData = List.generate(
+        _modelSequenceLength,
+        (i) {
+          final src = ((i * (T - 1)) / (_modelSequenceLength - 1)).round();
+          return data[src.clamp(0, T - 1)];
+        },
+      );
+      resizeMode = 'downsample';
+    } else {
+      sequenceData = _interpolateFrames(data, T, _modelSequenceLength);
+      resizeMode = 'interpolate';
     }
 
     List<List<double>> sequence = [];
@@ -113,7 +158,7 @@ class ExerciseClassifierService {
       List<double> frameFeatures = [];
       for (var v = 0; v < _numJoints; v++) {
         for (var c = 0; c < _numChannels; c++) {
-          frameFeatures.add(interpolatedData[t][v][c]);
+          frameFeatures.add(sequenceData[t][v][c]);
         }
       }
       sequence.add(frameFeatures);
@@ -182,7 +227,22 @@ class ExerciseClassifierService {
     return List<double>.from(expLogits.map((x) => x / sumExp));
   }
 
-  Future<ExerciseClassification> classify(PoseLandmarks landmarks) async {
+  Future<T> _runInferenceLocked<T>(FutureOr<T> Function() fn) {
+    final future = _inferenceQueue
+        .catchError((_) {})
+        .then((_) => Future<T>.sync(fn));
+    _inferenceQueue = future.then((_) {}, onError: (_) {});
+    return future;
+  }
+
+  Future<ExerciseClassification> classify(
+    PoseLandmarks landmarks, {
+    String? debugRunId,
+    String? debugVideoPath,
+  }) async {
+    if (_isDisposing) {
+      throw StateError('Classifier is disposing.');
+    }
     if (!isModelLoaded) {
       await _loadModel();
       if (!isModelLoaded) {
@@ -197,7 +257,36 @@ class ExerciseClassifierService {
     try {
       final input = _preprocessLandmarks(landmarks);
       var output = List.generate(1, (index) => List.filled(_numClasses, 0.0));
-      _interpreter!.run(input, output);
+      await _runInferenceLocked(() async {
+        if (_isDisposing) {
+          throw StateError('Classifier is disposing.');
+        }
+        final interpreter = _interpreter;
+        if (interpreter == null) {
+          throw StateError('TFLite interpreter is not available.');
+        }
+
+        try {
+          interpreter.resetVariableTensors();
+          interpreter.run(input, output);
+        } catch (e) {
+          try {
+            _interpreter?.close();
+          } catch (_) {}
+          _interpreter = null;
+          _isModelLoaded = false;
+
+          await _loadModel();
+          final retryInterpreter = _interpreter;
+          if (retryInterpreter == null) {
+            throw StateError('Failed to recreate TFLite interpreter.');
+          }
+          try {
+            retryInterpreter.resetVariableTensors();
+          } catch (_) {}
+          retryInterpreter.run(input, output);
+        }
+      });
 
       final rawOutput = output[0];
       final sum = rawOutput.fold(0.0, (a, b) => a + b);
@@ -231,8 +320,15 @@ class ExerciseClassifierService {
   }
 
   Future<void> dispose() async {
-    _interpreter?.close();
-    _interpreter = null;
-    _isModelLoaded = false;
+    if (_isDisposing) return;
+    _isDisposing = true;
+
+    await _runInferenceLocked(() async {
+      try {
+        _interpreter?.close();
+      } catch (_) {}
+      _interpreter = null;
+      _isModelLoaded = false;
+    }).catchError((_) {});
   }
 }

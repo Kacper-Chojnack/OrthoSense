@@ -1,10 +1,16 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:orthosense/core/providers/exercise_classifier_provider.dart';
 import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/providers/pose_detection_provider.dart';
+import 'package:orthosense/core/services/pose_detection_service.dart'
+    show PoseAnalysisCancelledException, PoseAnalysisCancellationToken;
 import 'package:orthosense/core/theme/app_colors.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:video_player/video_player.dart';
@@ -19,6 +25,7 @@ class GalleryAnalysisScreen extends ConsumerStatefulWidget {
 
 class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
   File? _selectedVideo;
+  File? _selectedVideoTempCopy;
   VideoPlayerController? _videoController;
   bool _isAnalyzing = false;
   bool _isExtractingLandmarks = false;
@@ -26,27 +33,70 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
   String? _error;
   double _extractionProgress = 0;
   PoseLandmarks? _extractedLandmarks;
+  int _analysisRunId = 0;
+  PoseAnalysisCancellationToken? _analysisCancelToken;
 
   @override
   void dispose() {
+    _cancelCurrentAnalysis(resetUi: false);
     _videoController?.dispose();
+    _deleteTempCopyIfAny();
     super.dispose();
   }
 
+  void _deleteTempCopyIfAny() {
+    final file = _selectedVideoTempCopy;
+    _selectedVideoTempCopy = null;
+    if (file == null) return;
+    try {
+      unawaited(file.delete());
+    } catch (_) {}
+  }
+
+  void _cancelCurrentAnalysis({required bool resetUi}) {
+    _analysisCancelToken?.cancel();
+    _analysisCancelToken = null;
+    _analysisRunId++;
+
+    if (resetUi && mounted) {
+      setState(() {
+        _isAnalyzing = false;
+        _isExtractingLandmarks = false;
+      });
+    }
+  }
+
   Future<void> _pickVideo() async {
+    _cancelCurrentAnalysis(resetUi: true);
     final picker = ImagePicker();
     final video = await picker.pickVideo(source: ImageSource.gallery);
 
     if (video != null) {
       await _videoController?.dispose();
+      _deleteTempCopyIfAny();
 
-      final file = File(video.path);
-      final controller = VideoPlayerController.file(file);
+      final original = File(video.path);
+      File fileToUse = original;
+
+      try {
+        final tmpDir = await getTemporaryDirectory();
+        final ext = p.extension(video.path);
+        final tmpPath = p.join(
+          tmpDir.path,
+          'orthosense_gallery_${DateTime.now().microsecondsSinceEpoch}$ext',
+        );
+        fileToUse = await original.copy(tmpPath);
+        _selectedVideoTempCopy = fileToUse;
+      } catch (e) {
+        fileToUse = original;
+      }
+
+      final controller = VideoPlayerController.file(fileToUse);
 
       await controller.initialize();
 
       setState(() {
-        _selectedVideo = file;
+        _selectedVideo = fileToUse;
         _videoController = controller;
         _result = null;
         _error = null;
@@ -58,6 +108,12 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
 
   Future<void> _analyzeVideo() async {
     if (_selectedVideo == null) return;
+
+    _cancelCurrentAnalysis(resetUi: false);
+    final runId = _analysisRunId;
+    final cancelToken = PoseAnalysisCancellationToken();
+    _analysisCancelToken = cancelToken;
+    final videoToAnalyze = _selectedVideo!;
 
     setState(() {
       _isAnalyzing = true;
@@ -72,8 +128,10 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       final poseService = ref.read(poseDetectionServiceProvider);
 
       final landmarks = await poseService.extractLandmarksFromVideo(
-        _selectedVideo!,
+        videoToAnalyze,
+        cancelToken: cancelToken,
         onProgress: (progress) {
+          if (!mounted || runId != _analysisRunId) return;
           if (mounted) {
             setState(() {
               _extractionProgress = progress;
@@ -82,8 +140,10 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         },
       );
 
+      if (!mounted || runId != _analysisRunId) return;
+
       if (landmarks.isEmpty) {
-        if (mounted) {
+        if (mounted && runId == _analysisRunId) {
           setState(() {
             _error = 'No pose detected in the video or video is too short.';
             _isAnalyzing = false;
@@ -93,31 +153,14 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         return;
       }
 
-      final validFrames = <PoseFrame>[];
+      int visibleCount = 0;
       for (final frame in landmarks.frames) {
-        if (poseService.checkPoseVisibility(frame)) {
-          validFrames.add(frame);
-        }
+        if (poseService.checkPoseVisibility(frame)) visibleCount++;
       }
 
-      if (validFrames.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _error =
-                'Insufficient body visibility detected. Please ensure your full body is visible in the video.';
-            _isAnalyzing = false;
-            _isExtractingLandmarks = false;
-          });
-        }
-        return;
-      }
+      final validLandmarks = landmarks;
 
-      final validLandmarks = PoseLandmarks(
-        frames: validFrames,
-        fps: landmarks.fps,
-      );
-
-      if (mounted) {
+      if (mounted && runId == _analysisRunId) {
         setState(() {
           _isExtractingLandmarks = false;
           _extractedLandmarks = validLandmarks;
@@ -125,7 +168,11 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       }
 
       final classifier = ref.read(exerciseClassifierServiceProvider);
-      final classification = await classifier.classify(validLandmarks);
+      final classification = await classifier.classify(
+        validLandmarks,
+      );
+
+      if (!mounted || runId != _analysisRunId) return;
 
       final diagnostics = ref.read(movementDiagnosticsServiceProvider);
       final diagnosticsResult = diagnostics.diagnose(
@@ -138,7 +185,7 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         classification.exercise,
       );
 
-      if (mounted) {
+      if (mounted && runId == _analysisRunId) {
         setState(() {
           _result = {
             'exercise': classification.exercise,
@@ -150,13 +197,22 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         });
       }
     } catch (e) {
+      if (e is PoseAnalysisCancelledException) {
+        return;
+      }
       if (mounted) {
         setState(() {
-          _error = 'Analysis failed: $e';
+          final msg = e.toString();
+          if (msg.contains('Insufficient pose frames detected')) {
+            _error =
+                'Insufficient body visibility detected. Please ensure your full body is visible in the video.';
+          } else {
+            _error = 'Analysis failed: $e';
+          }
         });
       }
     } finally {
-      if (mounted) {
+      if (mounted && runId == _analysisRunId) {
         setState(() {
           _isAnalyzing = false;
           _isExtractingLandmarks = false;
@@ -166,7 +222,9 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
   }
 
   void _clearSelection() {
+    _cancelCurrentAnalysis(resetUi: true);
     _videoController?.dispose();
+    _deleteTempCopyIfAny();
     setState(() {
       _selectedVideo = null;
       _videoController = null;
