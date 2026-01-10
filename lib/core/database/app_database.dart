@@ -136,6 +136,13 @@ class AppDatabase extends _$AppDatabase {
     await into(exerciseResults).insert(result);
   }
 
+  /// Update an exercise result.
+  Future<void> updateExerciseResult(ExerciseResultsCompanion result) async {
+    await (update(
+      exerciseResults,
+    )..where((t) => t.id.equals(result.id.value))).write(result);
+  }
+
   /// Get exercise result by ID.
   Future<ExerciseResult?> getExerciseResult(String id) async {
     return (select(

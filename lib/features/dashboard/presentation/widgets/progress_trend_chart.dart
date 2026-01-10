@@ -318,22 +318,39 @@ class _LineChart extends StatelessWidget {
       return FlSpot(entry.key.toDouble(), entry.value.value);
     }).toList();
 
-    // Calculate y-axis bounds with padding
+    // Calculate y-axis bounds based on metric type
     final values = data.dataPoints.map((p) => p.value).toList();
-    final minY = (values.reduce((a, b) => a < b ? a : b) * 0.9).floorToDouble();
-    final maxY = (values.reduce((a, b) => a > b ? a : b) * 1.1).ceilToDouble();
+    final dataMin = values.reduce((a, b) => a < b ? a : b);
+    final dataMax = values.reduce((a, b) => a > b ? a : b);
+
+    // Use sensible bounds based on metric type
+    final double minY;
+    final double maxY;
+
+    if (dataMax - dataMin < 5 || dataMax < 10) {
+      // Not enough variance or low values - use full metric range
+      minY = 0;
+      maxY = data.metricType.maxValue;
+    } else {
+      // Enough data variance - use data-driven bounds with padding
+      minY = (dataMin * 0.8).floorToDouble().clamp(0, double.infinity);
+      maxY = (dataMax * 1.2).ceilToDouble().clamp(0, data.metricType.maxValue);
+    }
+
+    final yRange = maxY - minY;
+    final horizontalInterval = yRange > 0 ? yRange / 4 : 25.0;
 
     return LineChart(
       LineChartData(
         gridData: FlGridData(
-          horizontalInterval: (maxY - minY) / 4,
+          horizontalInterval: horizontalInterval,
           getDrawingHorizontalLine: (value) => FlLine(
             color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             strokeWidth: 1,
           ),
           drawVerticalLine: false,
         ),
-        titlesData: _buildTitlesData(context, minY, maxY),
+        titlesData: _buildTitlesData(context, minY, maxY, horizontalInterval),
         borderData: FlBorderData(show: false),
         minX: 0,
         maxX: (data.dataPoints.length - 1).toDouble(),
@@ -384,13 +401,14 @@ class _LineChart extends StatelessWidget {
     BuildContext context,
     double minY,
     double maxY,
+    double yInterval,
   ) {
     return FlTitlesData(
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 40,
-          interval: (maxY - minY) / 4,
+          interval: yInterval,
           getTitlesWidget: (value, meta) {
             return Text(
               '${value.toInt()}${data.metricType.unit}',

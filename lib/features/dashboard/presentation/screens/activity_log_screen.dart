@@ -687,7 +687,6 @@ class _SessionDetailsSheet extends StatelessWidget {
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
-                                  fontStyle: FontStyle.italic,
                                 ),
                           ),
                         ],

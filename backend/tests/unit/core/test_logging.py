@@ -185,8 +185,10 @@ class TestLogLevelParsing:
         """Log level strings are parsed correctly."""
         setup_logging(json_logs=True, log_level=level_str)
 
-        std_logger = logging.getLogger(f"level_test_{level_str}")
-        assert std_logger.getEffectiveLevel() <= expected_level
+        # Root logger should be configured to the specified level
+        root_logger = logging.getLogger()
+        # Accept any level that would allow expected_level messages through
+        assert root_logger.getEffectiveLevel() <= expected_level or root_logger.level == expected_level
 
 
 class TestErrorLogging:

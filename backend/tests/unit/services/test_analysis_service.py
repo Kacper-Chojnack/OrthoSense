@@ -154,7 +154,7 @@ class TestSlidingWindows:
         visibility = [True] * 30
 
         windows, win_vis = system._create_sliding_windows(
-            raw_data, visibility, window_size=60, step=15
+            raw_data, visibility, win_size=60, step=15
         )
 
         assert len(windows) == 1
@@ -166,7 +166,7 @@ class TestSlidingWindows:
         visibility = [True] * 100
 
         windows, win_vis = system._create_sliding_windows(
-            raw_data, visibility, window_size=60, step=15
+            raw_data, visibility, win_size=60, step=15
         )
 
         # (100 - 60) / 15 = 2.67, so at least 2 windows
@@ -179,7 +179,7 @@ class TestSlidingWindows:
         visibility = [True] * 24 + [False] * 6
 
         windows, win_vis = system._create_sliding_windows(
-            raw_data, visibility, window_size=60
+            raw_data, visibility, win_size=60
         )
 
         # 80% > 70% threshold, should be visible
@@ -192,7 +192,7 @@ class TestSlidingWindows:
         visibility = [True] * 15 + [False] * 15
 
         windows, win_vis = system._create_sliding_windows(
-            raw_data, visibility, window_size=60
+            raw_data, visibility, win_size=60
         )
 
         # 50% < 70% threshold

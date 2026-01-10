@@ -66,12 +66,8 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // Stats Overview
-              _SectionHeader(
+              const _SectionHeader(
                 title: 'Your Progress',
-                action: TextButton(
-                  onPressed: () => _openActivityLog(context),
-                  child: const Text('See All'),
-                ),
               ),
               const SizedBox(height: 12),
               const _StatsGrid(),
@@ -195,9 +191,7 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = (user?.fullName.isNotEmpty ?? false)
-        ? user!.fullName
-        : (user?.email.split('@').first ?? 'User');
+    final displayName = user?.email.split('@').first ?? 'User';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,7 +416,6 @@ class _RecentSessionsList extends ConsumerWidget {
                   title: result.exerciseName,
                   subtitle: _formatDate(result.performedAt),
                   score: result.score ?? 0,
-                  isPending: result.syncStatus == 'pending',
                 ),
               )
               .toList(),
@@ -484,13 +477,11 @@ class _RecentSessionTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.score,
-    required this.isPending,
   });
 
   final String title;
   final String subtitle;
   final int score;
-  final bool isPending;
 
   @override
   Widget build(BuildContext context) {
@@ -516,22 +507,24 @@ class _RecentSessionTile extends StatelessWidget {
         ),
         title: Text(title),
         subtitle: Text(subtitle),
-        trailing: isPending
-            ? Tooltip(
-                message: 'Pending sync',
-                child: Image.asset(
-                  _kLogoAssetPath,
-                  height: 20,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              )
-            : Image.asset(
-                _kLogoAssetPath,
-                height: 24,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+        trailing: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.directions_run,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
         onTap: () {
-          // TODO(user): Open session details
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const ActivityLogScreen(),
+            ),
+          );
         },
       ),
     );

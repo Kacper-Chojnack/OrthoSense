@@ -421,7 +421,7 @@ class ReportExportService {
           dateFormat.format(s.date),
           s.exerciseName,
           '${s.score}',
-          if (s.isCorrect) '✓' else '✗',
+          if (s.isCorrect) 'Pass' else 'Fail',
         ];
       }).toList(),
     );
