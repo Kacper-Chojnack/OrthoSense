@@ -34,7 +34,13 @@ jobs:
         run: flutter pub get
 
       - name: Verify Formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: |
+          find . -name "*.dart" \
+            ! -name "*.g.dart" \
+            ! -name "*.freezed.dart" \
+            ! -path "./build/*" \
+            ! -path "./.dart_tool/*" \
+            -print0 | xargs -0 dart format --output=none --set-exit-if-changed
 
       - name: Analyze Code
         run: flutter analyze --no-fatal-infos --no-fatal-warnings

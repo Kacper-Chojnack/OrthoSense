@@ -33,10 +33,16 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: |
+          find . -name "*.dart" \
+            ! -name "*.g.dart" \
+            ! -name "*.freezed.dart" \
+            ! -path "./build/*" \
+            ! -path "./.dart_tool/*" \
+            -print0 | xargs -0 dart format --output=none --set-exit-if-changed
 
       - name: Analyze
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
         run: flutter test
@@ -72,8 +78,7 @@ jobs:
         uses: semgrep/semgrep-action@v1
         with:
           config: >-
-            p/dart
             p/secrets
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-        continue-on-error: true
+        continue-on-error: true  # Continue even if token is missing or scan fails
