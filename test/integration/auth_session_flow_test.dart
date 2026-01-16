@@ -134,15 +134,13 @@ void main() {
       });
 
       testWidgets('results are persisted for offline access', (tester) async {
-        final authState = TestAuthState()
-          ..login('test@example.com', 'password');
         final sessionState = TestSessionState()
           ..startSession('squat')
           ..completeSession(score: 85);
 
         final storage = TestLocalStorage();
         // Simulate persistence of session results
-        storage.save('session_${sessionState.sessionId}', {
+        storage.save('session_${sessionState.sessionId}', <String, dynamic>{
           'score': 85,
           'exercise': 'squat',
         });
@@ -725,7 +723,7 @@ class TestSessionScreen extends StatelessWidget {
             key: const Key('complete_session_button'),
             onPressed: () {
               sessionState.completeSession(score: 85);
-              storage?.save('session_${sessionState.sessionId}', {});
+              storage?.save('session_${sessionState.sessionId}', <String, dynamic>{});
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute<void>(

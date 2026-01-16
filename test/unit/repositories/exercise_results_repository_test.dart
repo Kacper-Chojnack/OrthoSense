@@ -289,8 +289,8 @@ void main() {
 
       final parsed = ExerciseResultsRepository.parseFeedback(feedbackJson);
 
-      expect(parsed['errors'], isA<Map>());
-      expect((parsed['errors'] as Map)['kneeValgus'], isA<Map>());
+      expect(parsed['errors'], isA<Map<dynamic, dynamic>>());
+      expect((parsed['errors'] as Map<dynamic, dynamic>)['kneeValgus'], isA<Map<dynamic, dynamic>>());
     });
   });
 

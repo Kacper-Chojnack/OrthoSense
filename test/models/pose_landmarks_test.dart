@@ -172,7 +172,7 @@ void main() {
 
       final json = frame.toJson();
 
-      expect(json['landmarks'], isA<List>());
+      expect(json['landmarks'], isA<List<dynamic>>());
     });
   });
 
@@ -276,7 +276,7 @@ void main() {
 
       final json = landmarks.toJson();
 
-      expect(json['frames'], isA<List>());
+      expect(json['frames'], isA<List<dynamic>>());
       expect(json['fps'], equals(30.0));
     });
   });

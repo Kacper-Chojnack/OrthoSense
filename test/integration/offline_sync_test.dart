@@ -103,13 +103,13 @@ void main() {
         score: 80,
         timestamp: DateTime.now(),
       );
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
       await repo.saveExerciseResult(
         exerciseId: 'second',
         score: 85,
         timestamp: DateTime.now(),
       );
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
       await repo.saveExerciseResult(
         exerciseId: 'third',
         score: 90,
@@ -234,7 +234,7 @@ void main() {
       connectivityController.add(true);
 
       // Wait longer for debounce + sync
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       expect(syncCount, greaterThan(0));
 
@@ -265,11 +265,11 @@ void main() {
       // Rapid connectivity changes (5 in 100ms)
       for (var i = 0; i < 5; i++) {
         connectivityController.add(true);
-        await Future.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
       }
 
       // Wait for debounce period + buffer
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       // Should only attempt sync once or twice due to debouncing
       expect(syncAttempts, lessThanOrEqualTo(2));
@@ -385,7 +385,7 @@ void main() {
 
       syncWorker.startPeriodicSync();
 
-      await Future.delayed(const Duration(milliseconds: 175));
+      await Future<void>.delayed(const Duration(milliseconds: 175));
 
       syncWorker.stopPeriodicSync();
 
@@ -493,7 +493,7 @@ void main() {
 
       repo.onSyncStart = (id) async {
         executionOrder.add(id);
-        await Future.delayed(const Duration(milliseconds: 20));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
       };
 
       // Start multiple sync operations concurrently
@@ -747,7 +747,6 @@ class _TestSyncRepository {
   void Function(Duration)? onRetryDelay;
   Future<void> Function(int)? onSyncStart;
 
-  Completer<void>? _currentSyncLock;
   bool _syncInProgress = false;
 
   void setOfflineMode(bool offline) => _isOffline = offline;
@@ -873,7 +872,7 @@ class _TestSyncRepository {
   Future<void> syncPendingItemsWithLock(int id) async {
     // Simple mutex using a flag and completer
     while (_syncInProgress) {
-      await Future.delayed(const Duration(milliseconds: 5));
+      await Future<void>.delayed(const Duration(milliseconds: 5));
     }
 
     _syncInProgress = true;
