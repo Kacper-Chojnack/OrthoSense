@@ -26,7 +26,6 @@ from app.models.session import (
     SessionExerciseResultCreate,
     SessionExerciseResultRead,
     SessionRead,
-    SessionReadWithResults,
     SessionStart,
     SessionStatus,
     SessionSummary,

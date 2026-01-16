@@ -12,9 +12,6 @@ Test coverage:
 from datetime import UTC, datetime
 from uuid import uuid4
 
-import pytest
-from pydantic import ValidationError
-
 from app.models.exercise_video import (
     ExerciseVideo,
     ExerciseVideoBase,

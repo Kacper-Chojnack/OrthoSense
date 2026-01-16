@@ -29,7 +29,9 @@ class TestVerificationEmail:
         email = "test@example.com"
         token = "test-verification-token"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_verification_email(email, token)
@@ -51,7 +53,9 @@ class TestVerificationEmail:
 
         expected_url = f"{settings.frontend_url}/verify-email?token={token}"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_verification_email(email, token)
@@ -71,7 +75,9 @@ class TestPasswordResetEmail:
         email = "test@example.com"
         token = "test-reset-token"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_password_reset_email(email, token)
@@ -93,7 +99,9 @@ class TestPasswordResetEmail:
 
         expected_url = f"{settings.frontend_url}/reset-password?token={token}"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_password_reset_email(email, token)
@@ -112,7 +120,9 @@ class TestWelcomeEmail:
         """Welcome email calls internal send function with correct params."""
         email = "test@example.com"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_welcome_email(email)
@@ -133,7 +143,9 @@ class TestWelcomeEmail:
 
         email = "async_test@example.com"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
             await asyncio.wait_for(
                 send_welcome_email(email),
@@ -150,7 +162,9 @@ class TestEmailEdgeCases:
         email = "test+special@example.com"
         token = "token123"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_verification_email(email, token)
@@ -165,7 +179,9 @@ class TestEmailEdgeCases:
         email = "test@example.com"
         token = "a" * 500  # Very long token
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_verification_email(email, token)
@@ -180,7 +196,9 @@ class TestEmailEdgeCases:
         email = "user@münchen.example.com"
         token = "reset-token"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_password_reset_email(email, token)
@@ -197,7 +215,9 @@ class TestEmailEdgeCases:
         emails = [f"user{i}@example.com" for i in range(10)]
         tokens = [f"token{i}" for i in range(10)]
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             tasks = [
@@ -213,7 +233,9 @@ class TestEmailEdgeCases:
         """Email functions don't share state."""
         email = "test@example.com"
 
-        with patch("app.services.email._send_email", new_callable=AsyncMock) as mock_send:
+        with patch(
+            "app.services.email._send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             await send_verification_email(email, "verify-token")
@@ -298,7 +320,9 @@ class TestResendAPIIntegration:
             # Should log info about successful send
             mock_logger.info.assert_called()
             call_kwargs = mock_logger.info.call_args.kwargs
-            assert call_kwargs.get("to") == email or "to" in str(mock_logger.info.call_args)
+            assert call_kwargs.get("to") == email or "to" in str(
+                mock_logger.info.call_args
+            )
 
     @pytest.mark.asyncio
     async def test_send_email_failure_logs_error(self) -> None:

@@ -155,8 +155,9 @@ class TestAuthorizationErrorsE2E:
         session: AsyncSession,
     ) -> None:
         """E2E: Access denied returns proper error message."""
-        from uuid import uuid4
         from datetime import UTC, datetime
+        from uuid import uuid4
+
         from app.models.session import Session, SessionStatus
 
         # Create two users
@@ -203,7 +204,10 @@ class TestAuthorizationErrorsE2E:
 
         # VERIFY: 403 Forbidden with clear message
         assert response.status_code == 403
-        assert "denied" in response.json()["detail"].lower() or "access" in response.json()["detail"].lower()
+        assert (
+            "denied" in response.json()["detail"].lower()
+            or "access" in response.json()["detail"].lower()
+        )
 
 
 class TestDataValidationErrorsE2E:

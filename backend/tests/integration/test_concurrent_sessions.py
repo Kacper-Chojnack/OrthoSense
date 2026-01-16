@@ -169,7 +169,7 @@ class TestResourceCleanup:
         """Resources are properly cleaned up after concurrent operations."""
         # Create multiple sessions
         created_sessions = []
-        for i in range(5):
+        for _ in range(5):
             sess = Session(
                 id=uuid4(),
                 patient_id=test_user.id,

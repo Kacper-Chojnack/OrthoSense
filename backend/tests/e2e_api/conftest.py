@@ -243,12 +243,14 @@ class E2ETestDataFactory:
             frame = []
             for i in range(33):
                 noise = random.uniform(0, noise_factor * 0.1)
-                frame.append([
-                    0.5 + (0.02 * (i % 10)) - noise,  # x
-                    0.2 + (0.025 * i) - noise,         # y
-                    random.uniform(-0.1, 0.1),         # z
-                    quality / 100,                     # visibility
-                ])
+                frame.append(
+                    [
+                        0.5 + (0.02 * (i % 10)) - noise,  # x
+                        0.2 + (0.025 * i) - noise,  # y
+                        random.uniform(-0.1, 0.1),  # z
+                        quality / 100,  # visibility
+                    ]
+                )
             landmarks_data.append(frame)
 
         return landmarks_data

@@ -10,8 +10,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from app.core.security import hash_password, verify_password
-from app.models.user import User, UserRole
+from app.core.security import hash_password
+from app.models.user import User
 
 pytestmark = pytest.mark.asyncio
 
@@ -69,9 +69,7 @@ class TestAuthenticationFlowE2E:
         )
 
         # VERIFY: Login successful (200 OK)
-        assert login_response.status_code == 200, (
-            f"Login failed: {login_response.text}"
-        )
+        assert login_response.status_code == 200, f"Login failed: {login_response.text}"
 
         token_data = login_response.json()
         assert "access_token" in token_data
@@ -385,7 +383,7 @@ class TestTokenRefreshE2E:
         for i in range(5):
             response = await client.get("/api/v1/auth/me", headers=headers)
             # VERIFY: Each request succeeds
-            assert response.status_code == 200, f"Request {i+1} failed"
+            assert response.status_code == 200, f"Request {i + 1} failed"
 
 
 class TestSecurityHeadersE2E:

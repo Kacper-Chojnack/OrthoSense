@@ -15,16 +15,14 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
-from app.core.security import create_access_token, hash_password
+from app.core.security import hash_password
 from app.models.exercise import BodyPart, Exercise, ExerciseCategory
 from app.models.session import (
     Session,
-    SessionExerciseResult,
     SessionStatus,
 )
-from app.models.user import User, UserRole
+from app.models.user import User
 
 
 @pytest.fixture
@@ -235,7 +233,8 @@ class TestSessionListing:
         for i in range(5):
             db_session = Session(
                 patient_id=test_user.id,
-                scheduled_date=datetime.now(UTC).replace(tzinfo=None) + timedelta(days=i),
+                scheduled_date=datetime.now(UTC).replace(tzinfo=None)
+                + timedelta(days=i),
                 status=SessionStatus.IN_PROGRESS if i < 3 else SessionStatus.COMPLETED,
             )
             session.add(db_session)
@@ -269,7 +268,8 @@ class TestSessionListing:
         for i, status in enumerate(statuses):
             db_session = Session(
                 patient_id=test_user.id,
-                scheduled_date=datetime.now(UTC).replace(tzinfo=None) + timedelta(days=i),
+                scheduled_date=datetime.now(UTC).replace(tzinfo=None)
+                + timedelta(days=i),
                 status=status,
             )
             session.add(db_session)
@@ -300,7 +300,8 @@ class TestSessionListing:
         for i in range(25):
             db_session = Session(
                 patient_id=test_user.id,
-                scheduled_date=datetime.now(UTC).replace(tzinfo=None) + timedelta(days=i),
+                scheduled_date=datetime.now(UTC).replace(tzinfo=None)
+                + timedelta(days=i),
             )
             session.add(db_session)
         await session.commit()

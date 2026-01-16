@@ -17,10 +17,9 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token, hash_password
 from app.models.exercise import BodyPart, Exercise, ExerciseCategory
 from app.models.exercise_video import ExerciseVideo
-from app.models.user import User, UserRole
+from app.models.user import User
 
 
 @pytest.fixture

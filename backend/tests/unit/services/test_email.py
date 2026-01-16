@@ -138,7 +138,9 @@ class TestSendEmailInternal:
 
             with patch("httpx.AsyncClient") as mock_client_class:
                 mock_client = AsyncMock()
-                mock_client.post.side_effect = httpx.TimeoutException("Connection timed out")
+                mock_client.post.side_effect = httpx.TimeoutException(
+                    "Connection timed out"
+                )
                 mock_client.__aenter__.return_value = mock_client
                 mock_client.__aexit__.return_value = None
                 mock_client_class.return_value = mock_client

@@ -434,7 +434,6 @@ class TestMemoryStoreCleanup:
         _memory_store.pop(key, None)
 
         # Add some old entries manually
-        import time
 
         old_time = datetime.now().timestamp() - 10  # 10 seconds ago
         _memory_store[key] = [old_time, old_time + 0.1, old_time + 0.2]

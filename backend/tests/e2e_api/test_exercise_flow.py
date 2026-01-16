@@ -13,9 +13,9 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token, hash_password
+from app.core.security import hash_password
 from app.models.exercise import BodyPart, Exercise, ExerciseCategory
-from app.models.session import Session, SessionExerciseResult, SessionStatus
+from app.models.session import Session, SessionStatus
 from app.models.user import User, UserRole
 
 pytestmark = pytest.mark.asyncio
@@ -36,12 +36,14 @@ def _generate_fake_pose_landmarks(quality: int = 95) -> dict:
 
     for i in range(33):
         noise = random.uniform(0, noise_factor * 0.1)
-        landmarks.append({
-            "x": 0.5 + (0.02 * (i % 10)) - noise,
-            "y": 0.2 + (0.025 * i) - noise,
-            "z": random.uniform(-0.1, 0.1),
-            "visibility": quality / 100 - random.uniform(0, noise_factor * 0.2),
-        })
+        landmarks.append(
+            {
+                "x": 0.5 + (0.02 * (i % 10)) - noise,
+                "y": 0.2 + (0.025 * i) - noise,
+                "z": random.uniform(-0.1, 0.1),
+                "visibility": quality / 100 - random.uniform(0, noise_factor * 0.2),
+            }
+        )
 
     return {"landmarks": landmarks}
 
@@ -364,8 +366,10 @@ class TestExerciseAnalysisE2E:
         for _ in range(30):  # 30 frames of pose data
             frame = _generate_fake_pose_landmarks(quality=90)
             landmarks_data.append(
-                [[lm["x"], lm["y"], lm["z"], lm["visibility"]]
-                 for lm in frame["landmarks"]]
+                [
+                    [lm["x"], lm["y"], lm["z"], lm["visibility"]]
+                    for lm in frame["landmarks"]
+                ]
             )
 
         # STEP: Submit landmarks for analysis
@@ -382,7 +386,11 @@ class TestExerciseAnalysisE2E:
         analysis_data = analysis_response.json()
 
         # Check expected fields in response
-        assert "analysis" in analysis_data or "result" in analysis_data or "error" not in analysis_data
+        assert (
+            "analysis" in analysis_data
+            or "result" in analysis_data
+            or "error" not in analysis_data
+        )
 
     async def test_invalid_landmarks_rejected(
         self,

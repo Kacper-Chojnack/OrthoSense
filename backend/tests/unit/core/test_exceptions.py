@@ -80,9 +80,7 @@ class TestSanitizeErrorMessage:
         with patch("app.core.exceptions.settings") as mock_settings:
             mock_settings.debug = False
 
-            result = sanitize_error_message(
-                ValueError("JWT token verification failed")
-            )
+            result = sanitize_error_message(ValueError("JWT token verification failed"))
 
             assert result == "Authentication error"
 
@@ -102,9 +100,7 @@ class TestSanitizeErrorMessage:
         with patch("app.core.exceptions.settings") as mock_settings:
             mock_settings.debug = False
 
-            result = sanitize_error_message(
-                ValueError("Database connection refused")
-            )
+            result = sanitize_error_message(ValueError("Database connection refused"))
 
             assert result == "Database error"
 
@@ -113,9 +109,7 @@ class TestSanitizeErrorMessage:
         with patch("app.core.exceptions.settings") as mock_settings:
             mock_settings.debug = False
 
-            result = sanitize_error_message(
-                ValueError("Connection refused to server")
-            )
+            result = sanitize_error_message(ValueError("Connection refused to server"))
 
             assert result == "Service unavailable"
 

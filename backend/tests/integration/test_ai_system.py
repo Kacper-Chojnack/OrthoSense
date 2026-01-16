@@ -9,7 +9,6 @@ Test coverage:
 5. Report generation integration
 """
 
-import numpy as np
 import pytest
 
 from app.ai.core.system import OrthoSenseSystem
@@ -71,8 +70,10 @@ class TestAnalyzeLandmarks:
         """Create valid 33-landmark data (10 frames)."""
         # 10 frames, 33 landmarks per frame, 4 values per landmark (x, y, z, visibility)
         return [
-            [[float(j * 0.01 + i * 0.001), float(j * 0.02), 0.0, 0.95]
-             for j in range(33)]
+            [
+                [float(j * 0.01 + i * 0.001), float(j * 0.02), 0.0, 0.95]
+                for j in range(33)
+            ]
             for i in range(10)
         ]
 
@@ -293,8 +294,10 @@ class TestVisibilityHandling:
         """Frames with low visibility joints are handled."""
         # All landmarks have low visibility
         low_vis_landmarks = [
-            [[float(j * 0.01), float(j * 0.02), 0.0, 0.3]  # Low visibility
-             for j in range(33)]
+            [
+                [float(j * 0.01), float(j * 0.02), 0.0, 0.3]  # Low visibility
+                for j in range(33)
+            ]
             for i in range(10)
         ]
 
@@ -312,7 +315,7 @@ class TestVisibilityHandling:
     ) -> None:
         """Frames with mixed visibility are processed."""
         mixed_landmarks = []
-        for i in range(10):
+        for _ in range(10):
             frame = []
             for j in range(33):
                 # Key joints (11, 12, 23, 24, 25, 26, 27, 28) have high visibility
@@ -344,8 +347,7 @@ class TestSlidingWindowAnalysis:
         """Short sequences (< window size) are analyzed."""
         # Only 5 frames (less than typical window of 60)
         short_landmarks = [
-            [[float(j * 0.01), float(j * 0.02), 0.0, 0.95]
-             for j in range(33)]
+            [[float(j * 0.01), float(j * 0.02), 0.0, 0.95] for j in range(33)]
             for i in range(5)
         ]
 
@@ -363,8 +365,10 @@ class TestSlidingWindowAnalysis:
         """Long sequences are analyzed via sliding windows."""
         # 100 frames (more than window size)
         long_landmarks = [
-            [[float(j * 0.01 + i * 0.001), float(j * 0.02), 0.0, 0.95]
-             for j in range(33)]
+            [
+                [float(j * 0.01 + i * 0.001), float(j * 0.02), 0.0, 0.95]
+                for j in range(33)
+            ]
             for i in range(100)
         ]
 

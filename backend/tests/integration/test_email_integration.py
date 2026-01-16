@@ -13,7 +13,6 @@ import asyncio
 from unittest.mock import patch
 
 import pytest
-import structlog
 
 from app.services.email import (
     send_password_reset_email,

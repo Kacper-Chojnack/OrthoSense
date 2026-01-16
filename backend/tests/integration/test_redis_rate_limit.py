@@ -8,6 +8,7 @@ Tests cover:
 5. Multiple endpoints rate limiting
 """
 
+import asyncio
 import os
 from unittest.mock import MagicMock, patch
 
@@ -134,7 +135,6 @@ class TestRateLimiterSlidingWindow:
     @pytest.mark.asyncio
     async def test_sliding_window_expires_old_requests(self) -> None:
         """Old requests expire from the window."""
-        import time
 
         limiter = RateLimiter(requests=2, window_seconds=1, use_redis=False)
         mock_request = _create_mock_request("192.168.1.40")
@@ -144,7 +144,7 @@ class TestRateLimiterSlidingWindow:
         await limiter.check(mock_request, "window_test")
 
         # Wait for window to expire
-        time.sleep(1.1)
+        await asyncio.sleep(1.1)
 
         # Should be able to make requests again
         await limiter.check(mock_request, "window_test")
