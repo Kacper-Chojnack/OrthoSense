@@ -304,11 +304,11 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Kacper Chojnacki**  
 Engineering Student @ PJATK Gdańsk  
-[GitHub](https://github.com/Kacper-Chojnack) • [LinkedIn](#)
+[GitHub](https://github.com/Kacper-Chojnack) • [https://www.linkedin.com/in/kacperchojnacki](#)
 
 **Zofia Dekowska**  
 Engineering Student @ PJATK Gdańsk  
-[GitHub](https://github.com/dekoska) • [LinkedIn](#)
+[GitHub](https://github.com/dekoska) • [https://www.linkedin.com/in/zosia-dekowska-18920a312](#)
 
 ---
 
