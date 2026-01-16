@@ -14,8 +14,8 @@ paths = [
     '''\.dart_tool''',
     '''\.pub-cache''',
     # Test files with fake secrets
-    '''backend/tests/conftest\.py''',
-    '''test/''',
+    '''backend/tests/.*''',
+    '''test/.*''',
     # Lock files
     '''pubspec\.lock''',
     '''poetry\.lock''',
@@ -57,9 +57,14 @@ secretGroup = 1
 [rules.allowlist]
 regexes = [
     '''change-this-to-a-secure-random-string''',
-    '''test-secret-key''',
+    '''test[_-]secret[_-]key''',
+    '''e2e[_-]test[_-]secret''',
     '''dev-secret-key''',
     '''example\.com''',
     '''localhost''',
     '''your-secret-key-here''',
+    '''test_secret_key_for_.*''',
+    '''SecureTestPass123!''',
+    '''securePass.*''',
+    '''testpass.*''',
 ]
