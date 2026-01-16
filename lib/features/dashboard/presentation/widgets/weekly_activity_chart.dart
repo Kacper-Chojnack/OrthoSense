@@ -47,8 +47,10 @@ class WeeklyActivityChart extends ConsumerWidget {
                 ),
               ),
               data: (days) {
-                final totalValue =
-                    days.fold<double>(0, (sum, d) => sum + d.value);
+                final totalValue = days.fold<double>(
+                  0,
+                  (sum, d) => sum + d.value,
+                );
                 if (totalValue <= 0) {
                   return SizedBox(
                     height: height,
@@ -63,8 +65,9 @@ class WeeklyActivityChart extends ConsumerWidget {
                   );
                 }
 
-                final maxValue =
-                    days.map((d) => d.value).fold<double>(0, math.max);
+                final maxValue = days
+                    .map((d) => d.value)
+                    .fold<double>(0, math.max);
                 final maxY = _maxY(maxValue);
                 final interval = _yInterval(maxY);
 
@@ -86,10 +89,10 @@ class WeeklyActivityChart extends ConsumerWidget {
                             drawVerticalLine: false,
                             horizontalInterval: interval,
                             getDrawingHorizontalLine: (value) => FlLine(
-                              color:
-                                  theme.colorScheme.outlineVariant.withOpacity(
-                                0.35,
-                              ),
+                              color: theme.colorScheme.outlineVariant
+                                  .withOpacity(
+                                    0.35,
+                                  ),
                               strokeWidth: 1,
                             ),
                           ),
@@ -127,16 +130,17 @@ class WeeklyActivityChart extends ConsumerWidget {
                                     padding: const EdgeInsets.only(top: 8),
                                     child: Text(
                                       days[idx].label,
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        fontWeight: isToday
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: isToday
-                                            ? theme.colorScheme.primary
-                                            : theme.colorScheme
-                                                .onSurfaceVariant,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            fontWeight: isToday
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: isToday
+                                                ? theme.colorScheme.primary
+                                                : theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                          ),
                                     ),
                                   );
                                 },
@@ -146,24 +150,26 @@ class WeeklyActivityChart extends ConsumerWidget {
                           barTouchData: BarTouchData(
                             enabled: true,
                             touchTooltipData: BarTouchTooltipData(
-                              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                final day = days[group.x.toInt()];
-                                final suffix =
-                                    metric == WeeklyActivityMetric.sessions
+                              getTooltipItem:
+                                  (group, groupIndex, rod, rodIndex) {
+                                    final day = days[group.x.toInt()];
+                                    final suffix =
+                                        metric == WeeklyActivityMetric.sessions
                                         ? ' sessions'
                                         : ' min';
-                                final value =
-                                    metric == WeeklyActivityMetric.sessions
+                                    final value =
+                                        metric == WeeklyActivityMetric.sessions
                                         ? day.value.toInt().toString()
                                         : day.value.toStringAsFixed(0);
-                                return BarTooltipItem(
-                                  '${day.label}: $value$suffix',
-                                  TextStyle(
-                                    color: theme.colorScheme.onInverseSurface,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                );
-                              },
+                                    return BarTooltipItem(
+                                      '${day.label}: $value$suffix',
+                                      TextStyle(
+                                        color:
+                                            theme.colorScheme.onInverseSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  },
                             ),
                           ),
                           barGroups: List.generate(days.length, (i) {
@@ -308,5 +314,3 @@ class _SummaryRow extends StatelessWidget {
     );
   }
 }
-
-

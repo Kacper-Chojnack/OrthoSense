@@ -281,9 +281,13 @@ void main() {
       // Note: json_serializable doesn't deeply serialize by default,
       // so we need to manually serialize the nested objects for roundtrip
       final json = {
-        'frames': original.frames.map((f) => {
-          'landmarks': f.landmarks.map((l) => l.toJson()).toList(),
-        }).toList(),
+        'frames': original.frames
+            .map(
+              (f) => {
+                'landmarks': f.landmarks.map((l) => l.toJson()).toList(),
+              },
+            )
+            .toList(),
         'fps': original.fps,
       };
       final restored = PoseLandmarks.fromJson(json);

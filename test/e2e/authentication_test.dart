@@ -112,8 +112,9 @@ void main() {
       }
     });
 
-    testWidgets('Login validation: Incorrect credentials show error',
-        (tester) async {
+    testWidgets('Login validation: Incorrect credentials show error', (
+      tester,
+    ) async {
       final app = await createTestApp();
       await tester.pumpWidget(app);
       await tester.pumpAndSettle();
@@ -183,8 +184,9 @@ void main() {
       }
     });
 
-    testWidgets('Navigation: Login screen elements are visible',
-        (tester) async {
+    testWidgets('Navigation: Login screen elements are visible', (
+      tester,
+    ) async {
       final app = await createTestApp();
       await tester.pumpWidget(app);
       await tester.pumpAndSettle();

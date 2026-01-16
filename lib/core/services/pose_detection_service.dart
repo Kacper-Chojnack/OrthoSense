@@ -105,8 +105,8 @@ class PoseDetectionService {
           positionMs = targetFrameCount <= 1
               ? 0
               : ((frameIdx / (targetFrameCount - 1)) * durationMs)
-                  .round()
-                  .clamp(0, durationMs);
+                    .round()
+                    .clamp(0, durationMs);
 
           final thumbnailPath = await vt.VideoThumbnail.thumbnailFile(
             video: videoFile.path,
@@ -134,8 +134,7 @@ class PoseDetectionService {
               if (!accepted) {
                 for (final offsetMs in retryOffsetsMs) {
                   cancelToken?.throwIfCancelled();
-                  final retryMs =
-                      (positionMs + offsetMs).clamp(0, durationMs);
+                  final retryMs = (positionMs + offsetMs).clamp(0, durationMs);
                   final retryPath = await vt.VideoThumbnail.thumbnailFile(
                     video: videoFile.path,
                     thumbnailPath: thumbsDir.path,

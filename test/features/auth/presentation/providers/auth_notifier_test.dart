@@ -313,7 +313,8 @@ void main() {
         () => listener(
           any(),
           const AuthState.unauthenticated(
-            message: 'Unable to connect to server. Please check your internet connection.',
+            message:
+                'Unable to connect to server. Please check your internet connection.',
           ),
         ),
       ).called(1);

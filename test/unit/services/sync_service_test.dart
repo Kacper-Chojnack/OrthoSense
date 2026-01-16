@@ -37,20 +37,24 @@ void main() {
 
     test('items are processed in FIFO order', () {
       syncQueue
-        ..add(SyncItem(
-          id: '1',
-          type: SyncType.create,
-          entity: 'session',
-          data: {},
-          createdAt: DateTime(2024, 1, 1, 10),
-        ))
-        ..add(SyncItem(
-          id: '2',
-          type: SyncType.create,
-          entity: 'session',
-          data: {},
-          createdAt: DateTime(2024, 1, 1, 11),
-        ));
+        ..add(
+          SyncItem(
+            id: '1',
+            type: SyncType.create,
+            entity: 'session',
+            data: {},
+            createdAt: DateTime(2024, 1, 1, 10),
+          ),
+        )
+        ..add(
+          SyncItem(
+            id: '2',
+            type: SyncType.create,
+            entity: 'session',
+            data: {},
+            createdAt: DateTime(2024, 1, 1, 11),
+          ),
+        );
 
       final first = syncQueue.peek();
 
@@ -124,7 +128,10 @@ void main() {
         updatedAt: DateTime(2024, 1, 1, 11),
       );
 
-      final resolved = ConflictResolver.serverWins(local: local, server: server);
+      final resolved = ConflictResolver.serverWins(
+        local: local,
+        server: server,
+      );
 
       expect(resolved.data['score'], equals(90));
     });
@@ -146,7 +153,10 @@ void main() {
         updatedAt: DateTime(2024, 1, 1, 11), // Earlier
       );
 
-      final resolved = ConflictResolver.lastWriteWins(local: local, server: server);
+      final resolved = ConflictResolver.lastWriteWins(
+        local: local,
+        server: server,
+      );
 
       expect(resolved.data['score'], equals(80));
     });
@@ -192,7 +202,10 @@ void main() {
         updatedAt: DateTime(2024, 1, 1, 11),
       );
 
-      final resolved = ConflictResolver.serverWins(local: local, server: server);
+      final resolved = ConflictResolver.serverWins(
+        local: local,
+        server: server,
+      );
 
       expect(resolved.type, equals(SyncType.delete));
     });
@@ -402,20 +415,24 @@ void main() {
 
     test('critical items sync first', () {
       final queue = SyncQueue()
-        ..add(SyncItem(
-          id: '1',
-          type: SyncType.create,
-          entity: 'session',
-          data: {},
-          priority: SyncPriority.normal,
-        ))
-        ..add(SyncItem(
-          id: '2',
-          type: SyncType.create,
-          entity: 'emergency',
-          data: {},
-          priority: SyncPriority.critical,
-        ));
+        ..add(
+          SyncItem(
+            id: '1',
+            type: SyncType.create,
+            entity: 'session',
+            data: {},
+            priority: SyncPriority.normal,
+          ),
+        )
+        ..add(
+          SyncItem(
+            id: '2',
+            type: SyncType.create,
+            entity: 'emergency',
+            data: {},
+            priority: SyncPriority.critical,
+          ),
+        );
 
       final prioritized = queue.getNextBatch(count: 1);
 
@@ -469,8 +486,9 @@ class SyncQueue {
       // Sort by priority first, then by creation time
       final priorityCompare = b.priority.index.compareTo(a.priority.index);
       if (priorityCompare != 0) return priorityCompare;
-      return (a.createdAt ?? DateTime.now())
-          .compareTo(b.createdAt ?? DateTime.now());
+      return (a.createdAt ?? DateTime.now()).compareTo(
+        b.createdAt ?? DateTime.now(),
+      );
     });
   }
 
@@ -493,7 +511,10 @@ class SyncQueue {
   }
 
   bool shouldRetry(String id, {required int maxRetries}) {
-    final item = _items.firstWhere((i) => i.id == id, orElse: () => throw StateError('Item not found'));
+    final item = _items.firstWhere(
+      (i) => i.id == id,
+      orElse: () => throw StateError('Item not found'),
+    );
     return item.retryCount < maxRetries;
   }
 

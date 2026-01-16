@@ -236,8 +236,9 @@ void main() {
   });
 
   group('DashboardScreen State Handling', () {
-    testWidgets('renders dashboard without crashing with default state',
-        (tester) async {
+    testWidgets('renders dashboard without crashing with default state', (
+      tester,
+    ) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
@@ -250,21 +251,25 @@ void main() {
   });
 
   group('DashboardScreen Responsiveness', () {
-    testWidgets('adapts to small screen', (tester) async {
-      tester.view.physicalSize = const Size(320, 568);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      'adapts to small screen',
+      (tester) async {
+        tester.view.physicalSize = const Size(320, 568);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(createTestWidget());
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
+        await tester.pumpWidget(createTestWidget());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('OrthoSense'), findsOneWidget);
-      expect(find.text('Start Session'), findsOneWidget);
+        expect(find.text('OrthoSense'), findsOneWidget);
+        expect(find.text('Start Session'), findsOneWidget);
 
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    }, skip: true); // Skip: WeeklyActivityChart has RenderFlex overflow on small screens - UI issue
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      },
+      skip: true,
+    ); // Skip: WeeklyActivityChart has RenderFlex overflow on small screens - UI issue
 
     testWidgets('adapts to large screen', (tester) async {
       tester.view.physicalSize = const Size(1024, 768);

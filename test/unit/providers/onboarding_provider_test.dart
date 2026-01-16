@@ -50,14 +50,18 @@ void main() {
     bool voiceSelected = false,
   }) {
     // Setup mock returns
-    when(() => mockPreferencesService.isDisclaimerAccepted)
-        .thenReturn(disclaimerAccepted);
-    when(() => mockPreferencesService.isPrivacyPolicyAccepted)
-        .thenReturn(privacyPolicyAccepted);
-    when(() => mockPreferencesService.isBiometricConsentAccepted)
-        .thenReturn(biometricConsentAccepted);
-    when(() => mockPreferencesService.isVoiceSelected)
-        .thenReturn(voiceSelected);
+    when(
+      () => mockPreferencesService.isDisclaimerAccepted,
+    ).thenReturn(disclaimerAccepted);
+    when(
+      () => mockPreferencesService.isPrivacyPolicyAccepted,
+    ).thenReturn(privacyPolicyAccepted);
+    when(
+      () => mockPreferencesService.isBiometricConsentAccepted,
+    ).thenReturn(biometricConsentAccepted);
+    when(
+      () => mockPreferencesService.isVoiceSelected,
+    ).thenReturn(voiceSelected);
 
     return ProviderContainer(
       overrides: [
@@ -208,8 +212,9 @@ void main() {
     test('acceptDisclaimer updates state and persists', () async {
       container = createContainer();
 
-      when(() => mockPreferencesService.setDisclaimerAccepted(value: true))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setDisclaimerAccepted(value: true),
+      ).thenAnswer((_) async {});
 
       await container
           .read(onboardingControllerProvider.notifier)
@@ -218,8 +223,9 @@ void main() {
       final state = container.read(onboardingControllerProvider);
       expect(state.disclaimerAccepted, isTrue);
 
-      verify(() => mockPreferencesService.setDisclaimerAccepted(value: true))
-          .called(1);
+      verify(
+        () => mockPreferencesService.setDisclaimerAccepted(value: true),
+      ).called(1);
     });
   });
 
@@ -227,8 +233,9 @@ void main() {
     test('acceptPrivacyPolicy updates state and persists', () async {
       container = createContainer();
 
-      when(() => mockPreferencesService.setPrivacyPolicyAccepted(value: true))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setPrivacyPolicyAccepted(value: true),
+      ).thenAnswer((_) async {});
 
       await container
           .read(onboardingControllerProvider.notifier)
@@ -237,8 +244,9 @@ void main() {
       final state = container.read(onboardingControllerProvider);
       expect(state.privacyPolicyAccepted, isTrue);
 
-      verify(() => mockPreferencesService.setPrivacyPolicyAccepted(value: true))
-          .called(1);
+      verify(
+        () => mockPreferencesService.setPrivacyPolicyAccepted(value: true),
+      ).called(1);
     });
   });
 
@@ -270,10 +278,12 @@ void main() {
       final testVoice = {'name': 'Samantha', 'locale': 'en-US'};
 
       when(() => mockTtsService.setVoice(testVoice)).thenAnswer((_) async {});
-      when(() => mockPreferencesService.setVoiceSelected(value: true))
-          .thenAnswer((_) async {});
-      when(() => mockPreferencesService.setSelectedVoiceKey('Samantha'))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setVoiceSelected(value: true),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setSelectedVoiceKey('Samantha'),
+      ).thenAnswer((_) async {});
 
       await container
           .read(onboardingControllerProvider.notifier)
@@ -283,10 +293,12 @@ void main() {
       expect(state.voiceSelected, isTrue);
 
       verify(() => mockTtsService.setVoice(testVoice)).called(1);
-      verify(() => mockPreferencesService.setVoiceSelected(value: true))
-          .called(1);
-      verify(() => mockPreferencesService.setSelectedVoiceKey('Samantha'))
-          .called(1);
+      verify(
+        () => mockPreferencesService.setVoiceSelected(value: true),
+      ).called(1);
+      verify(
+        () => mockPreferencesService.setSelectedVoiceKey('Samantha'),
+      ).called(1);
     });
 
     test('completeVoiceSelection handles empty voice name', () async {
@@ -295,10 +307,12 @@ void main() {
       final testVoice = <String, String>{'locale': 'en-US'};
 
       when(() => mockTtsService.setVoice(testVoice)).thenAnswer((_) async {});
-      when(() => mockPreferencesService.setVoiceSelected(value: true))
-          .thenAnswer((_) async {});
-      when(() => mockPreferencesService.setSelectedVoiceKey(''))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setVoiceSelected(value: true),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setSelectedVoiceKey(''),
+      ).thenAnswer((_) async {});
 
       await container
           .read(onboardingControllerProvider.notifier)
@@ -317,15 +331,18 @@ void main() {
         voiceSelected: true,
       );
 
-      when(() => mockPreferencesService.setDisclaimerAccepted(value: false))
-          .thenAnswer((_) async {});
-      when(() => mockPreferencesService.setPrivacyPolicyAccepted(value: false))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setDisclaimerAccepted(value: false),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setPrivacyPolicyAccepted(value: false),
+      ).thenAnswer((_) async {});
       when(
         () => mockPreferencesService.setBiometricConsentAccepted(value: false),
       ).thenAnswer((_) async {});
-      when(() => mockPreferencesService.setVoiceSelected(value: false))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setVoiceSelected(value: false),
+      ).thenAnswer((_) async {});
 
       await container
           .read(onboardingControllerProvider.notifier)
@@ -338,15 +355,18 @@ void main() {
       expect(state.voiceSelected, isFalse);
       expect(state.isComplete, isFalse);
 
-      verify(() => mockPreferencesService.setDisclaimerAccepted(value: false))
-          .called(1);
-      verify(() => mockPreferencesService.setPrivacyPolicyAccepted(value: false))
-          .called(1);
+      verify(
+        () => mockPreferencesService.setDisclaimerAccepted(value: false),
+      ).called(1);
+      verify(
+        () => mockPreferencesService.setPrivacyPolicyAccepted(value: false),
+      ).called(1);
       verify(
         () => mockPreferencesService.setBiometricConsentAccepted(value: false),
       ).called(1);
-      verify(() => mockPreferencesService.setVoiceSelected(value: false))
-          .called(1);
+      verify(
+        () => mockPreferencesService.setVoiceSelected(value: false),
+      ).called(1);
     });
   });
 
@@ -355,17 +375,21 @@ void main() {
       container = createContainer();
 
       // Setup all mocks
-      when(() => mockPreferencesService.setDisclaimerAccepted(value: true))
-          .thenAnswer((_) async {});
-      when(() => mockPreferencesService.setPrivacyPolicyAccepted(value: true))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setDisclaimerAccepted(value: true),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setPrivacyPolicyAccepted(value: true),
+      ).thenAnswer((_) async {});
       when(
         () => mockPreferencesService.setBiometricConsentAccepted(value: true),
       ).thenAnswer((_) async {});
-      when(() => mockPreferencesService.setVoiceSelected(value: true))
-          .thenAnswer((_) async {});
-      when(() => mockPreferencesService.setSelectedVoiceKey(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setVoiceSelected(value: true),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockPreferencesService.setSelectedVoiceKey(any()),
+      ).thenAnswer((_) async {});
       when(() => mockTtsService.setVoice(any())).thenAnswer((_) async {});
 
       final notifier = container.read(onboardingControllerProvider.notifier);
@@ -392,7 +416,10 @@ void main() {
       );
 
       // Step 4: Select voice
-      await notifier.completeVoiceSelection({'name': 'Alex', 'locale': 'en-US'});
+      await notifier.completeVoiceSelection({
+        'name': 'Alex',
+        'locale': 'en-US',
+      });
       expect(
         container.read(onboardingControllerProvider).isComplete,
         isTrue,

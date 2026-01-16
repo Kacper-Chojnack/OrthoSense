@@ -21,7 +21,9 @@ void main() {
       // In Riverpod 3.x, the UnimplementedError is wrapped in ProviderException
       expect(
         () => container.read(sharedPreferencesProvider),
-        throwsA(anything), // Throws ProviderException wrapping UnimplementedError
+        throwsA(
+          anything,
+        ), // Throws ProviderException wrapping UnimplementedError
       );
 
       container.dispose();

@@ -285,7 +285,9 @@ void main() {
         ProviderScope(
           overrides: [
             testRegisterStateProvider.overrideWith(
-              () => TestRegisterStateNotifier(TestRegisterState.error('Email already registered')),
+              () => TestRegisterStateNotifier(
+                TestRegisterState.error('Email already registered'),
+              ),
             ),
           ],
           child: const MaterialApp(
@@ -351,20 +353,21 @@ void main() {
 // Test providers and widgets
 class TestRegisterStateNotifier extends Notifier<TestRegisterState> {
   TestRegisterStateNotifier([this._initialState]);
-  
+
   final TestRegisterState? _initialState;
-  
+
   @override
   TestRegisterState build() => _initialState ?? TestRegisterState.initial();
-  
+
   void setState(TestRegisterState newState) {
     state = newState;
   }
 }
 
-final testRegisterStateProvider = NotifierProvider<TestRegisterStateNotifier, TestRegisterState>(
-  TestRegisterStateNotifier.new,
-);
+final testRegisterStateProvider =
+    NotifierProvider<TestRegisterStateNotifier, TestRegisterState>(
+      TestRegisterStateNotifier.new,
+    );
 
 enum TestRegisterStatus { initial, loading, success, error }
 

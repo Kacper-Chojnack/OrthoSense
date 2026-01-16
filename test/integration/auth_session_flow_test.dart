@@ -372,7 +372,8 @@ void main() {
 
 // Test implementations
 class TestAuthState extends ChangeNotifier {
-  TestAuthState({bool isAuthenticated = false}) : _isAuthenticated = isAuthenticated;
+  TestAuthState({bool isAuthenticated = false})
+    : _isAuthenticated = isAuthenticated;
 
   bool _isAuthenticated = false;
   String? _userId;
@@ -600,7 +601,8 @@ class _TestAppShellState extends State<TestAppShell> {
             TextButton(
               onPressed: () {
                 final data =
-                    widget.storage!.load('session_recovery') as Map<String, dynamic>;
+                    widget.storage!.load('session_recovery')
+                        as Map<String, dynamic>;
                 widget.sessionState
                   ..startSession(data['exercise'] as String)
                   .._repCount = data['reps'] as int;
@@ -691,7 +693,8 @@ class TestHomeScreen extends StatelessWidget {
           ),
           ElevatedButton(
             key: const Key('start_session_button'),
-            onPressed: () => sessionState.startSession('squat', userId: authState.userId),
+            onPressed: () =>
+                sessionState.startSession('squat', userId: authState.userId),
             child: const Text('Start Session'),
           ),
         ],

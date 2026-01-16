@@ -79,7 +79,7 @@ void main() {
         // VERIFY: Exercise catalog or live analysis screen
         final hasExerciseScreen =
             find.byType(ExerciseCatalogScreen).evaluate().isNotEmpty ||
-                find.byType(LiveAnalysisScreen).evaluate().isNotEmpty;
+            find.byType(LiveAnalysisScreen).evaluate().isNotEmpty;
 
         expect(
           hasExerciseScreen,
@@ -118,12 +118,14 @@ void main() {
 
       // VERIFY: Camera permission dialog or camera view
       // Note: In test environment, camera may not be available
-      final hasAnalysisUI =
-          find.byType(LiveAnalysisScreen).evaluate().isNotEmpty;
+      final hasAnalysisUI = find
+          .byType(LiveAnalysisScreen)
+          .evaluate()
+          .isNotEmpty;
       final hasCameraRequest =
           find.textContaining('camera').evaluate().isNotEmpty ||
-              find.textContaining('Camera').evaluate().isNotEmpty ||
-              find.textContaining('permission').evaluate().isNotEmpty;
+          find.textContaining('Camera').evaluate().isNotEmpty ||
+          find.textContaining('permission').evaluate().isNotEmpty;
 
       E2ETestHelpers.logVerification(
         'Analysis screen or camera request shown',
@@ -158,13 +160,16 @@ void main() {
       // VERIFY: History screen is displayed or still on login/dashboard
       final hasHistoryScreen =
           find.byType(AnalysisHistoryScreen).evaluate().isNotEmpty ||
-              find.textContaining('History').evaluate().isNotEmpty ||
-              find.textContaining('Sessions').evaluate().isNotEmpty ||
-              find.byType(DashboardScreen).evaluate().isNotEmpty ||
-              find.byType(LoginScreen).evaluate().isNotEmpty;
+          find.textContaining('History').evaluate().isNotEmpty ||
+          find.textContaining('Sessions').evaluate().isNotEmpty ||
+          find.byType(DashboardScreen).evaluate().isNotEmpty ||
+          find.byType(LoginScreen).evaluate().isNotEmpty;
 
-      expect(hasHistoryScreen, isTrue,
-          reason: 'Should display history or appropriate screen');
+      expect(
+        hasHistoryScreen,
+        isTrue,
+        reason: 'Should display history or appropriate screen',
+      );
     });
 
     testWidgets('Session persistence after app restart', (tester) async {
@@ -186,7 +191,8 @@ void main() {
 
       // VERIFY: App restarts successfully
       // Should be on login or dashboard depending on auth persistence
-      final appRecovered = find.byType(LoginScreen).evaluate().isNotEmpty ||
+      final appRecovered =
+          find.byType(LoginScreen).evaluate().isNotEmpty ||
           find.byType(DashboardScreen).evaluate().isNotEmpty;
 
       expect(

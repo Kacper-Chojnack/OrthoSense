@@ -93,10 +93,16 @@ class E2EAssertions {
     Finder to, {
     required String description,
   }) {
-    expect(from, findsNothing,
-        reason: 'Previous screen should not be visible: $description');
-    expect(to, findsOneWidget,
-        reason: 'Target screen should be visible: $description');
+    expect(
+      from,
+      findsNothing,
+      reason: 'Previous screen should not be visible: $description',
+    );
+    expect(
+      to,
+      findsOneWidget,
+      reason: 'Target screen should be visible: $description',
+    );
   }
 
   /// Assert that an error message is displayed
@@ -110,13 +116,17 @@ class E2EAssertions {
     } else {
       // Look for common error indicators
       final hasSnackBar = find.byType(SnackBar).evaluate().isNotEmpty;
-      final hasErrorText = find.textContaining('error').evaluate().isNotEmpty ||
+      final hasErrorText =
+          find.textContaining('error').evaluate().isNotEmpty ||
           find.textContaining('Error').evaluate().isNotEmpty ||
           find.textContaining('failed').evaluate().isNotEmpty ||
           find.textContaining('Failed').evaluate().isNotEmpty;
 
-      expect(hasSnackBar || hasErrorText, isTrue,
-          reason: 'Some error indication should be displayed');
+      expect(
+        hasSnackBar || hasErrorText,
+        isTrue,
+        reason: 'Some error indication should be displayed',
+      );
     }
   }
 

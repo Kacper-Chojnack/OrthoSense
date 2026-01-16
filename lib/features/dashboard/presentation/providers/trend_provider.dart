@@ -366,7 +366,8 @@ class WeeklyActivityDay {
   final bool isToday;
 }
 
-class SelectedWeeklyActivityMetricNotifier extends Notifier<WeeklyActivityMetric> {
+class SelectedWeeklyActivityMetricNotifier
+    extends Notifier<WeeklyActivityMetric> {
   @override
   WeeklyActivityMetric build() => WeeklyActivityMetric.sessions;
 
@@ -376,9 +377,12 @@ class SelectedWeeklyActivityMetricNotifier extends Notifier<WeeklyActivityMetric
 }
 
 final selectedWeeklyActivityMetricProvider =
-    NotifierProvider<SelectedWeeklyActivityMetricNotifier, WeeklyActivityMetric>(
-  SelectedWeeklyActivityMetricNotifier.new,
-);
+    NotifierProvider<
+      SelectedWeeklyActivityMetricNotifier,
+      WeeklyActivityMetric
+    >(
+      SelectedWeeklyActivityMetricNotifier.new,
+    );
 
 final weeklyActivityDataProvider = FutureProvider<List<WeeklyActivityDay>>((
   ref,
@@ -397,12 +401,15 @@ final weeklyActivityDataProvider = FutureProvider<List<WeeklyActivityDay>>((
           .get();
 
   final byDay = <DateTime, double>{
-    for (var i = 0; i < 7; i++)
-      startDate.add(Duration(days: i)): 0,
+    for (var i = 0; i < 7; i++) startDate.add(Duration(days: i)): 0,
   };
 
   for (final r in results) {
-    final day = DateTime(r.performedAt.year, r.performedAt.month, r.performedAt.day);
+    final day = DateTime(
+      r.performedAt.year,
+      r.performedAt.month,
+      r.performedAt.day,
+    );
     if (day.isBefore(startDate) || day.isAfter(today)) continue;
 
     switch (metric) {

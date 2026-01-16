@@ -78,7 +78,7 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
 
         expect(sessionState.elapsedSeconds, greaterThanOrEqualTo(1));
-        
+
         // Stop session to cancel timer - need to wait for timer iteration to complete
         sessionState.completeSession();
         await tester.pump(const Duration(seconds: 2));

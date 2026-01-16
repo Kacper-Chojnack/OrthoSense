@@ -215,7 +215,8 @@ void main() {
         ProviderScope(
           overrides: [
             testAuthStateProvider.overrideWith(() {
-              return TestAuthStateNotifier()..initialState = TestAuthState.loading();
+              return TestAuthStateNotifier()
+                ..initialState = TestAuthState.loading();
             }),
           ],
           child: const MaterialApp(
@@ -237,7 +238,8 @@ void main() {
         ProviderScope(
           overrides: [
             testAuthStateProvider.overrideWith(() {
-              return TestAuthStateNotifier()..initialState = TestAuthState.loading();
+              return TestAuthStateNotifier()
+                ..initialState = TestAuthState.loading();
             }),
           ],
           child: const MaterialApp(
@@ -254,7 +256,8 @@ void main() {
         ProviderScope(
           overrides: [
             testAuthStateProvider.overrideWith(() {
-              return TestAuthStateNotifier()..initialState = TestAuthState.error('Invalid credentials');
+              return TestAuthStateNotifier()
+                ..initialState = TestAuthState.error('Invalid credentials');
             }),
           ],
           child: const MaterialApp(
@@ -290,18 +293,19 @@ void main() {
 // Test widgets and providers
 class TestAuthStateNotifier extends Notifier<TestAuthState> {
   TestAuthState? initialState;
-  
+
   @override
   TestAuthState build() => initialState ?? TestAuthState.unauthenticated();
-  
+
   void setState(TestAuthState newState) {
     state = newState;
   }
 }
 
-final testAuthStateProvider = NotifierProvider<TestAuthStateNotifier, TestAuthState>(
-  TestAuthStateNotifier.new,
-);
+final testAuthStateProvider =
+    NotifierProvider<TestAuthStateNotifier, TestAuthState>(
+      TestAuthStateNotifier.new,
+    );
 
 enum TestAuthStatus { initial, loading, authenticated, unauthenticated, error }
 

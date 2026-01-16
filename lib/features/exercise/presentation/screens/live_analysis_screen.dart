@@ -611,7 +611,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         _controller!.description,
       );
 
-      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId) return;
+      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId)
+        return;
       if (!_isStreaming) return;
 
       if (poseFrame == null) return;
@@ -736,7 +737,8 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
 
       final landmarks = PoseLandmarks(frames: validFrames, fps: 30.0);
       final classification = await classifier.classify(landmarks);
-      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId) return;
+      if (!mounted || _isStoppingAnalysis || runId != _liveAnalysisRunId)
+        return;
 
       final exName = classification.exercise;
       if (exName != 'Unknown Exercise' &&

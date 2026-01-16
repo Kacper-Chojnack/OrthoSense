@@ -408,11 +408,11 @@ void main() {
       expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Voice Assistant'), findsOneWidget);
       expect(find.text('Account'), findsOneWidget);
-      
+
       // Scroll down to see About section
       await tester.drag(find.byType(ListView), const Offset(0, -400));
       await tester.pumpAndSettle();
-      
+
       expect(find.text('About'), findsOneWidget);
     });
 
@@ -430,11 +430,11 @@ void main() {
       // Sign Out and Delete Account use Image.asset instead of Icons
       expect(find.text('Sign Out'), findsOneWidget);
       expect(find.text('Delete Account'), findsOneWidget);
-      
+
       // Scroll down to see About section icons
       await tester.drag(find.byType(ListView), const Offset(0, -400));
       await tester.pumpAndSettle();
-      
+
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
   });

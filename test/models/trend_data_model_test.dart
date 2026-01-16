@@ -175,7 +175,10 @@ void main() {
 
   group('TrendMetricType', () {
     test('rangeOfMotion has correct properties', () {
-      expect(TrendMetricType.rangeOfMotion.displayName, equals('Range of Motion'));
+      expect(
+        TrendMetricType.rangeOfMotion.displayName,
+        equals('Range of Motion'),
+      );
       expect(TrendMetricType.rangeOfMotion.unit, equals('°'));
       expect(TrendMetricType.rangeOfMotion.maxValue, equals(180));
     });
@@ -244,7 +247,10 @@ void main() {
       expect(stats.averageScore, equals(87.5));
       expect(stats.scoreChange, equals(3.2));
       expect(stats.activeStreakDays, equals(7));
-      expect(stats.totalTimeThisMonth, equals(const Duration(hours: 8, minutes: 30)));
+      expect(
+        stats.totalTimeThisMonth,
+        equals(const Duration(hours: 8, minutes: 30)),
+      );
       expect(stats.completionRate, equals(92.0));
     });
 

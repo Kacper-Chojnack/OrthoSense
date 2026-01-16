@@ -121,8 +121,11 @@ void main() {
 
       // VERIFY: Still on login screen (not redirected)
       final stillOnLogin = find.byType(LoginScreen).evaluate().isNotEmpty;
-      expect(stillOnLogin, isTrue,
-          reason: 'Should still be on login after wrong credentials');
+      expect(
+        stillOnLogin,
+        isTrue,
+        reason: 'Should still be on login after wrong credentials',
+      );
     });
 
     testWidgets('Network timeout graceful handling', (tester) async {
@@ -221,8 +224,11 @@ void main() {
 
         // VERIFY: Still on login (form doesn't submit with empty fields)
         final stillOnLogin = find.byType(LoginScreen).evaluate().isNotEmpty;
-        expect(stillOnLogin, isTrue,
-            reason: 'Should not submit with empty form');
+        expect(
+          stillOnLogin,
+          isTrue,
+          reason: 'Should not submit with empty form',
+        );
       }
     });
 
@@ -300,8 +306,11 @@ void main() {
 
         // VERIFY: Back navigation works or app is still functional
         final appFunctional = find.byType(MaterialApp).evaluate().isNotEmpty;
-        expect(appFunctional, isTrue,
-            reason: 'App should remain functional after navigation');
+        expect(
+          appFunctional,
+          isTrue,
+          reason: 'App should remain functional after navigation',
+        );
       } else {
         E2ETestHelpers.logStep('No navigation available from login');
         expect(find.byType(LoginScreen), findsOneWidget);

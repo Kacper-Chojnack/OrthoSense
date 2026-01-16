@@ -143,7 +143,10 @@ void main() {
 
   group('TrendMetricType Properties', () {
     test('rangeOfMotion has correct properties', () {
-      expect(TrendMetricType.rangeOfMotion.displayName, equals('Range of Motion'));
+      expect(
+        TrendMetricType.rangeOfMotion.displayName,
+        equals('Range of Motion'),
+      );
       expect(TrendMetricType.rangeOfMotion.unit, equals('°'));
       expect(TrendMetricType.rangeOfMotion.maxValue, equals(180));
     });
@@ -217,11 +220,12 @@ void main() {
       if (sessionDates.isEmpty) return 0;
 
       final sortedDates = sessionDates.toList()..sort((a, b) => b.compareTo(a));
-      final uniqueDates = sortedDates
-          .map((d) => DateTime(d.year, d.month, d.day))
-          .toSet()
-          .toList()
-        ..sort((a, b) => b.compareTo(a));
+      final uniqueDates =
+          sortedDates
+              .map((d) => DateTime(d.year, d.month, d.day))
+              .toSet()
+              .toList()
+            ..sort((a, b) => b.compareTo(a));
 
       if (uniqueDates.isEmpty) return 0;
 

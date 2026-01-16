@@ -134,36 +134,36 @@ void main() {
       // Mock the flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (MethodCall methodCall) async {
-          switch (methodCall.method) {
-            case 'awaitSpeakCompletion':
-            case 'setVolume':
-            case 'setSpeechRate':
-            case 'setPitch':
-            case 'setLanguage':
-            case 'stop':
-            case 'speak':
-              return 1;
-            case 'isLanguageAvailable':
-              return 1;
-            case 'getLanguages':
-              return ['en-US'];
-            case 'getVoices':
-              return [];
-            default:
-              return null;
-          }
-        },
-      );
+            const MethodChannel('flutter_tts'),
+            (MethodCall methodCall) async {
+              switch (methodCall.method) {
+                case 'awaitSpeakCompletion':
+                case 'setVolume':
+                case 'setSpeechRate':
+                case 'setPitch':
+                case 'setLanguage':
+                case 'stop':
+                case 'speak':
+                  return 1;
+                case 'isLanguageAvailable':
+                  return 1;
+                case 'getLanguages':
+                  return ['en-US'];
+                case 'getVoices':
+                  return [];
+                default:
+                  return null;
+              }
+            },
+          );
     });
 
     tearDownAll(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        null,
-      );
+            const MethodChannel('flutter_tts'),
+            null,
+          );
     });
 
     setUp(() {
@@ -199,36 +199,36 @@ void main() {
       // Mock the flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (MethodCall methodCall) async {
-          switch (methodCall.method) {
-            case 'awaitSpeakCompletion':
-            case 'setVolume':
-            case 'setSpeechRate':
-            case 'setPitch':
-            case 'setLanguage':
-            case 'stop':
-            case 'speak':
-              return 1;
-            case 'isLanguageAvailable':
-              return 1;
-            case 'getLanguages':
-              return ['en-US'];
-            case 'getVoices':
-              return [];
-            default:
-              return null;
-          }
-        },
-      );
+            const MethodChannel('flutter_tts'),
+            (MethodCall methodCall) async {
+              switch (methodCall.method) {
+                case 'awaitSpeakCompletion':
+                case 'setVolume':
+                case 'setSpeechRate':
+                case 'setPitch':
+                case 'setLanguage':
+                case 'stop':
+                case 'speak':
+                  return 1;
+                case 'isLanguageAvailable':
+                  return 1;
+                case 'getLanguages':
+                  return ['en-US'];
+                case 'getVoices':
+                  return [];
+                default:
+                  return null;
+              }
+            },
+          );
     });
 
     tearDownAll(() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        null,
-      );
+            const MethodChannel('flutter_tts'),
+            null,
+          );
     });
 
     setUp(() {
