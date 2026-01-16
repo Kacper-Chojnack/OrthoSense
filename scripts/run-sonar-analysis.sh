@@ -58,7 +58,7 @@ flutter test --coverage
 
 # Run analyzer
 echo "Running Flutter analyze..."
-flutter analyze --write=flutter-analyze.txt || true
+flutter analyze --no-fatal-warnings --write=flutter-analyze.txt || true
 
 # SonarQube scan
 echo "Running SonarQube scanner..."
