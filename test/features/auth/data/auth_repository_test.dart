@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:orthosense/features/auth/data/auth_repository.dart';
 import 'package:orthosense/features/auth/data/token_storage.dart';
-import 'package:orthosense/features/auth/domain/models/models.dart';
 
 // Mocks
 class MockDio extends Mock implements Dio {}

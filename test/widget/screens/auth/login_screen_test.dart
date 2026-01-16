@@ -15,7 +15,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:orthosense/features/auth/data/auth_repository.dart';
 import 'package:orthosense/features/auth/data/token_storage.dart';
 import 'package:orthosense/features/auth/domain/models/models.dart';
-import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/auth/presentation/screens/login_screen.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
