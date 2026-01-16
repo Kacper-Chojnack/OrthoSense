@@ -21,6 +21,9 @@ void main() {
       ),
     );
 
+    // Wait for all timers and animations (including the 100ms delay in _initializeSync)
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
+
     // Verify that the app builds (e.g. finds a Material App or just doesn't crash)
     expect(find.byType(MaterialApp), findsOneWidget);
   });

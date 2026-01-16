@@ -270,6 +270,12 @@ async def submit_exercise_result(
             detail=ACCESS_DENIED,
         )
 
+    if exercise_session.status == SessionStatus.COMPLETED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot submit results to a completed session",
+        )
+
     from app.models.exercise import Exercise
 
     exercise = await session.get(Exercise, data.exercise_id)

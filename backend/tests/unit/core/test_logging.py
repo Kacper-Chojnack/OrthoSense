@@ -183,12 +183,14 @@ class TestLogLevelParsing:
     )
     def test_log_level_parsing(self, level_str: str, expected_level: int) -> None:
         """Log level strings are parsed correctly."""
+        # Reset root logger level before test to ensure clean state
+        logging.root.setLevel(logging.NOTSET)
         setup_logging(json_logs=True, log_level=level_str)
 
         # Root logger should be configured to the specified level
         root_logger = logging.getLogger()
-        # Accept any level that would allow expected_level messages through
-        assert root_logger.getEffectiveLevel() <= expected_level or root_logger.level == expected_level
+        # The effective level should match after setup_logging call
+        assert root_logger.level == expected_level
 
 
 class TestErrorLogging:

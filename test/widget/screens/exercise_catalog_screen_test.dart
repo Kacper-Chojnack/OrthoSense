@@ -39,7 +39,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+      // Actual icon is photo_camera_outlined
+      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
     });
 
     testWidgets('renders gallery icon in app bar', (tester) async {
@@ -51,7 +52,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.video_library), findsOneWidget);
+      // Actual icon is play_circle_outline for gallery analysis
+      expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
     });
 
     testWidgets('displays Deep Squat exercise', (tester) async {
@@ -172,7 +174,7 @@ void main() {
         ),
       );
 
-      final cameraButton = find.byIcon(Icons.camera_alt);
+      final cameraButton = find.byIcon(Icons.photo_camera_outlined);
       final iconButton = tester.widget<IconButton>(
         find.ancestor(
           of: cameraButton,
@@ -192,7 +194,7 @@ void main() {
         ),
       );
 
-      final galleryButton = find.byIcon(Icons.video_library);
+      final galleryButton = find.byIcon(Icons.play_circle_outline);
       final iconButton = tester.widget<IconButton>(
         find.ancestor(
           of: galleryButton,
@@ -321,7 +323,7 @@ void main() {
       );
 
       // Camera icon should be accessible
-      final cameraIcon = find.byIcon(Icons.camera_alt);
+      final cameraIcon = find.byIcon(Icons.photo_camera_outlined);
       expect(cameraIcon, findsOneWidget);
     });
   });

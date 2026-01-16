@@ -147,7 +147,7 @@ class SessionExerciseResultCreate(SQLModel):
     sets_completed: int = 0
     reps_completed: int = 0
     hold_seconds_achieved: int | None = None
-    score: float | None = None
+    score: float | None = Field(default=None, ge=0, le=100)
 
 
 class SessionExerciseResultRead(SQLModel):

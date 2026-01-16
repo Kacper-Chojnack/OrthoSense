@@ -12,6 +12,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -639,7 +640,8 @@ class RetryPolicy {
     return delay;
   }
 
-  double _random() => DateTime.now().millisecondsSinceEpoch % 100 / 100;
+  static final _rng = Random();
+  double _random() => _rng.nextDouble();
 }
 
 abstract class RequestInterceptor {

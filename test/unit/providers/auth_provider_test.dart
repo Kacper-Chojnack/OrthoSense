@@ -247,7 +247,14 @@ void main() {
 
       expect(state, isA<AuthStateUnauthenticated>());
       if (state case AuthStateUnauthenticated(:final message)) {
-        expect(message?.toLowerCase(), contains('network'));
+        // Message can contain 'network', 'connect', or 'internet'
+        final lowerMessage = message?.toLowerCase() ?? '';
+        expect(
+          lowerMessage.contains('network') ||
+              lowerMessage.contains('connect') ||
+              lowerMessage.contains('internet'),
+          isTrue,
+        );
       }
     });
   });

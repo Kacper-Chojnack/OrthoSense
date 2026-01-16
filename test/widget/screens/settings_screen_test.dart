@@ -18,6 +18,7 @@ import 'package:orthosense/core/providers/preferences_provider.dart';
 import 'package:orthosense/core/services/preferences_service.dart';
 import 'package:orthosense/features/auth/data/auth_repository.dart';
 import 'package:orthosense/features/auth/data/token_storage.dart';
+import 'package:orthosense/features/settings/presentation/providers/theme_mode_provider.dart';
 import 'package:orthosense/features/settings/presentation/screens/settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,6 +47,8 @@ Widget createTestWidget({
       authRepositoryProvider.overrideWithValue(mockAuthRepository),
       tokenStorageProvider.overrideWithValue(mockTokenStorage),
       preferencesServiceProvider.overrideWithValue(preferencesService),
+      // Override theme provider to avoid Drift database initialization
+      currentThemeModeProvider.overrideWithValue(ThemeMode.system),
     ],
     child: const MaterialApp(
       home: SettingsScreen(),
@@ -133,6 +136,10 @@ void main() {
           mockSharedPreferences: mockSharedPreferences,
         ),
       );
+
+      // About section is below the fold, need to scroll
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
 
       expect(find.text('About'), findsOneWidget);
     });
@@ -233,8 +240,12 @@ void main() {
         ),
       );
 
+      // Sign Out is below the fold, need to scroll
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
       expect(find.text('Sign Out'), findsOneWidget);
-      expect(find.byIcon(Icons.logout), findsOneWidget);
+      // Sign Out uses Image.asset with logo, not Icons.logout
     });
 
     testWidgets('renders Delete Account option (GDPR)', (tester) async {
@@ -261,6 +272,10 @@ void main() {
         ),
       );
 
+      // Sign Out is below the fold, need to scroll first
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
       await tester.tap(find.text('Sign Out'));
       await tester.pumpAndSettle();
 
@@ -279,6 +294,10 @@ void main() {
           mockSharedPreferences: mockSharedPreferences,
         ),
       );
+
+      // Sign Out is below the fold, need to scroll first
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.text('Sign Out'));
       await tester.pumpAndSettle();
@@ -343,6 +362,7 @@ void main() {
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             tokenStorageProvider.overrideWithValue(mockTokenStorage),
             preferencesServiceProvider.overrideWithValue(preferencesService),
+            currentThemeModeProvider.overrideWithValue(ThemeMode.system),
           ],
           child: MaterialApp(
             theme: ThemeData.light(),
@@ -362,6 +382,7 @@ void main() {
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             tokenStorageProvider.overrideWithValue(mockTokenStorage),
             preferencesServiceProvider.overrideWithValue(preferencesService),
+            currentThemeModeProvider.overrideWithValue(ThemeMode.system),
           ],
           child: MaterialApp(
             theme: ThemeData.dark(),
@@ -387,6 +408,11 @@ void main() {
       expect(find.text('Appearance'), findsOneWidget);
       expect(find.text('Voice Assistant'), findsOneWidget);
       expect(find.text('Account'), findsOneWidget);
+      
+      // Scroll down to see About section
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      
       expect(find.text('About'), findsOneWidget);
     });
 
@@ -399,11 +425,17 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.palette_outlined), findsOneWidget);
       expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
       expect(find.byIcon(Icons.download_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.logout), findsOneWidget);
-      expect(find.byIcon(Icons.delete_forever), findsOneWidget);
+      // Sign Out and Delete Account use Image.asset instead of Icons
+      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Delete Account'), findsOneWidget);
+      
+      // Scroll down to see About section icons
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
   });
 }

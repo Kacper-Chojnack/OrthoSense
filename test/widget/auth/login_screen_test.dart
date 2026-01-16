@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 
 // Mock classes
 class MockAuthNotifier extends Mock implements AuthNotifier {}
@@ -186,25 +187,36 @@ void main() {
         ),
       );
 
-      // Initially password is obscured
-      final passwordField = tester.widget<TextFormField>(
-        find.byKey(const Key('password_field')),
+      // Initially password is obscured - check the TextField inside TextFormField
+      final textField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(TextField),
+        ),
       );
-      expect(passwordField.obscureText, isTrue);
+      expect(textField.obscureText, isTrue);
 
       // Toggle visibility
       await tester.tap(find.byIcon(Icons.visibility));
       await tester.pump();
 
-      // Password should be visible now
-      // (In real test, we'd check the updated obscureText property)
+      // Password should be visible now - check updated TextField
+      final updatedTextField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(updatedTextField.obscureText, isFalse);
     });
 
     testWidgets('login button is disabled when loading', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            testAuthStateProvider.overrideWith((_) => TestAuthState.loading()),
+            testAuthStateProvider.overrideWith(() {
+              return TestAuthStateNotifier()..initialState = TestAuthState.loading();
+            }),
           ],
           child: const MaterialApp(
             home: TestLoginScreen(),
@@ -224,7 +236,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            testAuthStateProvider.overrideWith((_) => TestAuthState.loading()),
+            testAuthStateProvider.overrideWith(() {
+              return TestAuthStateNotifier()..initialState = TestAuthState.loading();
+            }),
           ],
           child: const MaterialApp(
             home: TestLoginScreen(),
@@ -239,9 +253,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            testAuthStateProvider.overrideWith(
-              (_) => TestAuthState.error('Invalid credentials'),
-            ),
+            testAuthStateProvider.overrideWith(() {
+              return TestAuthStateNotifier()..initialState = TestAuthState.error('Invalid credentials');
+            }),
           ],
           child: const MaterialApp(
             home: TestLoginScreen(),
@@ -266,17 +280,28 @@ void main() {
         ),
       );
 
-      // Check for accessibility labels
-      expect(find.bySemanticsLabel('Email'), findsOneWidget);
-      expect(find.bySemanticsLabel('Password'), findsOneWidget);
+      // Check for form field labels displayed as hint/label text
+      expect(find.text('Email'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
     });
   });
 }
 
 // Test widgets and providers
-final testAuthStateProvider = StateProvider<TestAuthState>((ref) {
-  return TestAuthState.unauthenticated();
-});
+class TestAuthStateNotifier extends Notifier<TestAuthState> {
+  TestAuthState? initialState;
+  
+  @override
+  TestAuthState build() => initialState ?? TestAuthState.unauthenticated();
+  
+  void setState(TestAuthState newState) {
+    state = newState;
+  }
+}
+
+final testAuthStateProvider = NotifierProvider<TestAuthStateNotifier, TestAuthState>(
+  TestAuthStateNotifier.new,
+);
 
 enum TestAuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -297,8 +322,6 @@ class TestAuthState {
   final TestAuthStatus status;
   final String? errorMessage;
 }
-
-class AuthNotifier {}
 
 class TestLoginScreen extends ConsumerStatefulWidget {
   const TestLoginScreen({super.key});

@@ -84,12 +84,12 @@ class TestUserModel:
 
     def test_user_created_at_auto_set(self) -> None:
         """User created_at is automatically set to current time."""
-        before = datetime.now(UTC)
+        before = datetime.now(UTC).replace(tzinfo=None)
         user = User(
             email="test@example.com",
             hashed_password="hashed",
         )
-        after = datetime.now(UTC)
+        after = datetime.now(UTC).replace(tzinfo=None)
 
         assert user.created_at is not None
         # created_at should be between before and after

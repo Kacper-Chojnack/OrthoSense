@@ -10,6 +10,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -315,7 +316,7 @@ void main() {
       expect(syncService.lastSyncTime, isNotNull);
     });
 
-    test('sync progress is reported', () {
+    test('sync progress is reported', () async {
       final progress = <double>[];
 
       syncService.onProgress.listen(progress.add);
@@ -324,6 +325,9 @@ void main() {
         ..reportProgress(0.25)
         ..reportProgress(0.5)
         ..reportProgress(1.0);
+
+      // Wait for stream to propagate
+      await Future<void>.delayed(Duration.zero);
 
       expect(progress, contains(0.5));
     });
@@ -482,9 +486,9 @@ class SyncQueue {
   void markFailed(String id, {required String error}) {
     final index = _items.indexWhere((item) => item.id == id);
     if (index != -1) {
-      _items[index]
-        ..retryCount++
-        ..lastError = error;
+      final item = _items[index];
+      item.retryCount++;
+      item.lastError = error;
     }
   }
 
@@ -569,8 +573,9 @@ class ExponentialBackoff {
     return Duration(milliseconds: base.inMilliseconds + jitter);
   }
 
+  static final _rng = Random();
   double _random() {
-    return DateTime.now().microsecondsSinceEpoch % 1000 / 1000;
+    return _rng.nextDouble();
   }
 }
 

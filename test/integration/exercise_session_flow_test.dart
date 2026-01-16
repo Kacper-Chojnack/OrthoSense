@@ -78,6 +78,10 @@ void main() {
         await tester.pump(const Duration(seconds: 2));
 
         expect(sessionState.elapsedSeconds, greaterThanOrEqualTo(1));
+        
+        // Stop session to cancel timer - need to wait for timer iteration to complete
+        sessionState.completeSession();
+        await tester.pump(const Duration(seconds: 2));
       });
 
       testWidgets('rep counter increments on detection', (tester) async {
@@ -280,7 +284,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Confirm discard
-        await tester.tap(find.text('Discard'));
+        await tester.tap(find.byKey(const Key('confirm_discard_button')));
         await tester.pumpAndSettle();
 
         expect(sessionState.isActive, isFalse);
@@ -693,9 +697,20 @@ class _TestActiveSessionScreenState extends State<TestActiveSessionScreen> {
   @override
   void initState() {
     super.initState();
+    widget.poseDetector?.addListener(_onPoseDetectorChanged);
     widget.poseDetector?.onRepDetected(() {
       widget.sessionState.addRep(quality: widget.poseDetector!.formQuality);
     });
+  }
+
+  @override
+  void dispose() {
+    widget.poseDetector?.removeListener(_onPoseDetectorChanged);
+    super.dispose();
+  }
+
+  void _onPoseDetectorChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -815,6 +830,7 @@ class _TestActiveSessionScreenState extends State<TestActiveSessionScreen> {
         content: const Text('Discard session?'),
         actions: [
           TextButton(
+            key: const Key('confirm_discard_button'),
             onPressed: () {
               widget.sessionState.discardSession();
               Navigator.pop(context);

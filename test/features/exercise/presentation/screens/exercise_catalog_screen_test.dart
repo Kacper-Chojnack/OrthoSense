@@ -21,8 +21,8 @@ void main() {
       expect(find.text('Exercise Catalog'), findsOneWidget);
 
       // Verify action buttons
-      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
-      expect(find.byIcon(Icons.video_library), findsOneWidget);
+      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
     });
 
     testWidgets('displays all exercises', (tester) async {
@@ -88,8 +88,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Both analysis buttons should be present
-      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
-      expect(find.byIcon(Icons.video_library), findsOneWidget);
+      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
     });
 
     testWidgets('each exercise card displays correctly', (tester) async {
@@ -188,14 +188,15 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.camera_alt), findsOneWidget);
+      expect(find.byIcon(Icons.photo_camera_outlined), findsOneWidget);
     });
 
     testWidgets('gallery analysis icon button exists', (tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.video_library), findsOneWidget);
+      // The actual screen uses play_circle_outline for gallery analysis
+      expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
     });
 
     testWidgets('icon buttons have tooltips', (tester) async {

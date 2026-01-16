@@ -35,11 +35,15 @@ def setup_logging(*, json_logs: bool = True, log_level: str = "INFO") -> None:
     )
 
     # Configure standard library logging
+    log_level_int = getattr(logging, log_level.upper())
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, log_level.upper()),
+        level=log_level_int,
+        force=True,  # Force reconfiguration even if already set
     )
+    # Explicitly set root logger level (basicConfig may not update it in all cases)
+    logging.root.setLevel(log_level_int)
 
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:

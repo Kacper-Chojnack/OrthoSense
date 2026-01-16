@@ -40,12 +40,11 @@ void main() {
     mockTokenStorage = MockTokenStorage();
   });
 
-  Widget createTestWidget({List<Override> overrides = const []}) {
+  Widget createTestWidget() {
     return ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(mockAuthRepository),
         tokenStorageProvider.overrideWithValue(mockTokenStorage),
-        ...overrides,
       ],
       child: const MaterialApp(
         home: LoginScreen(),
@@ -108,7 +107,8 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      expect(find.text('Create Account'), findsOneWidget);
+      // Actual button text is 'Sign Up'
+      expect(find.text('Sign Up'), findsOneWidget);
     });
   });
 

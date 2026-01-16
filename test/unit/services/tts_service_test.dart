@@ -8,10 +8,14 @@
 /// 5. State changes
 library;
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orthosense/core/services/tts_service.dart';
 
 void main() {
+  // Required for FlutterTts which uses platform channels
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AudioPlaybackState', () {
     test('initial state has correct default values', () {
       const state = AudioPlaybackState.initial();
@@ -126,6 +130,42 @@ void main() {
   group('TtsService', () {
     late TtsService ttsService;
 
+    setUpAll(() {
+      // Mock the flutter_tts platform channel
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'awaitSpeakCompletion':
+            case 'setVolume':
+            case 'setSpeechRate':
+            case 'setPitch':
+            case 'setLanguage':
+            case 'stop':
+            case 'speak':
+              return 1;
+            case 'isLanguageAvailable':
+              return 1;
+            case 'getLanguages':
+              return ['en-US'];
+            case 'getVoices':
+              return [];
+            default:
+              return null;
+          }
+        },
+      );
+    });
+
+    tearDownAll(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        null,
+      );
+    });
+
     setUp(() {
       ttsService = TtsService();
     });
@@ -154,6 +194,42 @@ void main() {
 
   group('TtsService State Management', () {
     late TtsService ttsService;
+
+    setUpAll(() {
+      // Mock the flutter_tts platform channel
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'awaitSpeakCompletion':
+            case 'setVolume':
+            case 'setSpeechRate':
+            case 'setPitch':
+            case 'setLanguage':
+            case 'stop':
+            case 'speak':
+              return 1;
+            case 'isLanguageAvailable':
+              return 1;
+            case 'getLanguages':
+              return ['en-US'];
+            case 'getVoices':
+              return [];
+            default:
+              return null;
+          }
+        },
+      );
+    });
+
+    tearDownAll(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        null,
+      );
+    });
 
     setUp(() {
       ttsService = TtsService();

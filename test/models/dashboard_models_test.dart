@@ -49,7 +49,7 @@ void main() {
 
       expect(json['value'], equals(75.0));
       expect(json['label'], equals('Jun'));
-      expect(json['is_highlighted'], isFalse);
+      expect(json['isHighlighted'], isFalse);
     });
 
     test('deserializes from JSON correctly', () {
@@ -57,7 +57,7 @@ void main() {
         'date': '2024-06-01T00:00:00.000',
         'value': 80.0,
         'label': 'Test',
-        'is_highlighted': true,
+        'isHighlighted': true,
       };
 
       final point = TrendDataPoint.fromJson(json);
@@ -137,8 +137,8 @@ void main() {
       final json = data.toJson();
 
       expect(json['period'], equals('days7'));
-      expect(json['metric_type'], equals('exerciseDuration'));
-      expect(json['average_value'], equals(25.0));
+      expect(json['metricType'], equals('exerciseDuration'));
+      expect(json['averageValue'], equals(25.0));
     });
   });
 
@@ -247,8 +247,8 @@ void main() {
 
       final json = stats.toJson();
 
-      expect(json['total_sessions'], equals(25));
-      expect(json['average_score'], equals(75.0));
+      expect(json['totalSessions'], equals(25));
+      expect(json['averageScore'], equals(75.0));
     });
 
     test('copyWith works correctly', () {

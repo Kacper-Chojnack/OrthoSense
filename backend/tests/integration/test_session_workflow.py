@@ -279,7 +279,7 @@ class TestSessionListing:
         response = await client.get(
             "/api/v1/sessions",
             headers=auth_headers,
-            params={"status": "completed"},
+            params={"status_filter": "completed"},
         )
 
         assert response.status_code == 200
