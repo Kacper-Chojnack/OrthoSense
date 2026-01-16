@@ -284,7 +284,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Remove extended attributes that cause codesigning errors\nif [ -d \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\" ]; then\n  echo \"Cleaning extended attributes from Flutter.framework\"\n  xattr -cr \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\"\nfi\n";
+			shellScript = "# Remove extended attributes that cause codesigning errors\necho \"🧹 Cleaning extended attributes from build directory...\"\n\n# Clean entire build directory\nif [ -d \"${BUILD_DIR}\" ]; then\n  find \"${BUILD_DIR}\" -type f -exec xattr -c {} \\; 2>/dev/null || true\nfi\n\n# Clean Flutter framework specifically\nif [ -d \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\" ]; then\n  xattr -cr \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\" 2>/dev/null || true\nfi\n\n# Clean App.framework\nif [ -d \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/App.framework\" ]; then\n  xattr -cr \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/App.framework\" 2>/dev/null || true\nfi\n\necho \"✅ Extended attributes cleaned\"\n";
 		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
