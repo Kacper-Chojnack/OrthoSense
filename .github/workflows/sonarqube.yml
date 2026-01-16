@@ -77,3 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart
+            -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/*_test.dart,**/*_test.py

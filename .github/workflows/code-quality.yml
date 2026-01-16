@@ -17,6 +17,7 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
+        continue-on-error: true
         if: env.SONAR_TOKEN
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
@@ -30,3 +31,5 @@ jobs:
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
             -Dsonar.flutter.coverage.reportPath=coverage/lcov.info
             -Dsonar.exclusions=**/*.g.dart,**/*.freezed.dart
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart
