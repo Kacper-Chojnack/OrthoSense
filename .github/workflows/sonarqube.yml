@@ -49,7 +49,15 @@ jobs:
             --cov=app \
             --cov-report=xml:coverage.xml \
             --cov-report=term \
-            --junitxml=test-results.xml || true
+            --junitxml=test-results.xml \
+            -v || true
+          # Verify coverage file was created
+          if [ -f coverage.xml ]; then
+            echo "✅ Coverage report generated successfully"
+            head -20 coverage.xml
+          else
+            echo "⚠️ Coverage report not found"
+          fi
 
       - name: Run Ruff (Linting)
         working-directory: ./backend
@@ -71,7 +79,7 @@ jobs:
         run: flutter analyze --write=flutter-analyze.txt || true
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v7
+        uses: SonarSource/sonarqube-scan-action@v5
         continue-on-error: true
         if: ${{ secrets.SONAR_TOKEN != '' }}
         env:
@@ -80,8 +88,28 @@ jobs:
         with:
           args: >
             -Dsonar.qualitygate.wait=false
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
             -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/*_test.dart,**/*_test.py
+
+      - name: Debug Coverage Files
+        if: always()
+        run: |
+          echo "=== Backend Coverage ==="
+          if [ -f backend/coverage.xml ]; then
+            echo "✅ backend/coverage.xml exists"
+            head -15 backend/coverage.xml
+          else
+            echo "❌ backend/coverage.xml NOT found"
+          fi
+          echo ""
+          echo "=== Frontend Coverage ==="
+          if [ -f coverage/lcov.info ]; then
+            echo "✅ coverage/lcov.info exists"
+            head -20 coverage/lcov.info
+          else
+            echo "❌ coverage/lcov.info NOT found"
+          fi
 
       - name: SonarCloud Scan Summary
         if: always()
