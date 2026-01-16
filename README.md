@@ -34,6 +34,9 @@ This project is an **Engineering Thesis** developed at **Polish-Japanese Academy
 git clone https://github.com/Kacper-Chojnack/OrthoSense.git
 cd OrthoSense
 
+# iOS Setup (auto-detects Team ID)
+./scripts/ios-setup.sh
+
 # Backend
 ./scripts/docker-dev.sh
 
@@ -79,6 +82,9 @@ Projekt jest **pracą inżynierską** realizowaną na **Polsko-Japońskiej Akade
 # Klonowanie i konfiguracja
 git clone https://github.com/Kacper-Chojnack/OrthoSense.git
 cd OrthoSense
+
+# Setup iOS (auto-wykrywa Team ID)
+./scripts/ios-setup.sh
 
 # Backend
 ./scripts/docker-dev.sh
