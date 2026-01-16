@@ -1,97 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:orthosense/core/providers/dashboard_stats_provider.dart';
+import 'package:orthosense/features/auth/domain/models/user_model.dart';
+import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:orthosense/features/auth/presentation/screens/profile_screen.dart';
+import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
 import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 import 'package:orthosense/features/dashboard/presentation/widgets/progress_trend_chart.dart';
 import 'package:orthosense/features/dashboard/presentation/widgets/weekly_activity_chart.dart';
+import 'package:orthosense/features/exercise/presentation/screens/exercise_catalog_screen.dart';
+import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
-import 'package:orthosense/widgets/offline_banner.dart';
 
+/// Main dashboard screen with analytics overview and quick actions.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('OrthoSense'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.person_outline_rounded),
+          tooltip: 'Profile',
+          onPressed: () => _openProfile(context),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_book),
+            tooltip: 'Exercise Catalog',
+            onPressed: () => _openExerciseCatalog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            tooltip: 'Activity Log',
+            onPressed: () => _openActivityLog(context),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref
-            ..invalidate(dashboardStatsProvider)
-            ..invalidate(trendDataProvider)
-            ..invalidate(weeklyActivityProvider);
-          await Future.wait([
-            ref.read(dashboardStatsProvider.future),
-            ref.read(trendDataProvider.future),
-            ref.read(weeklyActivityProvider.future),
-          ]);
+          ref.invalidate(dashboardStatsProvider);
+          ref.invalidate(recentExerciseResultsProvider);
+          // Invalidate chart providers to refresh charts
+          ref.invalidate(weeklyActivityDataProvider);
+          ref.invalidate(trendDataProvider(TrendMetricType.sessionScore));
         },
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 120.0,
-              floating: false,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: const Text(
-                  'Dashboard',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Section
+              _WelcomeHeader(user: user),
+              const SizedBox(height: 24),
+
+              // Stats Overview
+              const _SectionHeader(
+                title: 'Your Progress',
+              ),
+              const SizedBox(height: 12),
+              const _StatsGrid(),
+              const SizedBox(height: 24),
+
+              // Weekly Activity (Consistency)
+              const WeeklyActivityChart(),
+              const SizedBox(height: 16),
+
+              // Session Score Trend Chart (F08)
+              const ProgressTrendChart(
+                metricType: TrendMetricType.sessionScore,
+              ),
+              const SizedBox(height: 24),
+
+              // Recent Sessions
+              _SectionHeader(
+                title: 'Recent Sessions',
+                action: TextButton(
+                  onPressed: () => _openActivityLog(context),
+                  child: const Text('View All'),
                 ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.primaryContainer,
-                      ],
+              ),
+              const SizedBox(height: 12),
+              const _RecentSessionsList(),
+              const SizedBox(height: 80), // FAB clearance
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _startSession(context),
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('Start Session'),
+      ),
+    );
+  }
+
+  void _startSession(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select Analysis Method',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 24),
+            // Gallery Analysis - Primary option
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => GalleryAnalysisScreen(),
                     ),
-                  ),
+                  );
+                },
+                icon: const Icon(Icons.video_library),
+                label: const Text('Analyze from Gallery'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
             ),
-            const SliverToBoxAdapter(child: OfflineBanner()),
-            SliverPadding(
-              padding: const EdgeInsets.all(16.0),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const _SectionHeader(title: 'Quick Actions'),
-                  const SizedBox(height: 16),
-                  _QuickActions(),
-                  const SizedBox(height: 24),
-                  const _SectionHeader(title: 'Your Statistics'),
-                  const SizedBox(height: 16),
-                  const _StatsGrid(),
-                  const SizedBox(height: 24),
-                  _SectionHeader(
-                    title: 'Progress Trend',
-                    action: _TrendPeriodSelector(),
-                  ),
-                  const SizedBox(height: 16),
-                  const ProgressTrendChart(),
-                  const SizedBox(height: 24),
-                  const _SectionHeader(title: 'Weekly Activity'),
-                  const SizedBox(height: 16),
-                  const WeeklyActivityChart(),
-                  const SizedBox(height: 24),
-                  _SectionHeader(
-                    title: 'Recent Sessions',
-                    action: TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => const ActivityLogScreen(),
-                        ),
-                      ),
-                      child: const Text('See All'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LiveAnalysisScreen(),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  const _RecentSessionsList(),
-                ]),
+                  );
+                },
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Live Camera Analysis'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
               ),
             ),
           ],
@@ -99,154 +157,46 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
-}
 
-class _QuickActions extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const LiveAnalysisScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Start Session'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const ActivityLogScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.history),
-            label: const Text('View History'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ],
+  void _openExerciseCatalog(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ExerciseCatalogScreen()),
+    );
+  }
+
+  void _openProfile(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
+    );
+  }
+
+  void _openActivityLog(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ActivityLogScreen()),
     );
   }
 }
 
-class _TrendPeriodSelector extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final period = ref.watch(trendPeriodProvider);
+class _WelcomeHeader extends StatelessWidget {
+  const _WelcomeHeader({required this.user});
 
-    return SegmentedButton<TrendPeriod>(
-      segments: const [
-        ButtonSegment(
-          value: TrendPeriod.week,
-          label: Text('Week'),
-        ),
-        ButtonSegment(
-          value: TrendPeriod.month,
-          label: Text('Month'),
-        ),
-        ButtonSegment(
-          value: TrendPeriod.year,
-          label: Text('Year'),
-        ),
-      ],
-      selected: {period},
-      onSelectionChanged: (Set<TrendPeriod> selection) {
-        ref.read(trendPeriodProvider.notifier).state = selection.first;
-      },
-      style: ButtonStyle(
-        visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
-        textStyle: WidgetStateProperty.all(
-          const TextStyle(fontSize: 12),
-        ),
-      ),
-    );
-  }
-}
-
-class _RecentSessionsList extends ConsumerWidget {
-  const _RecentSessionsList();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(dashboardStatsProvider);
-
-    return statsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
-      data: (stats) {
-        if (stats.recentSessions.isEmpty) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(
-                child: Text(
-                  'No recent sessions',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: stats.recentSessions
-              .take(5)
-              .map(
-                (session) => Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Icon(
-                        _getExerciseIcon(session.exerciseName),
-                      ),
-                    ),
-                    title: Text(session.exerciseName),
-                    subtitle: Text(
-                      _formatDate(session.date),
-                    ),
-                    trailing: _SessionScore(score: session.score),
-                  ),
-                ),
-              )
-              .toList(),
-        );
-      },
-    );
-  }
-
-  IconData _getExerciseIcon(String exerciseName) {
-    return Icons.fitness_center;
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-}
-
-class _SessionScore extends StatelessWidget {
-  const _SessionScore({required this.score});
-
-  final int score;
+  final UserModel? user;
 
   @override
   Widget build(BuildContext context) {
+    final displayName = user?.email.split('@').first ?? 'User';
+
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$score',
+          'Welcome back,',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        Text(
+          displayName,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.primary,
@@ -298,83 +248,268 @@ class _StatsGrid extends ConsumerWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.5,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.4,
         children: [
           _StatCard(
-            title: 'Total Sessions',
-            value: '${stats.totalSessions}',
-            icon: Icons.fitness_center,
+            label: 'Sessions',
+            value: stats.totalSessions.toString(),
+            trend: stats.sessionsThisWeek > 0
+                ? '+${stats.sessionsThisWeek} this week'
+                : 'No sessions yet',
             color: Colors.blue,
+            icon: Icons.fitness_center_rounded,
           ),
           _StatCard(
-            title: 'Avg Score',
-            value: '${stats.averageScore.round()}',
-            icon: Icons.star,
-            color: Colors.amber,
-          ),
-          _StatCard(
-            title: 'Best Streak',
-            value: '${stats.bestStreak} days',
-            icon: Icons.local_fire_department,
-            color: Colors.orange,
-          ),
-          _StatCard(
-            title: 'Total Time',
-            value: '${(stats.totalDuration / 60).round()}m',
-            icon: Icons.timer,
+            label: 'Avg Score',
+            value: stats.totalSessions > 0
+                ? '${stats.averageScore.toStringAsFixed(0)}%'
+                : '--',
+            trend: stats.scoreChange != 0
+                ? '${stats.scoreChange >= 0 ? '+' : ''}${stats.scoreChange.toStringAsFixed(1)} vs last week'
+                : 'Complete a session',
             color: Colors.green,
+            icon: Icons.trending_up_rounded,
+          ),
+          _StatCard(
+            label: 'Active Streak',
+            value: stats.activeStreakDays.toString(),
+            trend: 'days',
+            color: Colors.orange,
+            icon: Icons.local_fire_department_rounded,
+          ),
+          _StatCard(
+            label: 'Total Time',
+            value: _formatDuration(stats.totalTimeThisMonth),
+            trend: 'this month',
+            color: Colors.purple,
+            icon: Icons.timer_outlined,
           ),
         ],
       ),
     );
   }
+
+  String _formatDuration(Duration duration) {
+    if (duration.inMinutes == 0) return '0m';
+    if (duration.inHours == 0) return '${duration.inMinutes}m';
+    final hours = duration.inHours;
+    final mins = duration.inMinutes % 60;
+    return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
+  }
 }
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
-    required this.title,
+    required this.label,
     required this.value,
-    required this.icon,
+    required this.trend,
     required this.color,
+    required this.icon,
   });
 
-  final String title;
+  final String label;
   final String value;
-  final IconData icon;
+  final String trend;
   final Color color;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: color.withValues(alpha: 0.1),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: color,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 4),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
               ),
             ),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Flexible(
+              child: Text(
+                trend,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _RecentSessionsList extends ConsumerWidget {
+  const _RecentSessionsList();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resultsAsync = ref.watch(recentExerciseResultsProvider);
+
+    return resultsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('Error loading sessions: $error'),
+        ),
+      ),
+      data: (results) {
+        if (results.isEmpty) {
+          return _buildEmptyState(context);
+        }
+        return Column(
+          children: results
+              .take(5)
+              .map(
+                (result) => _RecentSessionTile(
+                  title: result.exerciseName,
+                  subtitle: _formatDate(result.performedAt),
+                  score: result.score ?? 0,
+                ),
+              )
+              .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.fitness_center_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No sessions yet',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Start your first exercise session to see your progress here',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return 'Today, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else if (diff.inDays < 7) {
+      return '${diff.inDays} days ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+}
+
+class _RecentSessionTile extends StatelessWidget {
+  const _RecentSessionTile({
+    required this.title,
+    required this.subtitle,
+    required this.score,
+  });
+
+  final String title;
+  final String subtitle;
+  final int score;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: _getScoreColor(score).withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              '$score',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _getScoreColor(score),
+              ),
+            ),
+          ),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.directions_run,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const ActivityLogScreen(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Color _getScoreColor(int score) {
+    if (score >= 90) return Colors.green;
+    if (score >= 75) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
   }
 }
