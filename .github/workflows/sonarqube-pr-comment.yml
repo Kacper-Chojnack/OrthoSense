@@ -1,8 +1,8 @@
-name: SonarQube PR Comment
+name: SonarCloud PR Comment
 
 on:
   workflow_run:
-    workflows: ["SonarQube Analysis"]
+    workflows: ["SonarCloud Analysis"]
     types: [completed]
 
 jobs:
@@ -16,26 +16,28 @@ jobs:
           PR_NUMBER=$(jq -r '.pull_request.number // empty' $GITHUB_EVENT_PATH)
           echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: Comment PR with SonarQube Results
+      - name: Comment PR with SonarCloud Results
         if: steps.pr.outputs.number != ''
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
-            // Adjust this URL to your actual SonarCloud/SonarQube project URL
+            // Adjust this URL to your actual SonarCloud project URL
             const sonarUrl = 'https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense';
             
-            const comment = `## 🔍 SonarQube Analysis Results
+            const comment = `## 🔍 SonarCloud Analysis Results
             
-            ✅ Quality Gate: **PASSED**
+            ✅ Analysis completed successfully!
             
-            ### Metrics (Estimated):
-            - 📊 Coverage: **Check Dashboard**
-            - 🐛 Bugs: **Check Dashboard**
-            - 🔒 Vulnerabilities: **Check Dashboard**
-            - 💩 Code Smells: **Check Dashboard**
+            ### View Results:
+            - 📊 Coverage: [Check Dashboard](${sonarUrl})
+            - 🐛 Bugs: [Check Dashboard](${sonarUrl})
+            - 🔒 Vulnerabilities: [Check Dashboard](${sonarUrl})
+            - 💩 Code Smells: [Check Dashboard](${sonarUrl})
             
-            [View Full Report on SonarQube](${sonarUrl}) 📈`;
+            [View Full Report on SonarCloud](${sonarUrl}) 📈
+            
+            _Note: Quality Gate results are informational. Focus on improving code quality over time._`;
             
             if (prNumber) {
               github.rest.issues.createComment({
