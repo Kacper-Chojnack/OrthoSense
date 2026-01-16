@@ -134,10 +134,8 @@ class ExerciseClassifierService {
     }
 
     List<List<List<double>>> sequenceData;
-    String resizeMode;
     if (T == _modelSequenceLength) {
       sequenceData = data;
-      resizeMode = 'none';
     } else if (T > _modelSequenceLength) {
       sequenceData = List.generate(
         _modelSequenceLength,
@@ -146,10 +144,8 @@ class ExerciseClassifierService {
           return data[src.clamp(0, T - 1)];
         },
       );
-      resizeMode = 'downsample';
     } else {
       sequenceData = _interpolateFrames(data, T, _modelSequenceLength);
-      resizeMode = 'interpolate';
     }
 
     List<List<double>> sequence = [];

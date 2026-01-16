@@ -123,13 +123,6 @@ class PoseDetectionService {
 
             final thumbnailFile = File(thumbnailPath);
             if (await thumbnailFile.exists()) {
-              if (frameIdx < 3) {
-                int? thumbBytes;
-                try {
-                  thumbBytes = await thumbnailFile.length();
-                } catch (_) {}
-              }
-
               cancelToken?.throwIfCancelled();
               PoseFrame? landmarks = await _detectPoseFromFile(
                 thumbnailFile,

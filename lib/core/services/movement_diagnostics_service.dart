@@ -646,6 +646,8 @@ class MovementDiagnosticsService {
         'Try to raise your arms a bit higher to reach the full target range of motion.',
   };
 
+  // Note: _calculateAngle is kept for potential future use in advanced analytics
+  // ignore: unused_element
   double _calculateAngle(List<double> a, List<double> b, List<double> c) {
     final ba = [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
     final bc = [c[0] - b[0], c[1] - b[1], c[2] - b[2]];

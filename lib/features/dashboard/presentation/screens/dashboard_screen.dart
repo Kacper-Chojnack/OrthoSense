@@ -12,9 +12,6 @@ import 'package:orthosense/features/exercise/presentation/screens/exercise_catal
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
-/// Asset path constants
-const String _kLogoAssetPath = 'assets/images/logo.png';
-
 /// Main dashboard screen with analytics overview and quick actions.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
