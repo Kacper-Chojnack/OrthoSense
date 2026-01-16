@@ -12,7 +12,6 @@ import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/services/pose_detection_service.dart'
     show PoseAnalysisCancelledException, PoseAnalysisCancellationToken;
 import 'package:orthosense/core/theme/app_colors.dart';
-import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:video_player/video_player.dart';
 
 class GalleryAnalysisScreen extends ConsumerStatefulWidget {
@@ -32,7 +31,6 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
   Map<String, dynamic>? _result;
   String? _error;
   double _extractionProgress = 0;
-  PoseLandmarks? _extractedLandmarks;
   int _analysisRunId = 0;
   PoseAnalysisCancellationToken? _analysisCancelToken;
 
@@ -101,7 +99,6 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         _result = null;
         _error = null;
         _extractionProgress = 0;
-        _extractedLandmarks = null;
       });
     }
   }
@@ -120,7 +117,6 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       _isExtractingLandmarks = true;
       _error = null;
       _extractionProgress = 0;
-      _extractedLandmarks = null;
       _result = null;
     });
 
@@ -153,17 +149,11 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
         return;
       }
 
-      int visibleCount = 0;
-      for (final frame in landmarks.frames) {
-        if (poseService.checkPoseVisibility(frame)) visibleCount++;
-      }
-
       final validLandmarks = landmarks;
 
       if (mounted && runId == _analysisRunId) {
         setState(() {
           _isExtractingLandmarks = false;
-          _extractedLandmarks = validLandmarks;
         });
       }
 
