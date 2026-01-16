@@ -8,7 +8,6 @@ set -e
 INTERACTIVE_MODE=0
 
 FLUTTER_DIR="ios/Flutter"
-TEMPLATE_FILE="$FLUTTER_DIR/Developer.xcconfig.template"
 CONFIG_FILE="$FLUTTER_DIR/Developer.xcconfig"
 
 echo "🍎 OrthoSense iOS Development Setup"
@@ -28,12 +27,6 @@ if [ -f "$CONFIG_FILE" ]; then
     else
         echo "⚠️  Developer.xcconfig already exists. Recreating..."
     fi
-fi
-
-# Check if template exists
-if [ ! -f "$TEMPLATE_FILE" ]; then
-    echo "❌ Error: Template file not found at $TEMPLATE_FILE"
-    exit 1
 fi
 
 # Auto-detect Team ID
