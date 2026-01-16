@@ -40,8 +40,8 @@ jobs:
 
       - name: Dump Docker Logs on Failure
         if: failure()
-        run: docker compose logs
+        run: docker compose -f config/docker/docker-compose.yml logs
 
       - name: Teardown
         if: always()
-        run: docker compose down -v
+        run: docker compose -f config/docker/docker-compose.yml down -v
