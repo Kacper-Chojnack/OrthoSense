@@ -197,6 +197,7 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				2F8A3D4C1E8923F5004D2609 /* Clean Extended Attributes */,
 				4B4145ADD2A5F69D90A3CBF9 /* [CP] Embed Pods Frameworks */,
 				AED81EA9CE893B0109EC0599 /* [CP] Copy Pods Resources */,
 			);
@@ -270,6 +271,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		2F8A3D4C1E8923F5004D2609 /* Clean Extended Attributes */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Clean Extended Attributes";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Remove extended attributes that cause codesigning errors\necho \"🧹 Cleaning extended attributes from build directory...\"\n\n# Clean entire build directory\nif [ -d \"${BUILD_DIR}\" ]; then\n  find \"${BUILD_DIR}\" -type f -exec xattr -c {} \\; 2>/dev/null || true\nfi\n\n# Clean Flutter framework specifically\nif [ -d \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\" ]; then\n  xattr -cr \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/Flutter.framework\" 2>/dev/null || true\nfi\n\n# Clean App.framework\nif [ -d \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/App.framework\" ]; then\n  xattr -cr \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/App.framework\" 2>/dev/null || true\nfi\n\necho \"✅ Extended attributes cleaned\"\n";
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
