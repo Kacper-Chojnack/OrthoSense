@@ -20,7 +20,7 @@
 
 ## 🎯 Overview
 
-OrthoSense is a **mobile telerehabilitation platform** that leverages on-device AI to provide real-time movement analysis and feedback during physical therapy exercises. Built with privacy and accessibility in mind, it processes all video data locally—never sending sensitive recordings to the cloud.
+OrthoSense is a **mobile telerehabilitation platform** that leverages on-device AI to provide real-time movement analysis and feedback during physical therapy exercises. Built with privacy and accessibility in mind, it processes all video data locally - never sending sensitive recordings to the cloud.
 
 ### 🎓 Academic Context
 
@@ -300,11 +300,15 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 
 **Kacper Chojnacki**  
 Engineering Student @ PJATK Gdańsk  
 [GitHub](https://github.com/Kacper-Chojnack) • [LinkedIn](#)
+
+**Zofia Dekowska**  
+Engineering Student @ PJATK Gdańsk  
+[GitHub](https://github.com/dekoska) • [LinkedIn](#)
 
 ---
 
@@ -400,10 +404,14 @@ cd backend && bandit -r app -ll
 
 Projekt objęty licencją **MIT** - szczegóły w pliku [LICENSE](LICENSE).
 
-### 👨‍💻 Autor
+### 👨‍💻 Autorzy
 
 **Kacper Chojnacki**  
 Student Inżynierii @ PJATK Gdańsk
+
+**Zofia Dekowska**  
+Studentka Inżynierii @ PJATK Gdańsk
+
 
 ---
 
