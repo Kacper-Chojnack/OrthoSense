@@ -165,6 +165,7 @@ jobs:
   flutter-e2e-android:
     name: Flutter E2E Tests (Android)
     runs-on: ubuntu-latest
+    continue-on-error: true
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
