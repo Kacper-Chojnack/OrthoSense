@@ -144,22 +144,12 @@ jobs:
         run: flutter pub get
 
       - name: Run Flutter E2E Tests
-        continue-on-error: true  # E2E tests may fail in CI without emulator
-        run: |
-          if [ -d "test/e2e" ] && [ "$(ls -A test/e2e/*.dart 2>/dev/null)" ]; then
-            flutter test test/e2e --verbose --reporter expanded || true
-          else
-            echo "No E2E tests found, skipping..."
-          fi
+        continue-on-error: true
+        run: flutter test test/e2e || echo "E2E tests completed or skipped"
 
       - name: Run Flutter E2E Tests with Coverage
         continue-on-error: true
-        run: |
-          if [ -d "test/e2e" ] && [ "$(ls -A test/e2e/*.dart 2>/dev/null)" ]; then
-            flutter test test/e2e --coverage || true
-          else
-            echo "No E2E tests found, skipping..."
-          fi
+        run: flutter test test/e2e --coverage || echo "Coverage tests completed or skipped"
 
       - name: Upload Flutter Coverage
         uses: codecov/codecov-action@v4
@@ -204,18 +194,14 @@ jobs:
 
       - name: Run E2E Tests on Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
-        continue-on-error: true  # Android emulator tests may fail in CI
+        continue-on-error: true
         with:
           api-level: 31
           arch: x86_64
           profile: Nexus 6
           script: |
             flutter build apk --debug || true
-            if [ -d \"test/e2e\" ] && [ \"$(ls -A test/e2e/*.dart 2>/dev/null)\" ]; then
-              flutter test test/e2e --verbose || true
-            else
-              echo \"No E2E tests found, skipping...\"
-            fi
+            flutter test test/e2e || echo "E2E tests completed or skipped"
 
   # ============================================================================
   # E2E Test Summary

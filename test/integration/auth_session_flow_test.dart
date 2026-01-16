@@ -723,7 +723,10 @@ class TestSessionScreen extends StatelessWidget {
             key: const Key('complete_session_button'),
             onPressed: () {
               sessionState.completeSession(score: 85);
-              storage?.save('session_${sessionState.sessionId}', <String, dynamic>{});
+              storage?.save(
+                'session_${sessionState.sessionId}',
+                <String, dynamic>{},
+              );
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute<void>(
