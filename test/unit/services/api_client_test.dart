@@ -633,15 +633,14 @@ class RetryPolicy {
     if (delay > maxDelay) delay = maxDelay;
 
     if (withJitter) {
-      final jitter = (delay.inMilliseconds * 0.2 * _random()).round();
+      // Use deterministic seed for testing reproducibility
+      final rng = Random(attempt);
+      final jitter = (delay.inMilliseconds * 0.2 * rng.nextDouble()).round();
       delay = Duration(milliseconds: delay.inMilliseconds + jitter);
     }
 
     return delay;
   }
-
-  static final _rng = Random();
-  double _random() => _rng.nextDouble();
 }
 
 abstract class RequestInterceptor {
