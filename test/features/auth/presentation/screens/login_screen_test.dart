@@ -167,7 +167,10 @@ void main() {
 
       // Submit
       await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
-      await tester.pumpAndSettle();
+      // Use explicit pumps to ensure async operations complete in CI
+      await tester.pump(); // Process the tap
+      await tester.pump(const Duration(milliseconds: 500)); // Allow for async login
+      await tester.pump(const Duration(milliseconds: 100)); // Allow snackbar to appear
 
       // Error snackbar should appear
       expect(find.byType(SnackBar), findsOneWidget);
