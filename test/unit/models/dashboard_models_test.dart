@@ -9,6 +9,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dart';
 
 void main() {
   group('TrendDataPoint', () {

@@ -10,6 +10,7 @@
 /// 7. TTS integration
 library;
 
+import 'package:camera/camera.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

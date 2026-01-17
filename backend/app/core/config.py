@@ -56,7 +56,7 @@ class Settings(BaseSettings):
         return hosts
 
     # Rate Limiting (Redis)
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str = "redis://localhost:6379/0"
     rate_limit_enabled: bool = True
 
     # JWT Authentication

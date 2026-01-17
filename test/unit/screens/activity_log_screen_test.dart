@@ -9,27 +9,28 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 
 void main() {
   group('ActivityFilter', () {
     test('has all filter', () {
-      const filters = ['all', 'thisWeek', 'thisMonth', 'pendingSync'];
-      expect(filters.contains('all'), isTrue);
+      expect(ActivityFilter.values.contains(ActivityFilter.all), isTrue);
     });
 
     test('has thisWeek filter', () {
-      const filters = ['all', 'thisWeek', 'thisMonth', 'pendingSync'];
-      expect(filters.contains('thisWeek'), isTrue);
+      expect(ActivityFilter.values.contains(ActivityFilter.thisWeek), isTrue);
     });
 
     test('has thisMonth filter', () {
-      const filters = ['all', 'thisWeek', 'thisMonth', 'pendingSync'];
-      expect(filters.contains('thisMonth'), isTrue);
+      expect(ActivityFilter.values.contains(ActivityFilter.thisMonth), isTrue);
     });
 
     test('has pendingSync filter', () {
-      const filters = ['all', 'thisWeek', 'thisMonth', 'pendingSync'];
-      expect(filters.contains('pendingSync'), isTrue);
+      expect(ActivityFilter.values.contains(ActivityFilter.pendingSync), isTrue);
+    });
+
+    test('has exactly 4 filter options', () {
+      expect(ActivityFilter.values.length, equals(4));
     });
   });
 

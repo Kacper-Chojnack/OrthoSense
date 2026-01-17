@@ -119,7 +119,7 @@ class TestSettingsEnvironmentOverrides:
     def test_redis_url_default(self) -> None:
         """Redis URL has correct default."""
         settings = get_settings()
-        assert settings.redis_url == "redis://localhost:6379"
+        assert settings.redis_url == "redis://localhost:6379/0"
 
 
 class TestSettingsCaching:
