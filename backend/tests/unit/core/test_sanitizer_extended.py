@@ -90,7 +90,7 @@ class TestContainsXss:
 
     def test_detects_style_tag(self):
         """Should detect <style> tags."""
-        malicious = '<style>body{background:url(javascript:alert(1))}</style>'
+        malicious = "<style>body{background:url(javascript:alert(1))}</style>"
         assert contains_xss(malicious) is True
 
     def test_detects_expression(self):
@@ -105,7 +105,7 @@ class TestContainsXss:
 
     def test_detects_html_encoded_xss(self):
         """Should detect HTML-encoded XSS."""
-        malicious = '&lt;script&gt;alert(1)&lt;/script&gt;'
+        malicious = "&lt;script&gt;alert(1)&lt;/script&gt;"
         assert contains_xss(malicious) is True
 
     def test_allows_safe_string(self):
@@ -185,21 +185,23 @@ class TestValidateNoXss:
     def test_raises_for_xss(self):
         """Should raise ValueError for XSS content."""
         malicious = "<script>alert(1)</script>"
-        
+
         with pytest.raises(ValueError):
             validate_no_xss(malicious)
 
     def test_error_message_is_helpful(self):
         """Error message should be helpful."""
         malicious = "<script>alert(1)</script>"
-        
+
         try:
             validate_no_xss(malicious)
             pytest.fail("Should have raised ValueError")
         except ValueError as e:
             # Error message should mention dangerous content or be descriptive
             error_msg = str(e).lower()
-            assert "dangerous" in error_msg or "xss" in error_msg or "invalid" in error_msg
+            assert (
+                "dangerous" in error_msg or "xss" in error_msg or "invalid" in error_msg
+            )
 
 
 class TestXssPatterns:

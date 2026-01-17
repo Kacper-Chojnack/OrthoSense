@@ -32,10 +32,10 @@ class TestCalculateSHA256:
 
         try:
             result = calculate_sha256(temp_path)
-            
+
             # Calculate expected hash
             expected = hashlib.sha256(b"test content").hexdigest()
-            
+
             assert result == expected
         finally:
             temp_path.unlink()
@@ -49,7 +49,7 @@ class TestCalculateSHA256:
 
         try:
             result = calculate_sha256(temp_path)
-            
+
             assert isinstance(result, str)
             assert len(result) == 64  # SHA256 hex is 64 chars
             assert all(c in "0123456789abcdef" for c in result)
@@ -59,7 +59,7 @@ class TestCalculateSHA256:
     def test_raises_for_missing_file(self):
         """Should raise FileNotFoundError for missing file."""
         fake_path = Path("/nonexistent/path/file.txt")
-        
+
         with pytest.raises(FileNotFoundError):
             calculate_sha256(fake_path)
 
@@ -70,10 +70,10 @@ class TestCalculateSHA256:
 
         try:
             result = calculate_sha256(temp_path)
-            
+
             # Hash of empty string
             expected = hashlib.sha256(b"").hexdigest()
-            
+
             assert result == expected
         finally:
             temp_path.unlink()
@@ -88,7 +88,7 @@ class TestCalculateSHA256:
 
         try:
             result = calculate_sha256(temp_path)
-            
+
             assert isinstance(result, str)
             assert len(result) == 64
         finally:
@@ -105,7 +105,7 @@ class TestModelIntegrityError:
             expected="abc123",
             actual="def456",
         )
-        
+
         assert error.model_path == "/path/to/model.tflite"
         assert error.expected == "abc123"
         assert error.actual == "def456"
@@ -117,7 +117,7 @@ class TestModelIntegrityError:
             expected="abc123",
             actual="def456",
         )
-        
+
         assert "/path/to/model.tflite" in str(error)
 
     def test_message_truncates_hashes(self):
@@ -127,9 +127,9 @@ class TestModelIntegrityError:
             expected="a" * 64,
             actual="b" * 64,
         )
-        
+
         message = str(error)
-        
+
         # Should show truncated versions
         assert "..." in message
 
@@ -140,7 +140,7 @@ class TestVerifyModelIntegrity:
     def test_raises_for_missing_file(self):
         """Should raise FileNotFoundError for missing file."""
         fake_path = Path("/nonexistent/model.tflite")
-        
+
         with pytest.raises(FileNotFoundError):
             verify_model_integrity(fake_path)
 
@@ -154,7 +154,7 @@ class TestVerifyModelIntegrity:
         try:
             # Should not raise when skip_if_hash_empty=True (default)
             result = verify_model_integrity(temp_path, skip_if_hash_empty=True)
-            
+
             assert result is True
         finally:
             temp_path.unlink()
@@ -169,12 +169,12 @@ class TestVerifyModelIntegrity:
 
         try:
             expected_hash = hashlib.sha256(content).hexdigest()
-            
+
             result = verify_model_integrity(
                 temp_path,
                 expected_hash=expected_hash,
             )
-            
+
             assert result is True
         finally:
             temp_path.unlink()
@@ -188,7 +188,7 @@ class TestVerifyModelIntegrity:
 
         try:
             wrong_hash = "a" * 64
-            
+
             with pytest.raises(ModelIntegrityError):
                 verify_model_integrity(
                     temp_path,
@@ -207,13 +207,13 @@ class TestVerifyModelIntegrity:
 
         try:
             wrong_hash = "a" * 64
-            
+
             result = verify_model_integrity(
                 temp_path,
                 expected_hash=wrong_hash,
                 raise_on_mismatch=False,
             )
-            
+
             assert result is False
         finally:
             temp_path.unlink()

@@ -57,10 +57,10 @@ class TestDatabaseSettings:
         if settings.database_url:
             # Should start with postgresql or sqlite
             valid_prefixes = ["postgresql", "sqlite", "postgres"]
-            assert any(
-                settings.database_url.startswith(p)
-                for p in valid_prefixes
-            ) or "://" in settings.database_url
+            assert (
+                any(settings.database_url.startswith(p) for p in valid_prefixes)
+                or "://" in settings.database_url
+            )
 
     def test_is_sqlite_property(self):
         """Should have is_sqlite property."""

@@ -26,13 +26,13 @@ class TestSendEmail:
         """Should return True when email disabled."""
         with patch("app.services.email.settings") as mock_settings:
             mock_settings.email_enabled = False
-            
+
             result = await _send_email(
                 to_email="test@example.com",
                 subject="Test",
                 html_body="<p>Test</p>",
             )
-            
+
             assert result is True
 
     @pytest.mark.asyncio
@@ -41,37 +41,37 @@ class TestSendEmail:
         with patch("app.services.email.settings") as mock_settings:
             mock_settings.email_enabled = True
             mock_settings.resend_api_key = ""
-            
+
             result = await _send_email(
                 to_email="test@example.com",
                 subject="Test",
                 html_body="<p>Test</p>",
             )
-            
+
             assert result is False
 
     @pytest.mark.asyncio
     async def test_handles_timeout(self):
         """Should handle timeout gracefully."""
         import httpx
-        
+
         with patch("app.services.email.settings") as mock_settings:
             mock_settings.email_enabled = True
             mock_settings.resend_api_key = "re_test_key"
             mock_settings.resend_from_name = "Test"
             mock_settings.resend_from_email = "test@test.com"
-            
+
             with patch("httpx.AsyncClient") as mock_client:
                 mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                     side_effect=httpx.TimeoutException("timeout")
                 )
-                
+
                 result = await _send_email(
                     to_email="test@example.com",
                     subject="Test",
                     html_body="<p>Test</p>",
                 )
-                
+
                 assert result is False
 
 
@@ -83,12 +83,12 @@ class TestSendVerificationEmail:
         """Should call _send_email with correct parameters."""
         with patch("app.services.email._send_email") as mock_send:
             mock_send.return_value = True
-            
+
             await send_verification_email(
                 email="user@example.com",
                 token="test-token-123",
             )
-            
+
             mock_send.assert_called_once()
             call_args = mock_send.call_args
             # _send_email is called with positional args: (to_email, subject, html_body)
@@ -123,12 +123,12 @@ class TestSendPasswordResetEmail:
         """Should call _send_email with correct parameters."""
         with patch("app.services.email._send_email") as mock_send:
             mock_send.return_value = True
-            
+
             await send_password_reset_email(
                 email="user@example.com",
                 token="reset-token-456",
             )
-            
+
             mock_send.assert_called_once()
             call_args = mock_send.call_args
             # _send_email args: (to_email, subject, html_body)
@@ -182,7 +182,7 @@ class TestEmailConfiguration:
     def test_resend_api_url(self):
         """Should use correct Resend API URL."""
         from app.services.email import RESEND_API_URL
-        
+
         assert RESEND_API_URL == "https://api.resend.com/emails"
 
     def test_timeout_is_reasonable(self):
@@ -198,28 +198,28 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_handles_http_error(self):
         """Should handle HTTP errors gracefully."""
-        
+
         with patch("app.services.email.settings") as mock_settings:
             mock_settings.email_enabled = True
             mock_settings.resend_api_key = "re_test_key"
             mock_settings.resend_from_name = "Test"
             mock_settings.resend_from_email = "test@test.com"
-            
+
             with patch("httpx.AsyncClient") as mock_client:
                 mock_response = AsyncMock()
                 mock_response.status_code = 500
                 mock_response.text = "Internal Server Error"
-                
+
                 mock_instance = AsyncMock()
                 mock_instance.post.return_value = mock_response
                 mock_client.return_value.__aenter__.return_value = mock_instance
-                
+
                 result = await _send_email(
                     to_email="test@example.com",
                     subject="Test",
                     html_body="<p>Test</p>",
                 )
-                
+
                 assert result is False
 
     @pytest.mark.asyncio
@@ -230,16 +230,16 @@ class TestErrorHandling:
             mock_settings.resend_api_key = "re_test_key"
             mock_settings.resend_from_name = "Test"
             mock_settings.resend_from_email = "test@test.com"
-            
+
             with patch("httpx.AsyncClient") as mock_client:
                 mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                     side_effect=Exception("Unknown error")
                 )
-                
+
                 result = await _send_email(
                     to_email="test@example.com",
                     subject="Test",
                     html_body="<p>Test</p>",
                 )
-                
+
                 assert result is False

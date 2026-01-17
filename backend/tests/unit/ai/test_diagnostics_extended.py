@@ -192,7 +192,7 @@ class TestSquatAnalysis:
         diag = MovementDiagnostician()
         frames = _create_shallow_squat_frames()
         is_correct, feedback = diag.diagnose("Deep Squat", frames)
-        
+
         # Should detect shallow squat error
         if isinstance(feedback, dict):
             assert "Squat too shallow" in feedback or is_correct is True
@@ -204,7 +204,7 @@ class TestSquatAnalysis:
         diag = MovementDiagnostician()
         frames = _create_knee_valgus_frames()
         is_correct, feedback = diag.diagnose("Deep Squat", frames)
-        
+
         # May detect knee valgus
         assert isinstance(is_correct, bool)
 
@@ -222,7 +222,7 @@ class TestReportGenerator:
         reporter = ReportGenerator()
         result = (True, {"System": MOVEMENT_CORRECT})
         report = reporter.generate_report(result, "Deep Squat")
-        
+
         assert report is not None
         assert len(report) > 0
 
@@ -231,7 +231,7 @@ class TestReportGenerator:
         reporter = ReportGenerator()
         result = (False, {"Knee Valgus (Collapse)": True})
         report = reporter.generate_report(result, "Deep Squat")
-        
+
         assert report is not None
         assert len(report) > 0
 
@@ -240,11 +240,12 @@ class TestReportGenerator:
         reporter = ReportGenerator()
         result = (True, {})
         report = reporter.generate_report(result, "Hurdle Step")
-        
+
         assert report is not None
 
 
 # Helper functions to create test skeleton data
+
 
 def _create_neutral_skeleton():
     """Create neutral standing position skeleton."""
@@ -338,7 +339,7 @@ def _create_knee_valgus_frames():
         # Knees closer together than ankles
         frame[25] = [0.48, 0.7, 0.0]  # Left knee (too close)
         frame[26] = [0.52, 0.7, 0.0]  # Right knee (too close)
-        frame[27] = [0.4, 0.9, 0.0]   # Left ankle (wide)
-        frame[28] = [0.6, 0.9, 0.0]   # Right ankle (wide)
+        frame[27] = [0.4, 0.9, 0.0]  # Left ankle (wide)
+        frame[28] = [0.6, 0.9, 0.0]  # Right ankle (wide)
         frames.append(frame)
     return frames
