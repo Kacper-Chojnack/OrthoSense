@@ -187,8 +187,8 @@ resource "aws_cloudwatch_dashboard" "main" {
           metrics = [
             ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", var.rds_instance_id, { stat = "Average", period = 300 }]
           ]
-          view   = "timeSeries"
-          yAxis  = { left = { min = 0, max = 100 } }
+          view  = "timeSeries"
+          yAxis = { left = { min = 0, max = 100 } }
         }
       },
       {
@@ -234,8 +234,8 @@ resource "aws_cloudwatch_dashboard" "main" {
           metrics = [
             ["AWS/ElastiCache", "CPUUtilization", "CacheClusterId", var.redis_cluster_id, { stat = "Average", period = 300 }]
           ]
-          view   = "timeSeries"
-          yAxis  = { left = { min = 0, max = 100 } }
+          view  = "timeSeries"
+          yAxis = { left = { min = 0, max = 100 } }
         }
       },
       {
@@ -250,8 +250,8 @@ resource "aws_cloudwatch_dashboard" "main" {
           metrics = [
             ["AWS/ElastiCache", "DatabaseMemoryUsagePercentage", "CacheClusterId", var.redis_cluster_id, { stat = "Average", period = 300 }]
           ]
-          view   = "timeSeries"
-          yAxis  = { left = { min = 0, max = 100 } }
+          view  = "timeSeries"
+          yAxis = { left = { min = 0, max = 100 } }
         }
       },
       {

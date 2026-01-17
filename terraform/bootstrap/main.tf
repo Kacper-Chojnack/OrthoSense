@@ -21,9 +21,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "OrthoSense"
-      ManagedBy   = "terraform-bootstrap"
-      Purpose     = "terraform-state"
+      Project   = "OrthoSense"
+      ManagedBy = "terraform-bootstrap"
+      Purpose   = "terraform-state"
     }
   }
 }

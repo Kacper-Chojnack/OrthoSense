@@ -211,15 +211,15 @@ resource "aws_db_instance" "main" {
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
   # Security
-  deletion_protection      = var.deletion_protection
-  auto_minor_version_upgrade = true
+  deletion_protection                 = var.deletion_protection
+  auto_minor_version_upgrade          = true
   iam_database_authentication_enabled = true
 
   # Apply changes during maintenance window
   apply_immediately = var.environment != "prod"
 
   tags = merge(var.tags, {
-    Name        = "${var.name_prefix}-postgres"
+    Name         = "${var.name_prefix}-postgres"
     BackupPolicy = "Daily"
   })
 

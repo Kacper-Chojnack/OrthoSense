@@ -101,15 +101,15 @@ locals {
 module "networking" {
   source = "./modules/networking"
 
-  name_prefix         = local.name_prefix
-  vpc_cidr            = var.vpc_cidr
-  availability_zones  = local.azs
-  public_subnets      = local.public_subnets
-  private_subnets     = local.private_subnets
-  database_subnets    = local.database_subnets
-  enable_nat_gateway  = var.enable_nat_gateway
-  single_nat_gateway  = var.single_nat_gateway
-  environment         = var.environment
+  name_prefix        = local.name_prefix
+  vpc_cidr           = var.vpc_cidr
+  availability_zones = local.azs
+  public_subnets     = local.public_subnets
+  private_subnets    = local.private_subnets
+  database_subnets   = local.database_subnets
+  enable_nat_gateway = var.enable_nat_gateway
+  single_nat_gateway = var.single_nat_gateway
+  environment        = var.environment
 
   tags = local.common_tags
 }
@@ -140,23 +140,23 @@ module "security" {
 module "database" {
   source = "./modules/database"
 
-  name_prefix              = local.name_prefix
-  environment              = var.environment
-  vpc_id                   = module.networking.vpc_id
-  database_subnet_ids      = module.networking.database_subnet_ids
-  allowed_security_groups  = [module.networking.apprunner_security_group_id]
-  db_subnet_group_name     = module.networking.db_subnet_group_name
-  security_group_ids       = [module.networking.rds_security_group_id]
+  name_prefix             = local.name_prefix
+  environment             = var.environment
+  vpc_id                  = module.networking.vpc_id
+  database_subnet_ids     = module.networking.database_subnet_ids
+  allowed_security_groups = [module.networking.apprunner_security_group_id]
+  db_subnet_group_name    = module.networking.db_subnet_group_name
+  security_group_ids      = [module.networking.rds_security_group_id]
 
-  instance_class           = var.db_instance_class
-  allocated_storage        = var.db_allocated_storage
-  max_allocated_storage    = var.db_max_allocated_storage
-  db_name                  = var.db_name
-  db_username              = var.db_username
-  multi_az                 = local.is_production ? var.db_multi_az : false
-  backup_retention_period  = var.db_backup_retention_period
-  deletion_protection      = local.is_production ? var.db_deletion_protection : false
-  kms_key_arn              = module.security.kms_key_arn
+  instance_class             = var.db_instance_class
+  allocated_storage          = var.db_allocated_storage
+  max_allocated_storage      = var.db_max_allocated_storage
+  db_name                    = var.db_name
+  db_username                = var.db_username
+  multi_az                   = local.is_production ? var.db_multi_az : false
+  backup_retention_period    = var.db_backup_retention_period
+  deletion_protection        = local.is_production ? var.db_deletion_protection : false
+  kms_key_arn                = module.security.kms_key_arn
   enable_enhanced_monitoring = var.enable_enhanced_monitoring
 
   tags = local.common_tags
@@ -169,13 +169,13 @@ module "database" {
 module "cache" {
   source = "./modules/cache"
 
-  name_prefix              = local.name_prefix
-  environment              = var.environment
-  vpc_id                   = module.networking.vpc_id
-  private_subnet_ids       = module.networking.private_subnet_ids
-  allowed_security_groups  = [module.networking.apprunner_security_group_id]
-  subnet_group_name        = module.networking.elasticache_subnet_group_name
-  security_group_ids       = [module.networking.redis_security_group_id]
+  name_prefix             = local.name_prefix
+  environment             = var.environment
+  vpc_id                  = module.networking.vpc_id
+  private_subnet_ids      = module.networking.private_subnet_ids
+  allowed_security_groups = [module.networking.apprunner_security_group_id]
+  subnet_group_name       = module.networking.elasticache_subnet_group_name
+  security_group_ids      = [module.networking.redis_security_group_id]
 
   node_type                = var.redis_node_type
   num_cache_nodes          = var.redis_num_cache_nodes
@@ -193,9 +193,9 @@ module "cache" {
 module "storage" {
   source = "./modules/storage"
 
-  name_prefix  = local.name_prefix
-  environment  = var.environment
-  kms_key_arn  = module.security.kms_key_arn
+  name_prefix = local.name_prefix
+  environment = var.environment
+  kms_key_arn = module.security.kms_key_arn
 
   tags = local.common_tags
 }
@@ -207,14 +207,14 @@ module "storage" {
 module "compute" {
   source = "./modules/compute"
 
-  name_prefix    = local.name_prefix
-  environment    = var.environment
-  aws_region     = var.aws_region
-  account_id     = local.account_id
+  name_prefix = local.name_prefix
+  environment = var.environment
+  aws_region  = var.aws_region
+  account_id  = local.account_id
 
   # VPC Configuration for App Runner
-  vpc_id                    = module.networking.vpc_id
-  private_subnet_ids        = module.networking.private_subnet_ids
+  vpc_id                      = module.networking.vpc_id
+  private_subnet_ids          = module.networking.private_subnet_ids
   apprunner_security_group_id = module.networking.apprunner_security_group_id
 
   # App Runner Configuration
@@ -256,11 +256,11 @@ module "compute" {
 module "monitoring" {
   source = "./modules/monitoring"
 
-  name_prefix         = local.name_prefix
-  environment         = var.environment
-  aws_region          = var.aws_region
-  log_retention_days  = var.log_retention_days
-  alarm_email         = var.alarm_email
+  name_prefix        = local.name_prefix
+  environment        = var.environment
+  aws_region         = var.aws_region
+  log_retention_days = var.log_retention_days
+  alarm_email        = var.alarm_email
 
   apprunner_service_name = module.compute.apprunner_service_name
   rds_instance_id        = module.database.rds_instance_id

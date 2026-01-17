@@ -252,17 +252,17 @@ resource "aws_apprunner_service" "backend" {
         port = "8000"
 
         runtime_environment_variables = {
-          PROJECT_NAME     = "OrthoSense"
-          ENVIRONMENT      = var.environment
-          API_V1_PREFIX    = "/api/v1"
-          DEBUG            = var.environment == "dev" ? "true" : "false"
-          CORS_ORIGINS     = jsonencode(var.allowed_cors_origins)
-          ALLOWED_HOSTS    = jsonencode(var.allowed_hosts)
-          RATE_LIMIT_ENABLED = "false"  # Disabled - no Redis in VPC yet
+          PROJECT_NAME                = "OrthoSense"
+          ENVIRONMENT                 = var.environment
+          API_V1_PREFIX               = "/api/v1"
+          DEBUG                       = var.environment == "dev" ? "true" : "false"
+          CORS_ORIGINS                = jsonencode(var.allowed_cors_origins)
+          ALLOWED_HOSTS               = jsonencode(var.allowed_hosts)
+          RATE_LIMIT_ENABLED          = "false" # Disabled - no Redis in VPC yet
           ACCESS_TOKEN_EXPIRE_MINUTES = "30"
           REFRESH_TOKEN_EXPIRE_DAYS   = "7"
           MAX_UPLOAD_SIZE_MB          = "100"
-          SECRET_KEY       = var.secret_key
+          SECRET_KEY                  = var.secret_key
         }
 
         # Use Secrets Manager for sensitive values

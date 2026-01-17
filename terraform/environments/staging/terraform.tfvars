@@ -11,7 +11,7 @@ environment = "staging"
 vpc_cidr                 = "10.1.0.0/16"
 availability_zones_count = 2
 enable_nat_gateway       = true
-single_nat_gateway       = false  # HA NAT
+single_nat_gateway       = false # HA NAT
 
 # Database - Production-like
 db_instance_class          = "db.t4g.small"
@@ -19,14 +19,14 @@ db_allocated_storage       = 50
 db_max_allocated_storage   = 100
 db_name                    = "orthosense_staging"
 db_username                = "orthosense_admin"
-db_multi_az                = true   # Multi-AZ enabled
-db_backup_retention_period = 14     # 2 weeks retention
+db_multi_az                = true # Multi-AZ enabled
+db_backup_retention_period = 14   # 2 weeks retention
 db_deletion_protection     = true
 
 # Redis - Production-like
-redis_node_type              = "cache.t4g.small"
-redis_num_cache_nodes        = 1
-redis_engine_version         = "7.1"
+redis_node_type                = "cache.t4g.small"
+redis_num_cache_nodes          = 1
+redis_engine_version           = "7.1"
 redis_snapshot_retention_limit = 3
 
 # App Runner - Production-like

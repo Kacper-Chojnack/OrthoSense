@@ -7,8 +7,8 @@
 
 locals {
   # Use provided ARNs or fallback to wildcards to avoid circular dependencies
-  ecr_arn      = var.ecr_repository_arn != "" ? var.ecr_repository_arn : "arn:aws:ecr:*:${var.account_id}:repository/${var.name_prefix}-*"
-  frontend_arn = var.frontend_bucket_arn != "" ? var.frontend_bucket_arn : "arn:aws:s3:::${var.name_prefix}-frontend"
+  ecr_arn       = var.ecr_repository_arn != "" ? var.ecr_repository_arn : "arn:aws:ecr:*:${var.account_id}:repository/${var.name_prefix}-*"
+  frontend_arn  = var.frontend_bucket_arn != "" ? var.frontend_bucket_arn : "arn:aws:s3:::${var.name_prefix}-frontend"
   artifacts_arn = var.artifacts_bucket_arn != "" ? var.artifacts_bucket_arn : "arn:aws:s3:::${var.name_prefix}-artifacts"
 }
 
