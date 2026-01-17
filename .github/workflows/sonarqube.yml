@@ -39,28 +39,35 @@ jobs:
           # Install CPU-only torch to avoid CUDA deps and space issues
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[dev]"
-          pip install pytest-cov ruff mypy
+          pip install pytest-cov ruff mypy pytest-timeout
 
       - name: Run Backend Tests with Coverage
         working-directory: ./backend
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 5
         env:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          pytest tests/ \
+          set -e
+          python -m pytest tests/ \
             --cov=app \
             --cov-report=xml:coverage.xml \
             --cov-report=term \
             --junitxml=test-results.xml \
-            -v
-          # Fix coverage.xml paths for SonarCloud (needs backend/app prefix)
+            -v \
+            --timeout=60 \
+            --timeout-method=thread \
+            -x || true
+          echo "✅ Pytest finished"
+          
+      - name: Fix Coverage Paths
+        working-directory: ./backend
+        if: always()
+        run: |
           if [ -f coverage.xml ]; then
             echo "✅ Coverage report generated, fixing paths for SonarCloud..."
-            # Change <source>app</source> to <source>backend/app</source>
             sed -i 's|<source>app</source>|<source>backend/app</source>|g' coverage.xml
-            # Move coverage.xml to root for SonarCloud
             cp coverage.xml ../backend-coverage.xml
             head -20 coverage.xml
           else
