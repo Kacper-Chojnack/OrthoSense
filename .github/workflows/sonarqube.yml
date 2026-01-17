@@ -80,6 +80,51 @@ jobs:
         timeout-minutes: 10
         run: flutter test --coverage --coverage-path=coverage/lcov.info || true
 
+      - name: Convert LCOV to SonarQube Generic Format
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > coverage/coverage.xml
+            echo '<coverage version="1">' >> coverage/coverage.xml
+            
+            current_file=""
+            while IFS= read -r line; do
+              case "$line" in
+                SF:*)
+                  if [ -n "$current_file" ]; then
+                    echo '  </file>' >> coverage/coverage.xml
+                  fi
+                  filepath="${line#SF:}"
+                  # Normalize path separators
+                  filepath=$(echo "$filepath" | sed 's|\\|/|g')
+                  echo "  <file path=\"$filepath\">" >> coverage/coverage.xml
+                  current_file="$filepath"
+                  ;;
+                DA:*)
+                  data="${line#DA:}"
+                  linenum="${data%%,*}"
+                  hits="${data#*,}"
+                  covered="true"
+                  if [ "$hits" = "0" ]; then
+                    covered="false"
+                  fi
+                  echo "    <lineToCover lineNumber=\"$linenum\" covered=\"$covered\"/>" >> coverage/coverage.xml
+                  ;;
+                end_of_record)
+                  ;;
+              esac
+            done < coverage/lcov.info
+            
+            if [ -n "$current_file" ]; then
+              echo '  </file>' >> coverage/coverage.xml
+            fi
+            echo '</coverage>' >> coverage/coverage.xml
+            
+            echo "✅ Converted LCOV to SonarQube generic format"
+            head -30 coverage/coverage.xml
+          else
+            echo "⚠️ No LCOV file found to convert"
+          fi
+
       - name: Run Flutter Analyze
         run: flutter analyze --write=flutter-analyze.txt || true
 
@@ -95,6 +140,7 @@ jobs:
           args: >
             -Dsonar.qualitygate.wait=false
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.coverageReportPaths=coverage/coverage.xml
             -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/*_test.dart,**/*_test.py
 
@@ -109,12 +155,20 @@ jobs:
             echo "❌ backend/coverage.xml NOT found"
           fi
           echo ""
-          echo "=== Frontend Coverage ==="
+          echo "=== Frontend Coverage (LCOV) ==="
           if [ -f coverage/lcov.info ]; then
             echo "✅ coverage/lcov.info exists"
-            head -20 coverage/lcov.info
+            wc -l coverage/lcov.info
           else
             echo "❌ coverage/lcov.info NOT found"
+          fi
+          echo ""
+          echo "=== Frontend Coverage (Generic XML) ==="
+          if [ -f coverage/coverage.xml ]; then
+            echo "✅ coverage/coverage.xml exists"
+            head -30 coverage/coverage.xml
+          else
+            echo "❌ coverage/coverage.xml NOT found"
           fi
 
       - name: SonarCloud Scan Summary
