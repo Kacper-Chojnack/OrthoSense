@@ -198,7 +198,7 @@ void main() {
       final avgScore = sessions.isEmpty
           ? 0
           : sessions.map((s) => s.score).reduce((a, b) => a + b) ~/
-              sessions.length;
+                sessions.length;
 
       expect(avgScore, equals(0));
     });
@@ -228,8 +228,9 @@ void main() {
         ),
       ];
 
-      final totalDuration =
-          sessions.map((s) => s.durationSeconds).reduce((a, b) => a + b);
+      final totalDuration = sessions
+          .map((s) => s.durationSeconds)
+          .reduce((a, b) => a + b);
 
       expect(totalDuration, equals(270));
     });

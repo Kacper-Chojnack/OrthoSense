@@ -63,32 +63,74 @@ void main() {
     });
 
     test('confidence colors are distinct', () {
-      expect(AppColors.highConfidence, isNot(equals(AppColors.mediumConfidence)));
-      expect(AppColors.mediumConfidence, isNot(equals(AppColors.lowConfidence)));
+      expect(
+        AppColors.highConfidence,
+        isNot(equals(AppColors.mediumConfidence)),
+      );
+      expect(
+        AppColors.mediumConfidence,
+        isNot(equals(AppColors.lowConfidence)),
+      );
       expect(AppColors.highConfidence, isNot(equals(AppColors.lowConfidence)));
     });
   });
 
   group('getConfidenceColor', () {
     test('returns highConfidence for score >= 0.8', () {
-      expect(AppColors.getConfidenceColor(1.0), equals(AppColors.highConfidence));
-      expect(AppColors.getConfidenceColor(0.95), equals(AppColors.highConfidence));
-      expect(AppColors.getConfidenceColor(0.85), equals(AppColors.highConfidence));
-      expect(AppColors.getConfidenceColor(0.8), equals(AppColors.highConfidence));
+      expect(
+        AppColors.getConfidenceColor(1.0),
+        equals(AppColors.highConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.95),
+        equals(AppColors.highConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.85),
+        equals(AppColors.highConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.8),
+        equals(AppColors.highConfidence),
+      );
     });
 
     test('returns mediumConfidence for score >= 0.5 and < 0.8', () {
-      expect(AppColors.getConfidenceColor(0.79), equals(AppColors.mediumConfidence));
-      expect(AppColors.getConfidenceColor(0.7), equals(AppColors.mediumConfidence));
-      expect(AppColors.getConfidenceColor(0.6), equals(AppColors.mediumConfidence));
-      expect(AppColors.getConfidenceColor(0.5), equals(AppColors.mediumConfidence));
+      expect(
+        AppColors.getConfidenceColor(0.79),
+        equals(AppColors.mediumConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.7),
+        equals(AppColors.mediumConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.6),
+        equals(AppColors.mediumConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.5),
+        equals(AppColors.mediumConfidence),
+      );
     });
 
     test('returns lowConfidence for score < 0.5', () {
-      expect(AppColors.getConfidenceColor(0.49), equals(AppColors.lowConfidence));
-      expect(AppColors.getConfidenceColor(0.3), equals(AppColors.lowConfidence));
-      expect(AppColors.getConfidenceColor(0.1), equals(AppColors.lowConfidence));
-      expect(AppColors.getConfidenceColor(0.0), equals(AppColors.lowConfidence));
+      expect(
+        AppColors.getConfidenceColor(0.49),
+        equals(AppColors.lowConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.3),
+        equals(AppColors.lowConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.1),
+        equals(AppColors.lowConfidence),
+      );
+      expect(
+        AppColors.getConfidenceColor(0.0),
+        equals(AppColors.lowConfidence),
+      );
     });
 
     test('boundary at 0.8 returns high confidence', () {
@@ -134,7 +176,10 @@ void main() {
     });
 
     test('videoControlsBg is more opaque than videoOverlay', () {
-      expect(AppColors.videoControlsBg.a, greaterThan(AppColors.videoOverlay.a));
+      expect(
+        AppColors.videoControlsBg.a,
+        greaterThan(AppColors.videoOverlay.a),
+      );
     });
 
     test('overlay colors are based on black', () {

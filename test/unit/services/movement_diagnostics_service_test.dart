@@ -30,8 +30,10 @@ void main() {
     test('detects LEFT variant when left arm is raised', () {
       final skeletonData = _createSkeletonWithLeftArmRaised();
 
-      final variant =
-          service.detectVariant('Standing Shoulder Abduction', skeletonData);
+      final variant = service.detectVariant(
+        'Standing Shoulder Abduction',
+        skeletonData,
+      );
 
       expect(variant, equals('LEFT'));
     });
@@ -39,8 +41,10 @@ void main() {
     test('detects RIGHT variant when right arm is raised', () {
       final skeletonData = _createSkeletonWithRightArmRaised();
 
-      final variant =
-          service.detectVariant('Standing Shoulder Abduction', skeletonData);
+      final variant = service.detectVariant(
+        'Standing Shoulder Abduction',
+        skeletonData,
+      );
 
       expect(variant, equals('RIGHT'));
     });
@@ -48,8 +52,10 @@ void main() {
     test('detects BOTH variant when both arms are raised', () {
       final skeletonData = _createSkeletonWithBothArmsRaised();
 
-      final variant =
-          service.detectVariant('Standing Shoulder Abduction', skeletonData);
+      final variant = service.detectVariant(
+        'Standing Shoulder Abduction',
+        skeletonData,
+      );
 
       expect(variant, equals('BOTH'));
     });
@@ -65,8 +71,10 @@ void main() {
     test('returns BOTH when buffer is empty', () {
       final skeletonData = <List<List<double>>>[];
 
-      final variant =
-          service.detectVariant('Standing Shoulder Abduction', skeletonData);
+      final variant = service.detectVariant(
+        'Standing Shoulder Abduction',
+        skeletonData,
+      );
 
       expect(variant, equals('BOTH'));
     });
@@ -144,8 +152,11 @@ void main() {
     test('empty landmarks returns error result', () {
       final landmarks = PoseLandmarks(frames: []);
 
-      final result =
-          service.diagnose('Hurdle Step', landmarks, forcedVariant: 'LEFT');
+      final result = service.diagnose(
+        'Hurdle Step',
+        landmarks,
+        forcedVariant: 'LEFT',
+      );
 
       expect(result.isCorrect, isFalse);
       expect(
@@ -157,8 +168,11 @@ void main() {
     test('correct hurdle step with LEFT variant passes', () {
       final landmarks = _createCorrectHurdleStepLandmarks('LEFT');
 
-      final result =
-          service.diagnose('Hurdle Step', landmarks, forcedVariant: 'LEFT');
+      final result = service.diagnose(
+        'Hurdle Step',
+        landmarks,
+        forcedVariant: 'LEFT',
+      );
 
       expect(result, isNotNull);
     });
@@ -166,8 +180,11 @@ void main() {
     test('correct hurdle step with RIGHT variant passes', () {
       final landmarks = _createCorrectHurdleStepLandmarks('RIGHT');
 
-      final result =
-          service.diagnose('Hurdle Step', landmarks, forcedVariant: 'RIGHT');
+      final result = service.diagnose(
+        'Hurdle Step',
+        landmarks,
+        forcedVariant: 'RIGHT',
+      );
 
       expect(result, isNotNull);
     });
@@ -175,8 +192,11 @@ void main() {
     test('torso instability is detected', () {
       final landmarks = _createUnstableTorsoHurdleStepLandmarks();
 
-      final result =
-          service.diagnose('Hurdle Step', landmarks, forcedVariant: 'LEFT');
+      final result = service.diagnose(
+        'Hurdle Step',
+        landmarks,
+        forcedVariant: 'LEFT',
+      );
 
       expect(result.isCorrect, isFalse);
       expect(result.feedback.containsKey('Torso Instability'), isTrue);
@@ -185,8 +205,11 @@ void main() {
     test('step too low is detected', () {
       final landmarks = _createLowStepHurdleStepLandmarks();
 
-      final result =
-          service.diagnose('Hurdle Step', landmarks, forcedVariant: 'LEFT');
+      final result = service.diagnose(
+        'Hurdle Step',
+        landmarks,
+        forcedVariant: 'LEFT',
+      );
 
       expect(result.isCorrect, isFalse);
       expect(result.feedback.containsKey('Step too low'), isTrue);
@@ -256,8 +279,7 @@ void main() {
 
       expect(result.isCorrect, isTrue);
       expect(
-        result.feedback
-            .containsKey('Analysis not available for this exercise'),
+        result.feedback.containsKey('Analysis not available for this exercise'),
         isTrue,
       );
     });
@@ -399,7 +421,9 @@ PoseLandmarks _createNeutralLandmarks() {
   final frames = List.generate(20, (_) {
     final frameData = _createNeutralFrame();
     return PoseFrame(
-      landmarks: frameData.map((coords) => PoseLandmark.fromList(coords)).toList(),
+      landmarks: frameData
+          .map((coords) => PoseLandmark.fromList(coords))
+          .toList(),
     );
   });
   return PoseLandmarks(frames: frames);

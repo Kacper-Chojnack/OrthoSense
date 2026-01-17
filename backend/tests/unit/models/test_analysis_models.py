@@ -53,15 +53,12 @@ class TestLandmarksAnalysisRequest:
 
     def test_valid_request_creation(self) -> None:
         """Valid request is created successfully."""
-        landmarks = [
-            [[0.5, 0.5, 0.0] for _ in range(33)]
-            for _ in range(30)
-        ]
+        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)] for _ in range(30)]
         request = LandmarksAnalysisRequest(
             landmarks=landmarks,
             exercise_name="Deep Squat",
         )
-        
+
         assert request.exercise_name == "Deep Squat"
         assert len(request.landmarks) == 30
 
@@ -72,7 +69,7 @@ class TestLandmarksAnalysisRequest:
             landmarks=landmarks,
             exercise_name="Test",
         )
-        
+
         assert request.fps == 30.0
 
     def test_custom_fps_value(self) -> None:
@@ -83,13 +80,13 @@ class TestLandmarksAnalysisRequest:
             exercise_name="Test",
             fps=60.0,
         )
-        
+
         assert request.fps == 60.0
 
     def test_fps_minimum_constraint(self) -> None:
         """FPS must be at least 1.0."""
         landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-        
+
         with pytest.raises(ValidationError):
             LandmarksAnalysisRequest(
                 landmarks=landmarks,
@@ -100,7 +97,7 @@ class TestLandmarksAnalysisRequest:
     def test_fps_maximum_constraint(self) -> None:
         """FPS must be at most 120.0."""
         landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-        
+
         with pytest.raises(ValidationError):
             LandmarksAnalysisRequest(
                 landmarks=landmarks,
@@ -110,15 +107,12 @@ class TestLandmarksAnalysisRequest:
 
     def test_landmarks_with_visibility(self) -> None:
         """Landmarks with visibility scores are accepted."""
-        landmarks = [
-            [[0.5, 0.5, 0.0, 0.9] for _ in range(33)]
-            for _ in range(30)
-        ]
+        landmarks = [[[0.5, 0.5, 0.0, 0.9] for _ in range(33)] for _ in range(30)]
         request = LandmarksAnalysisRequest(
             landmarks=landmarks,
             exercise_name="Test",
         )
-        
+
         assert len(request.landmarks[0][0]) == 4
 
 
@@ -133,7 +127,7 @@ class TestVideoAnalysisResponse:
             status=AnalysisStatus.PENDING,
             message="Analysis started",
         )
-        
+
         assert response.task_id == "task-123"
         assert response.session_id == "session-456"
         assert response.status == AnalysisStatus.PENDING
@@ -142,16 +136,16 @@ class TestVideoAnalysisResponse:
     def test_created_at_default_value(self) -> None:
         """Created at defaults to current time."""
         before = datetime.utcnow()
-        
+
         response = VideoAnalysisResponse(
             task_id="task-123",
             session_id="session-456",
             status=AnalysisStatus.PENDING,
             message="Analysis started",
         )
-        
+
         after = datetime.utcnow()
-        
+
         assert before <= response.created_at <= after
 
 
@@ -167,7 +161,7 @@ class TestAnalysisResult:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         assert result.session_id == "session-123"
         assert result.exercise == "Deep Squat"
         assert result.confidence == 0.95
@@ -204,7 +198,7 @@ class TestAnalysisResult:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         assert result.feedback == {}
 
     def test_feedback_with_custom_value(self) -> None:
@@ -221,7 +215,7 @@ class TestAnalysisResult:
             is_correct=False,
             feedback=feedback,
         )
-        
+
         assert result.feedback == feedback
 
     def test_text_report_default_none(self) -> None:
@@ -233,7 +227,7 @@ class TestAnalysisResult:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         assert result.text_report is None
 
     def test_metrics_default_value(self) -> None:
@@ -245,7 +239,7 @@ class TestAnalysisResult:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         assert result.metrics == {}
 
     def test_completed_at_optional(self) -> None:
@@ -257,7 +251,7 @@ class TestAnalysisResult:
             confidence=0.0,
             is_correct=False,
         )
-        
+
         assert result.completed_at is None
 
     def test_completed_at_with_value(self) -> None:
@@ -271,7 +265,7 @@ class TestAnalysisResult:
             is_correct=True,
             completed_at=completed,
         )
-        
+
         assert result.completed_at == completed
 
 
@@ -284,7 +278,7 @@ class TestAnalysisError:
             error="validation_error",
             detail="Invalid landmark format",
         )
-        
+
         assert error.error == "validation_error"
         assert error.detail == "Invalid landmark format"
 
@@ -294,7 +288,7 @@ class TestAnalysisError:
             error="server_error",
             detail="Internal error",
         )
-        
+
         assert error.session_id is None
 
     def test_session_id_with_value(self) -> None:
@@ -304,7 +298,7 @@ class TestAnalysisError:
             detail="Failed to process video",
             session_id="session-789",
         )
-        
+
         assert error.session_id == "session-789"
 
 
@@ -318,7 +312,7 @@ class TestTaskStatusResponse:
             session_id="session-456",
             status=AnalysisStatus.PROCESSING,
         )
-        
+
         assert status.task_id == "task-123"
         assert status.session_id == "session-456"
         assert status.status == AnalysisStatus.PROCESSING
@@ -327,10 +321,10 @@ class TestTaskStatusResponse:
         """Task ID, session ID and status are required."""
         with pytest.raises(ValidationError):
             TaskStatusResponse(task_id="task-123", status=AnalysisStatus.PENDING)
-        
+
         with pytest.raises(ValidationError):
             TaskStatusResponse(session_id="session-456", status=AnalysisStatus.PENDING)
-        
+
         with pytest.raises(ValidationError):
             TaskStatusResponse(task_id="task-123", session_id="session-456")
 
@@ -341,7 +335,7 @@ class TestTaskStatusResponse:
             session_id="session-456",
             status=AnalysisStatus.PENDING,
         )
-        
+
         assert status.progress is None
         assert status.message is None
         assert status.result is None
@@ -356,7 +350,7 @@ class TestTaskStatusResponse:
             progress=50.0,
         )
         assert status.progress == 50.0
-        
+
         # Invalid progress (negative)
         with pytest.raises(ValidationError):
             TaskStatusResponse(
@@ -365,7 +359,7 @@ class TestTaskStatusResponse:
                 status=AnalysisStatus.PROCESSING,
                 progress=-1.0,
             )
-        
+
         # Invalid progress (over 100)
         with pytest.raises(ValidationError):
             TaskStatusResponse(
@@ -388,9 +382,9 @@ class TestModelSerialization:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         data = result.model_dump()
-        
+
         assert isinstance(data, dict)
         assert data["session_id"] == "session-123"
         assert data["exercise"] == "Deep Squat"
@@ -404,9 +398,9 @@ class TestModelSerialization:
             confidence=0.95,
             is_correct=True,
         )
-        
+
         json_str = result.model_dump_json()
-        
+
         assert isinstance(json_str, str)
         assert "session-123" in json_str
         assert "Deep Squat" in json_str
@@ -418,8 +412,8 @@ class TestModelSerialization:
             "exercise_name": "Test",
             "fps": 25.0,
         }
-        
+
         request = LandmarksAnalysisRequest.model_validate(data)
-        
+
         assert request.exercise_name == "Test"
         assert request.fps == 25.0
