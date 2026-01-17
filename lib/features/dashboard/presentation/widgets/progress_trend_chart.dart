@@ -460,7 +460,7 @@ class _LineChart extends StatelessWidget {
       handleBuiltInTouches: true,
       touchTooltipData: LineTouchTooltipData(
         getTooltipColor: (_) => colorScheme.inverseSurface,
-        tooltipRoundedRadius: 8,
+        tooltipBorderRadius: BorderRadius.circular(8),
         getTooltipItems: (touchedSpots) {
           return touchedSpots.map((spot) {
             final index = spot.x.toInt();
