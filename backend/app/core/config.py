@@ -7,6 +7,7 @@ import os
 import tempfile
 from functools import lru_cache
 
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,17 +34,26 @@ class Settings(BaseSettings):
     # Override in production with specific domains
     cors_origins: list[str] = ["http://localhost:8080", "http://localhost:3000"]
 
+    # Additional allowed host for local mobile testing (set via env var)
+    local_test_ip: str = ""
+
     # Security
     # Use "*" in production behind AWS App Runner (which handles host validation)
-    allowed_hosts: list[str] = [
-        "localhost",
-        "127.0.0.1",
-        "orthosense.app",
-        "testserver",
-        "192.168.0.27",  # Current local network IP for mobile testing
-        "*.eu-central-1.awsapprunner.com",  # AWS App Runner domains
-        "*",  # Allow all hosts when behind reverse proxy (App Runner validates)
-    ]
+    @computed_field
+    @property
+    def allowed_hosts(self) -> list[str]:
+        hosts = [
+            "localhost",
+            "127.0.0.1",
+            "orthosense.app",
+            "testserver",
+            "*.eu-central-1.awsapprunner.com",  # AWS App Runner domains
+            "*",  # Allow all hosts when behind reverse proxy (App Runner validates)
+        ]
+        # Add local test IP if configured (for mobile testing via LOCAL_TEST_IP env var)
+        if self.local_test_ip:
+            hosts.insert(4, self.local_test_ip)
+        return hosts
 
     # Rate Limiting (Redis)
     redis_url: str = "redis://localhost:6379"
