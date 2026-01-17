@@ -81,7 +81,7 @@ jobs:
         run: flutter analyze --write=flutter-analyze.txt || true
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v7
         continue-on-error: true
         if: env.SONAR_TOKEN_AVAILABLE == 'true'
         env:

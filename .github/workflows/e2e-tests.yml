@@ -81,7 +81,7 @@ jobs:
           pytest tests/e2e_api -v --tb=short --cov=app --cov-report=xml || true
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./backend/coverage.xml
           flags: backend-e2e
@@ -152,7 +152,7 @@ jobs:
         run: flutter test test/e2e --coverage || echo "Coverage tests completed or skipped"
 
       - name: Upload Flutter Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage/lcov.info
           flags: flutter-e2e
