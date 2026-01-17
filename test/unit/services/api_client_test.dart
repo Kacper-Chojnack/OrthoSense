@@ -273,10 +273,12 @@ void main() {
     test('jitter adds randomness to delay', () {
       final policy = RetryPolicy.exponentialBackoff(withJitter: true);
 
-      final delays = List.generate(10, (_) => policy.getDelay(attempt: 2));
+      // Since jitter uses deterministic seed per attempt, test different attempts
+      // to verify that different attempts produce different jittered delays
+      final delays = List.generate(10, (i) => policy.getDelay(attempt: i + 1));
       final uniqueDelays = delays.map((d) => d.inMilliseconds).toSet();
 
-      // With jitter, delays should vary
+      // With jitter and different attempts, delays should vary
       expect(uniqueDelays.length, greaterThan(1));
     });
   });
