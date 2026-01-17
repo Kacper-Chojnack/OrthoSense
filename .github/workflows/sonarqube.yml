@@ -55,9 +55,13 @@ jobs:
             --cov-report=term \
             --junitxml=test-results.xml \
             -v || true
-          # Verify coverage file was created
+          # Fix coverage.xml paths for SonarCloud (needs backend/app prefix)
           if [ -f coverage.xml ]; then
-            echo "✅ Coverage report generated successfully"
+            echo "✅ Coverage report generated, fixing paths for SonarCloud..."
+            # Change <source>app</source> to <source>backend/app</source>
+            sed -i 's|<source>app</source>|<source>backend/app</source>|g' coverage.xml
+            # Move coverage.xml to root for SonarCloud
+            cp coverage.xml ../backend-coverage.xml
             head -20 coverage.xml
           else
             echo "⚠️ Coverage report not found"
