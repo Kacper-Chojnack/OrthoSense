@@ -60,6 +60,7 @@ def verify_model_integrity(
     *,
     expected_hash: str | None = None,
     skip_if_hash_empty: bool = True,
+    raise_on_mismatch: bool = True,
 ) -> bool:
     """Verify integrity of a model file using SHA256.
 
@@ -68,12 +69,15 @@ def verify_model_integrity(
         expected_hash: Expected SHA256 hash. If None, looks up in MODEL_HASHES.
         skip_if_hash_empty: If True, skip verification if hash is empty/not set.
             Useful during development when hashes aren't yet configured.
+        raise_on_mismatch: If True, raise ModelIntegrityError on hash mismatch.
+            If False, return False instead.
 
     Returns:
-        True if verification passes or is skipped.
+        True if verification passes or is skipped, False if hash mismatch
+        (when raise_on_mismatch=False).
 
     Raises:
-        ModelIntegrityError: If hash doesn't match.
+        ModelIntegrityError: If hash doesn't match and raise_on_mismatch=True.
         FileNotFoundError: If model file doesn't exist.
     """
     if not model_path.exists():
@@ -105,7 +109,9 @@ def verify_model_integrity(
             expected_hash=expected_hash[:16] + "...",
             actual_hash=actual_hash[:16] + "...",
         )
-        raise ModelIntegrityError(str(model_path), expected_hash, actual_hash)
+        if raise_on_mismatch:
+            raise ModelIntegrityError(str(model_path), expected_hash, actual_hash)
+        return False
 
     logger.info(
         "model_integrity_verified",
