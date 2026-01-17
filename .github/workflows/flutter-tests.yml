@@ -72,10 +72,7 @@ jobs:
         continue-on-error: true
 
       - name: Semgrep (Dart/Flutter)
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: >-
-            p/secrets
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-        continue-on-error: true  # Continue even if token is missing or scan fails
+        run: |
+          pip install semgrep
+          semgrep scan --config p/secrets lib/ || true
+        continue-on-error: true

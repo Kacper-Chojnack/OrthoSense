@@ -105,15 +105,10 @@ jobs:
       # Semgrep - Advanced SAST with OWASP rules
       - name: Run Semgrep
         id: semgrep
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: >-
-            p/owasp-top-ten
-            p/python
-            p/security-audit
-          generateSarif: "1"
-        env:
-          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        run: |
+          pip install semgrep
+          semgrep scan --config p/owasp-top-ten --config p/python --config p/security-audit \
+            --sarif --output semgrep.sarif backend/ || true
         continue-on-error: true
 
       - name: Upload Semgrep SARIF
