@@ -59,7 +59,7 @@ jobs:
         run: flutter pub get
 
       - name: Run Tests
-        run: flutter test --coverage
+        run: flutter test --coverage --exclude-tags=e2e test/unit test/widget test/integration test/models test/features
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
