@@ -9,10 +9,13 @@ Test coverage:
 6. Report generation
 """
 
-import numpy as np
 import pytest
 
-from app.ai.core.diagnostics import MOVEMENT_CORRECT, MovementDiagnostician, ReportGenerator
+from app.ai.core.diagnostics import (
+    MOVEMENT_CORRECT,
+    MovementDiagnostician,
+    ReportGenerator,
+)
 
 
 class TestMovementDiagnosticianInit:
@@ -316,7 +319,7 @@ def _create_correct_squat_frames():
 def _create_shallow_squat_frames():
     """Create frames representing shallow squat (error case)."""
     frames = []
-    for i in range(30):
+    for _ in range(30):
         frame = [[0.5, 0.5, 0.0] for _ in range(33)]
         # Hips above knees - too shallow
         frame[23] = [0.45, 0.55, 0.0]  # Left hip
@@ -330,7 +333,7 @@ def _create_shallow_squat_frames():
 def _create_knee_valgus_frames():
     """Create frames representing knee valgus (error case)."""
     frames = []
-    for i in range(30):
+    for _ in range(30):
         frame = [[0.5, 0.5, 0.0] for _ in range(33)]
         # Knees closer together than ankles
         frame[25] = [0.48, 0.7, 0.0]  # Left knee (too close)

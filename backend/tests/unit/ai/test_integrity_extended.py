@@ -228,12 +228,12 @@ class TestModelHashes:
 
     def test_hash_is_string(self):
         """Hash values should be strings."""
-        for model_name, hash_value in MODEL_HASHES.items():
+        for _, hash_value in MODEL_HASHES.items():
             assert isinstance(hash_value, str)
 
     def test_hash_format(self):
         """Non-empty hashes should be valid hex."""
-        for model_name, hash_value in MODEL_HASHES.items():
+        for _, hash_value in MODEL_HASHES.items():
             if hash_value:  # Skip empty placeholder
                 assert len(hash_value) == 64
                 assert all(c in "0123456789abcdef" for c in hash_value.lower())

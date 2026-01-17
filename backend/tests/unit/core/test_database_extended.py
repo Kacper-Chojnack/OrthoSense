@@ -7,9 +7,9 @@ Test coverage:
 4. Error handling
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+import contextlib
 
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -24,8 +24,9 @@ class TestAsyncEngine:
 
     def test_engine_is_async(self):
         """Engine should be async."""
-        from app.core.database import engine
         from sqlalchemy.ext.asyncio import AsyncEngine
+
+        from app.core.database import engine
 
         assert isinstance(engine, AsyncEngine)
 
@@ -64,10 +65,8 @@ class TestGetSessionDependency:
         assert session is not None
 
         # Clean up
-        try:
+        with contextlib.suppress(StopAsyncIteration):
             await gen.__anext__()
-        except StopAsyncIteration:
-            pass
 
     @pytest.mark.asyncio
     async def test_closes_session_on_exit(self):
@@ -81,10 +80,8 @@ class TestGetSessionDependency:
         assert session is not None
 
         # Exit context
-        try:
+        with contextlib.suppress(StopAsyncIteration):
             await gen.__anext__()
-        except StopAsyncIteration:
-            pass
 
 
 class TestDatabaseURL:
@@ -140,7 +137,7 @@ class TestSessionContext:
         from app.core.database import async_session_factory
 
         try:
-            async with async_session_factory() as session:
+            async with async_session_factory() as _:
                 # Simulate error
                 raise ValueError("Test error")
         except ValueError:

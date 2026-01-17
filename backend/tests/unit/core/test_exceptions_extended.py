@@ -6,7 +6,6 @@ Test coverage:
 3. Error response creation
 """
 
-import pytest
 from fastapi import status
 
 from app.core.exceptions import (

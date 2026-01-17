@@ -115,12 +115,14 @@ void main() {
     });
 
     test('checkPoseVisibility returns false for out-of-bounds landmarks', () {
-      // Create frame with landmarks out of valid bounds
+      // Required indices for visibility check: [11, 12, 23, 24, 25, 26, 27, 28]
+      // Need at least 3 out of bounds to fail the >= 6 threshold
+      const outOfBoundsIndices = {11, 12, 23, 24, 25}; // 5 out of 8 required
       final landmarks = List.generate(
         33,
         (i) => PoseLandmark(
-          x: i < 20 ? 0.01 : 0.5, // Out of bounds on first 20
-          y: i < 20 ? 0.99 : 0.5, // Out of bounds on first 20
+          x: outOfBoundsIndices.contains(i) ? 0.01 : 0.5, // Out of bounds
+          y: outOfBoundsIndices.contains(i) ? 0.99 : 0.5, // Out of bounds
           z: 0.0,
           visibility: 0.9,
         ),

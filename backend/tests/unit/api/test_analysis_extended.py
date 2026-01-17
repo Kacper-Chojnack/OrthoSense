@@ -7,9 +7,9 @@ Test coverage:
 4. Error handling
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 from httpx import AsyncClient
 
 

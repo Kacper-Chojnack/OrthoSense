@@ -765,10 +765,12 @@ PoseLandmarks _createArmAsymmetryLandmarks() {
     // Both arms raised but at very different heights
     // For BOTH variant to be active: both wrists must be ABOVE elbows
     // (wristY < elbowY in screen coordinates where Y increases downward)
-    frame[13] = [0.2, 0.28, 0.0]; // Left elbow
-    frame[15] = [0.1, 0.12, 0.0]; // Left wrist high (above elbow)
-    frame[14] = [0.8, 0.28, 0.0]; // Right elbow
-    frame[16] = [0.9, 0.25, 0.0]; // Right wrist above elbow but much lower than left
+    // Asymmetry threshold is 0.15, so we need |wrL[1] - wrR[1]| > 0.15
+    frame[13] = [0.2, 0.35, 0.0]; // Left elbow
+    frame[15] = [0.1, 0.10, 0.0]; // Left wrist high (above elbow)
+    frame[14] = [0.8, 0.35, 0.0]; // Right elbow
+    frame[16] = [0.9, 0.28, 0.0]; // Right wrist above elbow but much lower than left
+    // Difference: |0.10 - 0.28| = 0.18 > 0.15 threshold
     return PoseFrame(
       landmarks: frame.map((coords) => PoseLandmark.fromList(coords)).toList(),
     );

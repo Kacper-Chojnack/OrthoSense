@@ -7,13 +7,14 @@ Test coverage:
 4. Error handling
 """
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from app.services.email import (
     _send_email,
-    send_verification_email,
     send_password_reset_email,
+    send_verification_email,
 )
 
 
@@ -97,19 +98,21 @@ class TestSendVerificationEmail:
     @pytest.mark.asyncio
     async def test_includes_token_in_link(self):
         """Verification link should include token."""
-        with patch("app.services.email._send_email") as mock_send:
-            with patch("app.services.email.settings") as mock_settings:
-                mock_settings.frontend_url = "http://localhost:8080"
-                mock_send.return_value = True
-                
-                await send_verification_email(
-                    email="user@example.com",
-                    token="test-token-123",
-                )
-                
-                call_args = mock_send.call_args
-                # _send_email args: (to_email, subject, html_body)
-                assert "test-token-123" in call_args[0][2]
+        with (
+            patch("app.services.email._send_email") as mock_send,
+            patch("app.services.email.settings") as mock_settings,
+        ):
+            mock_settings.frontend_url = "http://localhost:8080"
+            mock_send.return_value = True
+
+            await send_verification_email(
+                email="user@example.com",
+                token="test-token-123",
+            )
+
+            call_args = mock_send.call_args
+            # _send_email args: (to_email, subject, html_body)
+            assert "test-token-123" in call_args[0][2]
 
 
 class TestSendPasswordResetEmail:
@@ -135,19 +138,21 @@ class TestSendPasswordResetEmail:
     @pytest.mark.asyncio
     async def test_includes_reset_token(self):
         """Reset link should include token."""
-        with patch("app.services.email._send_email") as mock_send:
-            with patch("app.services.email.settings") as mock_settings:
-                mock_settings.frontend_url = "http://localhost:8080"
-                mock_send.return_value = True
-                
-                await send_password_reset_email(
-                    email="user@example.com",
-                    token="reset-token-456",
-                )
-                
-                call_args = mock_send.call_args
-                # _send_email args: (to_email, subject, html_body)
-                assert "reset-token-456" in call_args[0][2]
+        with (
+            patch("app.services.email._send_email") as mock_send,
+            patch("app.services.email.settings") as mock_settings,
+        ):
+            mock_settings.frontend_url = "http://localhost:8080"
+            mock_send.return_value = True
+
+            await send_password_reset_email(
+                email="user@example.com",
+                token="reset-token-456",
+            )
+
+            call_args = mock_send.call_args
+            # _send_email args: (to_email, subject, html_body)
+            assert "reset-token-456" in call_args[0][2]
 
 
 class TestEmailTemplates:
@@ -193,7 +198,6 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_handles_http_error(self):
         """Should handle HTTP errors gracefully."""
-        import httpx
         
         with patch("app.services.email.settings") as mock_settings:
             mock_settings.email_enabled = True
