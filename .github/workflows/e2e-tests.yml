@@ -7,6 +7,11 @@ on:
     branches: [main, develop, zosia]
   workflow_dispatch:
 
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   FLUTTER_VERSION: '3.38.7'
   PYTHON_VERSION: '3.13'
@@ -18,6 +23,7 @@ jobs:
   backend-e2e:
     name: Backend E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -217,20 +223,53 @@ jobs:
     steps:
       - name: Check E2E Results
         run: |
-          echo "Backend E2E: ${{ needs.backend-e2e.result }}"
-          echo "Backend E2E (Existing): ${{ needs.backend-e2e-existing.result }}"
-          echo "Flutter E2E: ${{ needs.flutter-e2e.result }}"
-
-          if [[ "${{ needs.backend-e2e.result }}" == "failure" ]]; then
+          echo "## 🧪 E2E Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          backend_status="${{ needs.backend-e2e.result }}"
+          backend_existing_status="${{ needs.backend-e2e-existing.result }}"
+          flutter_status="${{ needs.flutter-e2e.result }}"
+          
+          # Backend E2E
+          if [[ "$backend_status" == "success" ]]; then
+            echo "| Backend E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$backend_status" == "failure" ]]; then
+            echo "| Backend E2E | ⚠️ Failed |" >> $GITHUB_STEP_SUMMARY
             echo "::warning::Backend E2E tests failed"
+          else
+            echo "| Backend E2E | ⏭️ $backend_status |" >> $GITHUB_STEP_SUMMARY
           fi
-
-          if [[ "${{ needs.backend-e2e-existing.result }}" == "failure" ]]; then
+          
+          # Backend E2E Existing
+          if [[ "$backend_existing_status" == "success" ]]; then
+            echo "| Backend E2E (Existing) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$backend_existing_status" == "failure" ]]; then
+            echo "| Backend E2E (Existing) | ⚠️ Failed |" >> $GITHUB_STEP_SUMMARY
             echo "::warning::Backend E2E (Existing) tests failed"
+          else
+            echo "| Backend E2E (Existing) | ⏭️ $backend_existing_status |" >> $GITHUB_STEP_SUMMARY
           fi
-
-          if [[ "${{ needs.flutter-e2e.result }}" == "failure" ]]; then
+          
+          # Flutter E2E (expected to fail in CI without device)
+          if [[ "$flutter_status" == "success" ]]; then
+            echo "| Flutter E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          elif [[ "$flutter_status" == "failure" ]]; then
+            echo "| Flutter E2E | ⚠️ Failed (expected in CI) |" >> $GITHUB_STEP_SUMMARY
             echo "::warning::Flutter E2E tests failed (may be expected in CI without device)"
+          else
+            echo "| Flutter E2E | ⏭️ $flutter_status |" >> $GITHUB_STEP_SUMMARY
           fi
-
-          echo "E2E tests summary completed"
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Note: Flutter E2E tests may fail in CI without a device - this is expected._" >> $GITHUB_STEP_SUMMARY
+          
+          # Only fail the summary if backend tests failed
+          # Flutter E2E failures are expected in CI without device
+          if [[ "$backend_status" == "failure" ]] || [[ "$backend_existing_status" == "failure" ]]; then
+            echo "❌ Some backend E2E tests failed"
+            exit 1
+          fi
+          
+          echo "✅ E2E tests summary completed successfully"

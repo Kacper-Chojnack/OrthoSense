@@ -38,6 +38,11 @@ on:
           - apply
           - destroy
 
+# Cancel in-progress runs when a new run is triggered (except for manual dispatches)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
 env:
   AWS_REGION: eu-central-1
   TF_VERSION: '1.6.6'
@@ -85,14 +90,17 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: [validate]
-    continue-on-error: true  # Don't block pipeline on security warnings
+    # Security scan is informational - don't block pipeline
+    continue-on-error: true
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run Checkov
+        id: checkov
         uses: bridgecrewio/checkov-action@v12
+        continue-on-error: true
         with:
           directory: terraform
           framework: terraform
@@ -101,12 +109,28 @@ jobs:
           soft_fail: true
           skip_check: CKV_AWS_293,CKV_AWS_157,CKV_AWS_338,CKV_AWS_158,CKV_AWS_51,CKV_AWS_300,CKV_AWS_119,CKV_AWS_28
 
-      - name: Upload Checkov results
+      - name: Upload Checkov results to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
+        # Only upload if SARIF file exists and we have permissions
+        # This step is optional - failures don't block the pipeline
         if: always() && hashFiles('checkov-results.sarif') != ''
         continue-on-error: true
         with:
           sarif_file: checkov-results.sarif
+          category: checkov-terraform
+
+      - name: Security Scan Summary
+        if: always()
+        run: |
+          echo "## 🔒 Terraform Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f checkov-results.sarif ]; then
+            echo "✅ Checkov scan completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No SARIF results generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Note: Security findings are informational and don't block the pipeline._" >> $GITHUB_STEP_SUMMARY
 
   # ---------------------------------------------------------------------------
   # Job: Plan Dev

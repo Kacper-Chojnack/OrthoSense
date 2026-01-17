@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 2 * * *' # Daily at 2:00 AM
 
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sonarcloud:
     name: SonarCloud Analysis

@@ -17,9 +17,15 @@ on:
       - 'pubspec.yaml'
       - '.github/workflows/flutter-tests.yml'
 
+# Cancel in-progress runs when a new run is triggered
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
       - uses: actions/checkout@v4
@@ -34,8 +40,15 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib test
+        id: format-check
+        run: |
+          dart format --output=none --set-exit-if-changed lib test || echo "format_failed=true" >> $GITHUB_OUTPUT
         continue-on-error: true
+
+      - name: Formatting Warning
+        if: steps.format-check.outputs.format_failed == 'true'
+        run: |
+          echo "::warning::Code formatting issues detected. Run 'dart format lib test' to fix."
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
