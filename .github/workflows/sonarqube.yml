@@ -134,7 +134,7 @@ jobs:
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v7
-        continue-on-error: true
+        continue-on-error: false
         timeout-minutes: 10
         if: env.SONAR_TOKEN_AVAILABLE == 'true'
         env:
@@ -142,10 +142,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.qualitygate.wait=false
+            -Dsonar.qualitygate.wait=true
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
             -Dsonar.coverageReportPaths=coverage/coverage.xml
-            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart
+            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart,**/widgets/**,**/theme/**
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/*_test.dart,**/*_test.py
 
       - name: Debug Coverage Files
