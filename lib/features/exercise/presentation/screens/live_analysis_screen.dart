@@ -906,10 +906,11 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
         canPop: false,
         onPopInvoked: (didPop) {
           if (didPop) return;
+          final navigator = Navigator.of(context);
           unawaited(() async {
             await _stopAnalysisAsync();
             if (mounted) {
-              Navigator.of(context).pop();
+              navigator.pop();
             }
           }());
         },
