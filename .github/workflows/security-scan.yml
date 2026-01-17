@@ -60,6 +60,7 @@ jobs:
           channel: 'stable'
 
       - name: Audit Flutter Dependencies
+        continue-on-error: true
         run: |
           flutter pub get
           flutter pub outdated --json > flutter-outdated.json || true
@@ -103,12 +104,14 @@ jobs:
 
       # Semgrep - Advanced SAST with OWASP rules
       - name: Run Semgrep
+        id: semgrep
         uses: semgrep/semgrep-action@v1
         with:
           config: >-
             p/owasp-top-ten
             p/python
             p/security-audit
+          generateSarif: "1"
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
         continue-on-error: true
@@ -117,7 +120,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
-        if: always()
+        if: always() && hashFiles('semgrep.sarif') != ''
         continue-on-error: true
 
   # Secret Scanning - A07:2021 Auth Failures

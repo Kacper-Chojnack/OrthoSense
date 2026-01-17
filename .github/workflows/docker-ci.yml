@@ -9,14 +9,16 @@ on:
 jobs:
   backend-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       
       - name: Build Backend
+        timeout-minutes: 10
         run: docker build -t orthosense-backend backend/
         
       - name: Run Tests
+        timeout-minutes: 5
         # Run pytest inside the container with all deps (ai-full included in image)
         run: |
           docker run --rm \
