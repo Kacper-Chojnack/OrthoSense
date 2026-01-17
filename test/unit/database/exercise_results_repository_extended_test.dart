@@ -332,14 +332,15 @@ int _uuidCounter = 0;
 
 String _generateUuid() {
   _uuidCounter++;
-  return '${DateTime.now().millisecondsSinceEpoch}-${_uuidCounter.toString().padLeft(4, '0')}'
-      '-4xxx-yxxx-xxxxxxxxxxxx'
-      .replaceAllMapped(RegExp('[xy]'), (match) {
-    final c = match[0]!;
-    final r = (_uuidCounter * 16) % 16;
-    final v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toRadixString(16);
-  });
+  // Generate a proper UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  final r = DateTime.now().microsecondsSinceEpoch + _uuidCounter;
+  String hexPart(int length) {
+    return List.generate(length, (i) => ((r + i * 7) % 16).toRadixString(16))
+        .join();
+  }
+  
+  // 8-4-4-4-12 format with proper version and variant bits
+  return '${hexPart(8)}-${hexPart(4)}-4${hexPart(3)}-${((r % 4) + 8).toRadixString(16)}${hexPart(3)}-${hexPart(12)}';
 }
 
 MockExerciseResultsCompanion _createResultCompanion({

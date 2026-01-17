@@ -65,26 +65,23 @@ void main() {
 
     group('pendingCountProvider', () {
       test('should provide pending items count', () async {
-        when(() => mockQueue.getPendingCount())
-            .thenAnswer((_) async => 5);
+        when(() => mockQueue.pendingCount).thenReturn(5);
 
-        final count = await mockQueue.getPendingCount();
+        final count = mockQueue.pendingCount;
         expect(count, equals(5));
       });
 
       test('should update when items enqueued', () async {
-        when(() => mockQueue.getPendingCount())
-            .thenAnswer((_) async => 6);
+        when(() => mockQueue.pendingCount).thenReturn(6);
 
-        final count = await mockQueue.getPendingCount();
+        final count = mockQueue.pendingCount;
         expect(count, equals(6));
       });
 
       test('should update when items completed', () async {
-        when(() => mockQueue.getPendingCount())
-            .thenAnswer((_) async => 4);
+        when(() => mockQueue.pendingCount).thenReturn(4);
 
-        final count = await mockQueue.getPendingCount();
+        final count = mockQueue.pendingCount;
         expect(count, equals(4));
       });
     });

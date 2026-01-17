@@ -90,8 +90,9 @@ class TestSendVerificationEmail:
             
             mock_send.assert_called_once()
             call_args = mock_send.call_args
-            assert call_args[1]["to_email"] == "user@example.com"
-            assert "Verify" in call_args[1]["subject"]
+            # _send_email is called with positional args: (to_email, subject, html_body)
+            assert call_args[0][0] == "user@example.com"
+            assert "Verify" in call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_includes_token_in_link(self):
@@ -107,7 +108,8 @@ class TestSendVerificationEmail:
                 )
                 
                 call_args = mock_send.call_args
-                assert "test-token-123" in call_args[1]["html_body"]
+                # _send_email args: (to_email, subject, html_body)
+                assert "test-token-123" in call_args[0][2]
 
 
 class TestSendPasswordResetEmail:
@@ -126,8 +128,9 @@ class TestSendPasswordResetEmail:
             
             mock_send.assert_called_once()
             call_args = mock_send.call_args
-            assert call_args[1]["to_email"] == "user@example.com"
-            assert "Reset" in call_args[1]["subject"] or "Password" in call_args[1]["subject"]
+            # _send_email args: (to_email, subject, html_body)
+            assert call_args[0][0] == "user@example.com"
+            assert "Reset" in call_args[0][1] or "Password" in call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_includes_reset_token(self):
@@ -143,7 +146,8 @@ class TestSendPasswordResetEmail:
                 )
                 
                 call_args = mock_send.call_args
-                assert "reset-token-456" in call_args[1]["html_body"]
+                # _send_email args: (to_email, subject, html_body)
+                assert "reset-token-456" in call_args[0][2]
 
 
 class TestEmailTemplates:

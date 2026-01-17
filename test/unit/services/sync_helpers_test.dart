@@ -131,16 +131,23 @@ void main() {
       expect(service.isOnline, isFalse);
     });
 
-    test('notifies listeners on state change', () {
+    test('notifies listeners on state change', () async {
       final service = MockConnectivityService();
       var notified = false;
 
-      service.onConnectivityChanged.listen((_) {
+      final subscription = service.onConnectivityChanged.listen((_) {
         notified = true;
       });
 
+      // Wait a bit for the listener to be registered
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      
       service.setOnline(false);
 
+      // Wait for notification
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      
+      await subscription.cancel();
       expect(notified, isTrue);
     });
 
@@ -282,8 +289,10 @@ class ExponentialBackoff {
   final _random = Random();
 
   Duration getDelay({required int attempt}) {
-    final exponentialDelay = baseDelay.inMilliseconds * pow(2, attempt);
-    final cappedDelay = min(exponentialDelay, maxDelay.inMilliseconds);
+    // Cap attempt to avoid overflow (2^20 is ~1 million which is more than enough)
+    final safeattempt = attempt.clamp(0, 20);
+    final exponentialDelay = baseDelay.inMilliseconds * pow(2, safeattempt);
+    final cappedDelay = min(exponentialDelay, maxDelay.inMilliseconds.toDouble());
     return Duration(milliseconds: cappedDelay.toInt());
   }
 

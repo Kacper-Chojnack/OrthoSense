@@ -197,8 +197,9 @@ class TestValidateNoXss:
             validate_no_xss(malicious)
             pytest.fail("Should have raised ValueError")
         except ValueError as e:
-            # Error message should mention XSS or invalid
-            assert "xss" in str(e).lower() or "invalid" in str(e).lower()
+            # Error message should mention dangerous content or be descriptive
+            error_msg = str(e).lower()
+            assert "dangerous" in error_msg or "xss" in error_msg or "invalid" in error_msg
 
 
 class TestXssPatterns:

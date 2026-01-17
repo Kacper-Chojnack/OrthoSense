@@ -346,7 +346,7 @@ void main() {
 
       final normalizedX = landmarkX - hipCenterX;
 
-      expect(normalizedX, equals(0.05));
+      expect(normalizedX, closeTo(0.05, 0.0001));
     });
 
     test('scales by torso length', () {

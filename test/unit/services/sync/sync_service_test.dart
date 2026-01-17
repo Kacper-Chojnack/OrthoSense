@@ -74,10 +74,10 @@ void main() {
 
     group('retry logic', () {
       test('should retry failed items', () async {
-        when(() => mockQueue.dequeueRetryable())
-            .thenAnswer((_) async => null);
+        when(() => mockQueue.peek())
+            .thenReturn(null);
 
-        final item = await mockQueue.dequeueRetryable();
+        final item = mockQueue.peek();
         expect(item, isNull);
       });
 
@@ -116,18 +116,16 @@ void main() {
       });
 
       test('should track pending count', () async {
-        when(() => mockQueue.getPendingCount())
-            .thenAnswer((_) async => 5);
+        when(() => mockQueue.pendingCount).thenReturn(5);
 
-        final count = await mockQueue.getPendingCount();
+        final count = mockQueue.pendingCount;
         expect(count, equals(5));
       });
 
       test('should track failed count', () async {
-        when(() => mockQueue.getFailedCount())
-            .thenAnswer((_) async => 2);
+        when(() => mockQueue.failedCount).thenReturn(2);
 
-        final count = await mockQueue.getFailedCount();
+        final count = mockQueue.failedCount;
         expect(count, equals(2));
       });
     });

@@ -8,6 +8,8 @@
 /// 5. Empty state handling
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -222,15 +224,20 @@ void main() {
 
   group('Loading State', () {
     testWidgets('shows loading indicator', (tester) async {
+      // Use a completer instead of Future.delayed to avoid pending timers
+      final completer = Completer<List<ExerciseResult>>();
+      
       when(() => mockRepository.watchAll())
-          .thenAnswer((_) => Stream.fromFuture(
-            Future.delayed(const Duration(seconds: 1), () => <ExerciseResult>[]),
-          ));
+          .thenAnswer((_) => Stream.fromFuture(completer.future));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      
+      // Complete the future to clean up
+      completer.complete([]);
+      await tester.pumpAndSettle();
     });
   });
 

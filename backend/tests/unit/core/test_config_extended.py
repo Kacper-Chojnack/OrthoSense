@@ -18,34 +18,28 @@ from app.core.config import Settings
 class TestSettingsDefaults:
     """Test default settings values."""
 
-    def test_has_app_name(self):
-        """Should have default app name."""
+    def test_has_project_name(self):
+        """Should have default project name."""
         settings = Settings()
-        
-        assert settings.app_name == "OrthoSense"
 
-    def test_has_default_environment(self):
-        """Should have default environment."""
-        settings = Settings()
-        
-        assert settings.environment in ["development", "dev", "production", "test"]
+        assert settings.project_name == "OrthoSense"
 
     def test_has_debug_mode(self):
         """Should have debug mode setting."""
         settings = Settings()
-        
+
         assert isinstance(settings.debug, bool)
 
-    def test_has_api_version(self):
-        """Should have API version."""
+    def test_has_api_prefix(self):
+        """Should have API prefix."""
         settings = Settings()
-        
-        assert hasattr(settings, "api_version") or True  # Optional field
+
+        assert settings.api_v1_prefix == "/api/v1"
 
     def test_has_secret_key(self):
         """Should have secret key."""
         settings = Settings()
-        
+
         assert settings.secret_key is not None
 
 
@@ -55,13 +49,13 @@ class TestDatabaseSettings:
     def test_has_database_url(self):
         """Should have database URL."""
         settings = Settings()
-        
+
         assert hasattr(settings, "database_url")
 
     def test_database_url_format(self):
         """Database URL should be valid format."""
         settings = Settings()
-        
+
         if settings.database_url:
             # Should start with postgresql or sqlite
             valid_prefixes = ["postgresql", "sqlite", "postgres"]
@@ -70,6 +64,13 @@ class TestDatabaseSettings:
                 for p in valid_prefixes
             ) or "://" in settings.database_url
 
+    def test_is_sqlite_property(self):
+        """Should have is_sqlite property."""
+        settings = Settings()
+
+        assert hasattr(settings, "is_sqlite")
+        assert isinstance(settings.is_sqlite, bool)
+
 
 class TestAuthSettings:
     """Test authentication settings."""
@@ -77,22 +78,33 @@ class TestAuthSettings:
     def test_has_jwt_settings(self):
         """Should have JWT settings."""
         settings = Settings()
-        
+
         assert hasattr(settings, "secret_key")
+        assert hasattr(settings, "algorithm")
 
     def test_has_access_token_expire(self):
         """Should have access token expiration."""
         settings = Settings()
-        
-        if hasattr(settings, "access_token_expire_minutes"):
-            assert settings.access_token_expire_minutes > 0
+
+        assert settings.access_token_expire_minutes > 0
 
     def test_has_refresh_token_expire(self):
         """Should have refresh token expiration."""
         settings = Settings()
-        
-        if hasattr(settings, "refresh_token_expire_days"):
-            assert settings.refresh_token_expire_days > 0
+
+        assert settings.refresh_token_expire_days > 0
+
+    def test_has_verification_token_expire(self):
+        """Should have verification token expiration."""
+        settings = Settings()
+
+        assert settings.verification_token_expire_hours > 0
+
+    def test_has_password_reset_token_expire(self):
+        """Should have password reset token expiration."""
+        settings = Settings()
+
+        assert settings.password_reset_token_expire_hours > 0
 
 
 class TestEmailSettings:
@@ -101,22 +113,28 @@ class TestEmailSettings:
     def test_has_email_enabled_flag(self):
         """Should have email enabled flag."""
         settings = Settings()
-        
-        if hasattr(settings, "email_enabled"):
-            assert isinstance(settings.email_enabled, bool)
+
+        assert isinstance(settings.email_enabled, bool)
 
     def test_has_resend_api_key(self):
         """Should have Resend API key setting."""
         settings = Settings()
-        
+
         assert hasattr(settings, "resend_api_key")
 
     def test_has_resend_from_settings(self):
         """Should have Resend from settings."""
         settings = Settings()
-        
-        if hasattr(settings, "resend_from_email"):
-            assert "@" in settings.resend_from_email or settings.resend_from_email == ""
+
+        assert hasattr(settings, "resend_from_email")
+        assert hasattr(settings, "resend_from_name")
+
+    def test_resend_from_email_format(self):
+        """Resend from email should have valid format."""
+        settings = Settings()
+
+        if settings.resend_from_email:
+            assert "@" in settings.resend_from_email
 
 
 class TestCorsSettings:
@@ -125,44 +143,54 @@ class TestCorsSettings:
     def test_has_cors_origins(self):
         """Should have CORS origins."""
         settings = Settings()
-        
-        if hasattr(settings, "cors_origins"):
-            assert isinstance(settings.cors_origins, (list, str))
 
-    def test_cors_allow_credentials(self):
-        """Should have CORS allow credentials."""
+        assert isinstance(settings.cors_origins, list)
+
+    def test_cors_origins_default(self):
+        """Should have default CORS origins."""
         settings = Settings()
-        
-        if hasattr(settings, "cors_allow_credentials"):
-            assert isinstance(settings.cors_allow_credentials, bool)
+
+        assert len(settings.cors_origins) > 0
+
+    def test_has_allowed_hosts(self):
+        """Should have allowed hosts computed property."""
+        settings = Settings()
+
+        assert hasattr(settings, "allowed_hosts")
+        assert isinstance(settings.allowed_hosts, list)
 
 
 class TestRateLimitSettings:
     """Test rate limiting settings."""
 
-    def test_has_rate_limit_settings(self):
-        """Should have rate limit settings."""
+    def test_has_rate_limit_enabled(self):
+        """Should have rate limit enabled setting."""
         settings = Settings()
-        
-        rate_limit_attrs = [
-            "rate_limit_requests",
-            "rate_limit_window",
-        ]
-        
-        for attr in rate_limit_attrs:
-            if hasattr(settings, attr):
-                assert getattr(settings, attr) is not None
 
+        assert hasattr(settings, "rate_limit_enabled")
+        assert isinstance(settings.rate_limit_enabled, bool)
 
-class TestAIModelSettings:
-    """Test AI model settings."""
-
-    def test_has_model_path(self):
-        """Should have model path setting."""
+    def test_has_redis_url(self):
+        """Should have Redis URL."""
         settings = Settings()
-        
-        if hasattr(settings, "model_path"):
-            assert settings.model_path is not None
+
+        assert hasattr(settings, "redis_url")
+
+
+class TestUploadSettings:
+    """Test upload settings."""
+
+    def test_has_max_upload_size(self):
+        """Should have max upload size."""
+        settings = Settings()
+
+        assert settings.max_upload_size_mb > 0
+
+    def test_has_upload_temp_dir(self):
+        """Should have upload temp directory."""
+        settings = Settings()
+
+        assert hasattr(settings, "upload_temp_dir")
 
 
 class TestEnvironmentLoading:
@@ -172,15 +200,15 @@ class TestEnvironmentLoading:
         """Should load from environment variables."""
         with patch.dict(os.environ, {"SECRET_KEY": "test-secret-key-123"}):
             settings = Settings()
-            
+
             # Should pick up env var or have default
             assert settings.secret_key is not None
 
     def test_loads_debug_from_env(self):
         """Should load debug from environment."""
-        with patch.dict(os.environ, {"DEBUG": "true"}):
+        with patch.dict(os.environ, {"DEBUG": "true", "SECRET_KEY": "test"}):
             settings = Settings()
-            
+
             # Debug setting should be available
             assert hasattr(settings, "debug")
 
@@ -188,31 +216,13 @@ class TestEnvironmentLoading:
 class TestSettingsValidation:
     """Test settings validation."""
 
-    def test_invalid_environment_raises_error(self):
-        """Should validate environment value."""
-        # Most implementations allow any value
+    def test_settings_object_created(self):
+        """Settings object should be created."""
         settings = Settings()
         assert settings is not None
 
     def test_secret_key_required(self):
         """Secret key should be required."""
         settings = Settings()
-        
-        # Should have a secret key
         assert settings.secret_key is not None
         assert len(settings.secret_key) > 0
-
-
-class TestSettingsSingleton:
-    """Test settings singleton pattern."""
-
-    def test_returns_same_instance(self):
-        """get_settings should return consistent values."""
-        from app.core.config import get_settings
-        
-        settings1 = get_settings()
-        settings2 = get_settings()
-        
-        # Settings should be consistent
-        assert settings1.app_name == settings2.app_name
-        assert settings1.secret_key == settings2.secret_key

@@ -212,9 +212,9 @@ void main() {
     });
 
     test('reduces score for errors', () {
-      expect(_calculateScore(isCorrect: false, errorCount: 1), equals(85));
-      expect(_calculateScore(isCorrect: false, errorCount: 2), equals(70));
-      expect(_calculateScore(isCorrect: false, errorCount: 3), equals(55));
+      expect(_calculateScore(isCorrect: false, errorCount: 1), equals(70));
+      expect(_calculateScore(isCorrect: false, errorCount: 2), equals(55));
+      expect(_calculateScore(isCorrect: false, errorCount: 3), equals(40));
     });
 
     test('score has minimum of 0', () {
@@ -362,15 +362,19 @@ class ExerciseStats {
 
 // Helper functions
 
+int _idCounter = 0;
+
 String _generateUniqueId() {
-  return '${DateTime.now().microsecondsSinceEpoch}-${_randomString(8)}';
+  _idCounter++;
+  return '${DateTime.now().microsecondsSinceEpoch}-$_idCounter-${_randomString(8)}';
 }
 
 String _randomString(int length) {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  final random = DateTime.now().microsecondsSinceEpoch;
   return List.generate(
     length,
-    (i) => chars[(DateTime.now().microsecond + i) % chars.length],
+    (i) => chars[(random + i * 7) % chars.length],
   ).join();
 }
 

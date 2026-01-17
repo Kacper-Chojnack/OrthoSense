@@ -37,7 +37,7 @@ _TrendChartData _$TrendChartDataFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TrendChartDataToJson(_TrendChartData instance) =>
     <String, dynamic>{
-      'dataPoints': instance.dataPoints,
+      'dataPoints': instance.dataPoints.map((e) => e.toJson()).toList(),
       'period': _$TrendPeriodEnumMap[instance.period]!,
       'metricType': _$TrendMetricTypeEnumMap[instance.metricType]!,
       'minValue': instance.minValue,

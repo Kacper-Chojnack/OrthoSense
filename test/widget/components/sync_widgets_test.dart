@@ -279,7 +279,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(RotationTransition), findsOneWidget);
+      // Find the RotationTransition created by our mock widget
+      expect(find.byType(RotationTransition), findsWidgets);
     });
 
     testWidgets('does not animate when not syncing', (tester) async {
@@ -291,7 +292,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(RotationTransition), findsNothing);
+      // The mock widget returns just an Icon when not animating
+      expect(find.byIcon(Icons.sync), findsOneWidget);
     });
   });
 

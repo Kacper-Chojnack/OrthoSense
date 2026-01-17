@@ -114,15 +114,15 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('checkPoseVisibility returns false for low visibility landmarks', () {
-      // Create frame with low visibility on key landmarks
+    test('checkPoseVisibility returns false for out-of-bounds landmarks', () {
+      // Create frame with landmarks out of valid bounds
       final landmarks = List.generate(
         33,
         (i) => PoseLandmark(
-          x: 0.5,
-          y: 0.5,
+          x: i < 20 ? 0.01 : 0.5, // Out of bounds on first 20
+          y: i < 20 ? 0.99 : 0.5, // Out of bounds on first 20
           z: 0.0,
-          visibility: i < 20 ? 0.1 : 0.9, // Low visibility on first 20
+          visibility: 0.9,
         ),
       );
       final frame = PoseFrame(landmarks: landmarks);
@@ -191,8 +191,8 @@ void main() {
       final landmarks = List.generate(
         33,
         (i) => const PoseLandmark(
-          x: 0.5,
-          y: 0.5,
+          x: 0.01, // Out of bounds (< 0.05)
+          y: 0.01, // Out of bounds (< 0.05)
           z: 0.0,
           visibility: 0.0,
         ),

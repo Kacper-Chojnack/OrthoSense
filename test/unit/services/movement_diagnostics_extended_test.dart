@@ -547,12 +547,21 @@ PoseLandmarks _createForwardLeanSquatLandmarks() {
   final frames = List.generate(30, (frameIndex) {
     final frame = _createNeutralFrameAsList();
     final depth = (frameIndex / 30.0) * 0.4;
-    frame[23] = [0.45, 0.55 + depth, 0.0];
-    frame[24] = [0.55, 0.55 + depth, 0.0];
+    frame[23] = [0.45, 0.55 + depth, 0.0]; // Left hip
+    frame[24] = [0.55, 0.55 + depth, 0.0]; // Right hip
 
-    // Shoulders way forward of hips (excessive forward lean)
-    frame[11] = [0.25, 0.4, 0.0]; // Left shoulder forward and down
-    frame[12] = [0.45, 0.4, 0.0]; // Right shoulder forward and down
+    // Shoulders significantly forward and down (excessive forward lean)
+    // This needs to make torsoVerticalLen < shinLen * 0.6
+    // Torso vertical len = hip Y avg - shoulder Y avg
+    // For lean: shoulders Y should be closer to hip Y (smaller vertical dist)
+    frame[11] = [0.25, 0.50 + depth, 0.0]; // Left shoulder close to hip level
+    frame[12] = [0.45, 0.50 + depth, 0.0]; // Right shoulder close to hip level
+
+    // Keep knees and ankles normal to have normal shin length
+    frame[25] = [0.45, 0.75, 0.0]; // Left knee
+    frame[26] = [0.55, 0.75, 0.0]; // Right knee
+    frame[27] = [0.45, 0.95, 0.0]; // Left ankle
+    frame[28] = [0.55, 0.95, 0.0]; // Right ankle
 
     return PoseFrame(
       landmarks: frame.map((coords) => PoseLandmark.fromList(coords)).toList(),
@@ -754,10 +763,12 @@ PoseLandmarks _createArmAsymmetryLandmarks() {
   final frames = List.generate(30, (_) {
     final frame = _createNeutralFrameAsList();
     // Both arms raised but at very different heights
-    frame[13] = [0.2, 0.3, 0.0]; // Left elbow
-    frame[15] = [0.1, 0.15, 0.0]; // Left wrist high
-    frame[14] = [0.8, 0.3, 0.0]; // Right elbow
-    frame[16] = [0.9, 0.45, 0.0]; // Right wrist low (big difference)
+    // For BOTH variant to be active: both wrists must be ABOVE elbows
+    // (wristY < elbowY in screen coordinates where Y increases downward)
+    frame[13] = [0.2, 0.28, 0.0]; // Left elbow
+    frame[15] = [0.1, 0.12, 0.0]; // Left wrist high (above elbow)
+    frame[14] = [0.8, 0.28, 0.0]; // Right elbow
+    frame[16] = [0.9, 0.25, 0.0]; // Right wrist above elbow but much lower than left
     return PoseFrame(
       landmarks: frame.map((coords) => PoseLandmark.fromList(coords)).toList(),
     );

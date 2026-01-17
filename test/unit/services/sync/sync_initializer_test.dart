@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:orthosense/core/services/sync/sync_queue.dart';
+import 'package:orthosense/core/services/sync/connectivity_service.dart';
 
 class MockSyncService extends Mock {}
 
-class MockConnectivityService extends Mock {}
+class MockConnectivityService extends Mock implements ConnectivityService {}
 
-class MockSyncQueue extends Mock {}
+class MockSyncQueue extends Mock implements SyncQueue {}
 
 void main() {
   group('SyncInitializer', () {
@@ -47,10 +49,9 @@ void main() {
 
       test('should trigger sync if online and pending items', () async {
         when(() => mockConnectivity.isOnline).thenReturn(true);
-        when(() => mockSyncQueue.getPendingCount())
-            .thenAnswer((_) async => 5);
+        when(() => mockSyncQueue.pendingCount).thenReturn(5);
 
-        final pending = await mockSyncQueue.getPendingCount();
+        final pending = mockSyncQueue.pendingCount;
         expect(pending, greaterThan(0));
         expect(mockConnectivity.isOnline, isTrue);
       });
@@ -62,10 +63,9 @@ void main() {
       });
 
       test('should skip sync if no pending items', () async {
-        when(() => mockSyncQueue.getPendingCount())
-            .thenAnswer((_) async => 0);
+        when(() => mockSyncQueue.pendingCount).thenReturn(0);
 
-        final pending = await mockSyncQueue.getPendingCount();
+        final pending = mockSyncQueue.pendingCount;
         expect(pending, equals(0));
       });
     });

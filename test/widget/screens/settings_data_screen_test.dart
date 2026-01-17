@@ -198,13 +198,13 @@ void main() {
 
       testWidgets('should show manual sync button', (tester) async {
         await tester.pumpWidget(
-          const ProviderScope(
+          ProviderScope(
             child: MaterialApp(
               home: Scaffold(
                 body: ElevatedButton.icon(
                   onPressed: null,
-                  icon: Icon(Icons.sync),
-                  label: Text('Sync Now'),
+                  icon: const Icon(Icons.sync),
+                  label: const Text('Sync Now'),
                 ),
               ),
             ),
