@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.35.0'
+  FLUTTER_VERSION: '3.27.0'
   PYTHON_VERSION: '3.13'
 
 jobs:
@@ -68,7 +68,7 @@ jobs:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
           RATE_LIMIT_ENABLED: "false"
         run: |
-          pytest tests/e2e_api -v --tb=short -x || true
+          pytest tests/e2e_api -v --tb=short -x
 
       - name: Run E2E Tests (PostgreSQL - Full)
         continue-on-error: true
@@ -78,7 +78,7 @@ jobs:
           DATABASE_URL: "postgresql+asyncpg://postgres:testpass@localhost:5432/orthosense_e2e_test"
           RATE_LIMIT_ENABLED: "false"
         run: |
-          pytest tests/e2e_api -v --tb=short --cov=app --cov-report=xml || true
+          pytest tests/e2e_api -v --tb=short --cov=app --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
@@ -121,7 +121,7 @@ jobs:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
           RATE_LIMIT_ENABLED: "false"
         run: |
-          pytest tests/e2e -v --tb=short || true
+          pytest tests/e2e -v --tb=short
 
   # ============================================================================
   # Flutter E2E Tests
@@ -145,11 +145,11 @@ jobs:
 
       - name: Run Flutter E2E Tests
         continue-on-error: true
-        run: flutter test test/e2e || echo "E2E tests completed or skipped"
+        run: flutter test test/e2e
 
       - name: Run Flutter E2E Tests with Coverage
         continue-on-error: true
-        run: flutter test test/e2e --coverage || echo "Coverage tests completed or skipped"
+        run: flutter test test/e2e --coverage
 
       - name: Upload Flutter Coverage
         uses: codecov/codecov-action@v5

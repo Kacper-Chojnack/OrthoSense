@@ -30,13 +30,14 @@ jobs:
 
       - name: Run API Integration Tests
         working-directory: ./backend
+        continue-on-error: true
         env:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
           pip install pytest httpx pytest-asyncio
           # Run specific E2E tests that require running server
-          pytest tests/test_e2e_video_analysis.py -v --tb=short || true
+          pytest tests/test_e2e_video_analysis.py -v --tb=short
 
       - name: Dump Docker Logs on Failure
         if: failure()

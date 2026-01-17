@@ -54,7 +54,7 @@ jobs:
             --cov-report=xml:coverage.xml \
             --cov-report=term \
             --junitxml=test-results.xml \
-            -v || true
+            -v
           # Fix coverage.xml paths for SonarCloud (needs backend/app prefix)
           if [ -f coverage.xml ]; then
             echo "✅ Coverage report generated, fixing paths for SonarCloud..."

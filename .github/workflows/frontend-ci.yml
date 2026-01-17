@@ -59,7 +59,6 @@ jobs:
         run: flutter pub get
 
       - name: Run Tests
-        continue-on-error: true
         run: flutter test --coverage
 
       - name: Upload coverage to Codecov
@@ -96,7 +95,6 @@ jobs:
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
-        continue-on-error: true
 
       - name: Upload APK
         if: success()
