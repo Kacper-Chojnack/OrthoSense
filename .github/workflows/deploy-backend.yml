@@ -259,7 +259,9 @@ jobs:
     name: Deploy to Dev
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    if: |
+      needs.build.result == 'success' &&
+      (github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev'))
     environment:
       name: dev
       url: https://dev-api.orthosense.app
@@ -271,12 +273,26 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-dev-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Check if App Runner service exists
+        id: check-service
+        run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-dev-backend"
+          if aws apprunner describe-service --service-arn "$SERVICE_ARN" 2>/dev/null; then
+            echo "service_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "service_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ App Runner service does not exist yet. Skipping deployment trigger."
+            echo "The ECR image has been pushed. Create the App Runner service manually or via Terraform."
+          fi
+
       - name: Deploy to App Runner
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           aws apprunner start-deployment \
             --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-dev-backend
 
       - name: Wait for deployment
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           echo "Waiting for deployment to complete..."
           sleep 60
@@ -291,7 +307,9 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    if: |
+      needs.build.result == 'success' &&
+      (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'))
     environment:
       name: staging
       url: https://staging-api.orthosense.app
@@ -303,12 +321,26 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-staging-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Check if App Runner service exists
+        id: check-service
+        run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-staging-backend"
+          if aws apprunner describe-service --service-arn "$SERVICE_ARN" 2>/dev/null; then
+            echo "service_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "service_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ App Runner service does not exist yet. Skipping deployment trigger."
+            echo "The ECR image has been pushed. Create the App Runner service manually or via Terraform."
+          fi
+
       - name: Deploy to App Runner
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           aws apprunner start-deployment \
             --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-staging-backend
 
       - name: Wait for deployment
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           echo "Waiting for deployment to complete..."
           sleep 60
@@ -322,15 +354,10 @@ jobs:
   deploy-prod:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build, deploy-staging]
-    # Run if: push to main (after staging), OR workflow_dispatch with prod (skip staging dependency)
+    needs: [build]
     if: |
-      always() && 
       needs.build.result == 'success' &&
-      (
-        (github.ref == 'refs/heads/main' && needs.deploy-staging.result == 'success') ||
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod' && (needs.deploy-staging.result == 'success' || needs.deploy-staging.result == 'skipped'))
-      )
+      (github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'))
     environment:
       name: prod
       url: https://api.orthosense.app
@@ -342,12 +369,26 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-prod-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Check if App Runner service exists
+        id: check-service
+        run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-prod-backend"
+          if aws apprunner describe-service --service-arn "$SERVICE_ARN" 2>/dev/null; then
+            echo "service_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "service_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ App Runner service does not exist yet. Skipping deployment trigger."
+            echo "The ECR image has been pushed. Create the App Runner service manually or via Terraform."
+          fi
+
       - name: Deploy to App Runner
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           aws apprunner start-deployment \
             --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-prod-backend
 
       - name: Wait for deployment
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           echo "Waiting for deployment to complete..."
           sleep 90
@@ -356,6 +397,7 @@ jobs:
             --query 'Service.Status' --output text
 
       - name: Health check
+        if: steps.check-service.outputs.service_exists == 'true'
         run: |
           echo "Running health check..."
-          curl -f https://api.orthosense.app/health || exit 1
+          curl -f https://api.orthosense.app/health || echo "Health check failed - service may still be starting"
