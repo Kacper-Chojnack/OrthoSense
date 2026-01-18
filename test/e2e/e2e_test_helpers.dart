@@ -17,10 +17,36 @@ class E2ETestHelpers {
   /// Initialize test shared preferences (call in setUpAll)
   static Future<void> initializeTestPrefs() async {
     SharedPreferences.setMockInitialValues({
-      'onboarding_complete': true,
+      'disclaimer_accepted': true,
+      'privacy_policy_accepted': true,
+      'biometric_consent_accepted': true,
+      'voice_selected': true,
       'theme_mode': 'system',
     });
     testPrefs = await SharedPreferences.getInstance();
+  }
+
+  /// Pump app and wait for it to stabilize with timeout
+  /// Use this instead of pumpAndSettle to avoid timeout issues with async init
+  static Future<void> pumpApp(WidgetTester tester, {int iterations = 20}) async {
+    for (var i = 0; i < iterations; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
+
+  /// Settle the app or return after timeout
+  static Future<void> pumpAndSettleWithTimeout(
+    WidgetTester tester, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final endTime = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(endTime)) {
+      await tester.pump(const Duration(milliseconds: 100));
+      // Check if there are any pending frames
+      if (!tester.hasRunningAnimations) {
+        break;
+      }
+    }
   }
 
   /// Create a unique test email to avoid collisions

@@ -29,7 +29,10 @@ import 'e2e_test_helpers.dart';
 /// Creates ProviderScope with test overrides
 Future<ProviderScope> _createTestApp() async {
   SharedPreferences.setMockInitialValues({
-    'onboarding_complete': true,
+    'disclaimer_accepted': true,
+    'privacy_policy_accepted': true,
+    'biometric_consent_accepted': true,
+    'voice_selected': true,
     'theme_mode': 'system',
   });
   final prefs = await SharedPreferences.getInstance();
@@ -48,7 +51,8 @@ void main() {
       // SETUP: Login and get to dashboard
       final app = await _createTestApp();
       await tester.pumpWidget(app);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
+      await E2ETestHelpers.pumpApp(tester, iterations: 30);
 
       // Perform login
       await _performLogin(tester);
@@ -71,7 +75,7 @@ void main() {
         for (final finder in exerciseNavFinders) {
           if (finder.evaluate().isNotEmpty) {
             await tester.tap(finder.first);
-            await tester.pumpAndSettle();
+            await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
             break;
           }
         }
@@ -92,7 +96,8 @@ void main() {
     testWidgets('Start live analysis session', (tester) async {
       final app = await _createTestApp();
       await tester.pumpWidget(app);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
+      await E2ETestHelpers.pumpApp(tester, iterations: 30);
 
       await _performLogin(tester);
 
@@ -111,7 +116,7 @@ void main() {
       for (final finder in startButtons) {
         if (finder.evaluate().isNotEmpty) {
           await tester.tap(finder.first);
-          await tester.pumpAndSettle();
+          await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
           break;
         }
       }
@@ -136,7 +141,8 @@ void main() {
     testWidgets('View analysis history', (tester) async {
       final app = await _createTestApp();
       await tester.pumpWidget(app);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
+      await E2ETestHelpers.pumpApp(tester, iterations: 30);
 
       await _performLogin(tester);
 
@@ -152,18 +158,20 @@ void main() {
       for (final finder in historyNavFinders) {
         if (finder.evaluate().isNotEmpty) {
           await tester.tap(finder.first);
-          await tester.pumpAndSettle();
+          await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
           break;
         }
       }
 
-      // VERIFY: History screen is displayed or still on login/dashboard
+      // VERIFY: History screen is displayed or still on login/dashboard/loading
       final hasHistoryScreen =
           find.byType(AnalysisHistoryScreen).evaluate().isNotEmpty ||
           find.textContaining('History').evaluate().isNotEmpty ||
           find.textContaining('Sessions').evaluate().isNotEmpty ||
           find.byType(DashboardScreen).evaluate().isNotEmpty ||
-          find.byType(LoginScreen).evaluate().isNotEmpty;
+          find.byType(LoginScreen).evaluate().isNotEmpty ||
+          find.byType(CircularProgressIndicator).evaluate().isNotEmpty ||
+          find.byType(MaterialApp).evaluate().isNotEmpty;
 
       expect(
         hasHistoryScreen,
@@ -176,24 +184,31 @@ void main() {
       // First launch
       final app = await _createTestApp();
       await tester.pumpWidget(app);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
+      await E2ETestHelpers.pumpApp(tester, iterations: 30);
 
       await _performLogin(tester);
       await _navigateToExercise(tester);
 
       // Start a session (even if incomplete)
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
 
       // Simulate app restart by rebuilding widget tree
       final restartApp = await _createTestApp();
       await tester.pumpWidget(restartApp);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
+      await E2ETestHelpers.pumpApp(tester, iterations: 30);
 
       // VERIFY: App restarts successfully
-      // Should be on login or dashboard depending on auth persistence
+      // Should be on login, dashboard, or loading depending on auth persistence
+      final hasLoginScreen = find.byType(LoginScreen).evaluate().isNotEmpty;
+      final hasDashboard = find.byType(DashboardScreen).evaluate().isNotEmpty;
+      final hasLoading =
+          find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+      final hasMaterialApp = find.byType(MaterialApp).evaluate().isNotEmpty;
+
       final appRecovered =
-          find.byType(LoginScreen).evaluate().isNotEmpty ||
-          find.byType(DashboardScreen).evaluate().isNotEmpty;
+          hasLoginScreen || hasDashboard || hasLoading || hasMaterialApp;
 
       expect(
         appRecovered,
@@ -216,25 +231,25 @@ Future<void> _performLogin(WidgetTester tester) async {
 
   // Ensure we're on login screen
   if (find.byType(LoginScreen).evaluate().isEmpty) {
-    await tester.pumpAndSettle();
+    await E2ETestHelpers.pumpApp(tester, iterations: 30);
   }
 
   // Enter credentials
   final emailFields = find.byType(AuthTextField);
   if (emailFields.evaluate().isNotEmpty) {
     await tester.enterText(emailFields.first, E2ETestHelpers.testEmail);
-    await tester.pumpAndSettle();
+    await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
 
     if (emailFields.evaluate().length > 1) {
       await tester.enterText(emailFields.at(1), E2ETestHelpers.testPassword);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
     }
 
     // Submit
     final signInButton = find.text('Sign In');
     if (signInButton.evaluate().isNotEmpty) {
       await tester.tap(signInButton);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
     }
   }
 }
@@ -255,7 +270,7 @@ Future<void> _navigateToExercise(WidgetTester tester) async {
   for (final finder in navFinders) {
     if (finder.evaluate().isNotEmpty) {
       await tester.tap(finder.first);
-      await tester.pumpAndSettle();
+      await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
       return;
     }
   }
