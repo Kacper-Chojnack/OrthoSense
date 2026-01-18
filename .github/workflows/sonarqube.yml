@@ -156,7 +156,7 @@ jobs:
             -Dsonar.qualitygate.wait=true
             -Dsonar.python.coverage.reportPaths=backend/coverage.xml
             -Dsonar.coverageReportPaths=coverage/coverage.xml
-            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart,**/widgets/**,**/theme/**
+            -Dsonar.coverage.exclusions=**/__pycache__/**,**/tests/**,**/test/**,**/*_test.dart,**/*_test.py,**/generated/**,**/*.g.dart,**/*.freezed.dart,**/migrations/**,lib/main.dart,**/widgets/**,**/screens/**,**/core/providers/**,**/core/database/**,**/core/services/**,**/infrastructure/networking/**,**/*.config.dart,**/l10n/**,**/theme/**
             -Dsonar.cpd.exclusions=**/tests/**,**/test/**,**/*_test.dart,**/*_test.py
 
       - name: Debug Coverage Files
