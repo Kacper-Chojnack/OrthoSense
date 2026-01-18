@@ -1,3 +1,9 @@
+# =============================================================================
+# OrthoSense - Backend CI Pipeline
+# =============================================================================
+# Lint, type-check, test, and build the FastAPI backend
+# =============================================================================
+
 name: Backend CI
 
 on:
@@ -13,7 +19,6 @@ on:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
 
-# Cancel in-progress runs when a new run is triggered
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -22,25 +27,30 @@ defaults:
   run:
     working-directory: ./backend
 
+env:
+  PYTHON_VERSION: '3.13'
+
 jobs:
-  lint-and-type-check:
+  # ---------------------------------------------------------------------------
+  # Job: Lint & Type Check
+  # ---------------------------------------------------------------------------
+  lint:
     name: Lint & Type Check
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: backend/pyproject.toml
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install CPU-only torch first to save space
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[dev,ai-full]"
 
@@ -52,31 +62,32 @@ jobs:
 
       - name: Run MyPy Type Checking
         run: mypy app --ignore-missing-imports
-        continue-on-error: true
 
+  # ---------------------------------------------------------------------------
+  # Job: Unit Tests
+  # ---------------------------------------------------------------------------
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: lint-and-type-check
+    needs: lint
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: backend/pyproject.toml
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install CPU-only torch first to save space/time
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[dev,ai-full]"
 
-      - name: Run Pytest
+      - name: Run Tests with Coverage
         env:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
@@ -84,7 +95,8 @@ jobs:
           pytest tests/ \
             --cov=app \
             --cov-report=xml \
-            --cov-report=term-missing
+            --cov-report=term-missing \
+            -v
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -92,36 +104,37 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./backend/coverage.xml
           flags: backend
-        continue-on-error: true
+          fail_ci_if_error: false
 
-  security-scan:
+  # ---------------------------------------------------------------------------
+  # Job: Security Scan
+  # ---------------------------------------------------------------------------
+  security:
     name: Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python 3.13
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install Security Tools
-        run: pip install bandit safety
+        run: pip install bandit
 
       - name: Run Bandit (SAST)
-        run: bandit -r app/ -ll
-        continue-on-error: true
+        run: bandit -r app/ -ll -f txt
 
-      - name: Run Safety (Dependency Check)
-        run: safety check
-        continue-on-error: true
-
-  build-docker:
+  # ---------------------------------------------------------------------------
+  # Job: Build Docker Image
+  # ---------------------------------------------------------------------------
+  build:
     name: Build Docker Image
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [test, security-scan]
+    needs: [test, security]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
       - uses: actions/checkout@v4

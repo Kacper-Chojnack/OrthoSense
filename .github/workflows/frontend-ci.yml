@@ -1,3 +1,9 @@
+# =============================================================================
+# OrthoSense - Frontend CI Pipeline
+# =============================================================================
+# Analyze, test, and build the Flutter mobile application
+# =============================================================================
+
 name: Frontend CI
 
 on:
@@ -18,12 +24,17 @@ on:
       - 'test/**'
       - 'pubspec.yaml'
 
-# Cancel in-progress runs when a new run is triggered
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FLUTTER_VERSION: '3.24.0'
+
 jobs:
+  # ---------------------------------------------------------------------------
+  # Job: Analyze & Format
+  # ---------------------------------------------------------------------------
   analyze:
     name: Analyze & Format
     runs-on: ubuntu-latest
@@ -34,6 +45,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
 
@@ -41,19 +53,14 @@ jobs:
         run: flutter pub get
 
       - name: Check Formatting
-        id: format-check
-        run: |
-          dart format --output=none --set-exit-if-changed lib test || echo "format_failed=true" >> $GITHUB_OUTPUT
-        continue-on-error: true
-
-      - name: Formatting Warning
-        if: steps.format-check.outputs.format_failed == 'true'
-        run: |
-          echo "::warning::Code formatting issues detected. Run 'dart format lib test' to fix."
+        run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Analyze Code
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: flutter analyze --no-fatal-infos
 
+  # ---------------------------------------------------------------------------
+  # Job: Unit & Widget Tests
+  # ---------------------------------------------------------------------------
   test:
     name: Unit & Widget Tests
     runs-on: ubuntu-latest
@@ -65,13 +72,14 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Run Tests
+      - name: Run Tests with Coverage
         run: flutter test --coverage --exclude-tags=e2e test/unit test/widget test/integration test/models test/features
 
       - name: Upload coverage to Codecov
@@ -80,7 +88,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           flags: frontend
+          fail_ci_if_error: false
 
+  # ---------------------------------------------------------------------------
+  # Job: Build Android APK
+  # ---------------------------------------------------------------------------
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
@@ -100,6 +112,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
 
@@ -110,8 +123,8 @@ jobs:
         run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14

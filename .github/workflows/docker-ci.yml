@@ -1,34 +1,56 @@
+# =============================================================================
+# OrthoSense - Docker CI Pipeline
+# =============================================================================
+# Build and test Docker images for production deployment
+# =============================================================================
+
 name: Docker CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
-# Cancel in-progress runs when a new run is triggered
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend-test:
+  backend-docker:
+    name: Backend Docker Build & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build Backend
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
         timeout-minutes: 10
-        run: docker build -t orthosense-backend backend/
-        
-      - name: Run Tests
+        run: docker build -t orthosense-backend:test backend/
+
+      - name: Run Tests in Container
         timeout-minutes: 10
-        continue-on-error: true
-        # Run pytest inside the container with all deps (ai-full included in image)
         run: |
           docker run --rm \
-          -e SECRET_KEY=test_secret \
-          -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
-          orthosense-backend \
-          /bin/bash -c "pip install .[dev] pytest-cov && python -m pytest tests/ -v --tb=short"
+            -e SECRET_KEY=test_secret \
+            -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
+            orthosense-backend:test \
+            /bin/bash -c "pip install .[dev] pytest-cov && python -m pytest tests/ -v --tb=short"
+
+      - name: Scan Image for Vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'orthosense-backend:test'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Scan Results
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'

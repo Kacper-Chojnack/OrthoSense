@@ -1,29 +1,68 @@
+# =============================================================================
+# OrthoSense - E2E Tests Pipeline
+# =============================================================================
+# End-to-end testing for backend API and Flutter application
+# =============================================================================
+
 name: E2E Tests
 
 on:
   push:
-    branches: [main, develop, zosia]
+    branches: [main, develop]
   pull_request:
-    branches: [main, develop, zosia]
+    branches: [main, develop]
   workflow_dispatch:
 
-# Cancel in-progress runs when a new run is triggered
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.38.7'
+  FLUTTER_VERSION: '3.24.0'
   PYTHON_VERSION: '3.13'
 
 jobs:
-  # ============================================================================
-  # Backend E2E Tests
-  # ============================================================================
-  backend-e2e:
-    name: Backend E2E Tests
+  # ---------------------------------------------------------------------------
+  # Job: Backend E2E Tests (SQLite)
+  # ---------------------------------------------------------------------------
+  backend-e2e-sqlite:
+    name: Backend E2E Tests (SQLite)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev]"
+
+      - name: Run E2E Tests
+        env:
+          SECRET_KEY: "e2e_test_secret_key_for_ci"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          RATE_LIMIT_ENABLED: "false"
+        run: pytest tests/e2e tests/e2e_api -v --tb=short
+
+  # ---------------------------------------------------------------------------
+  # Job: Backend E2E Tests (PostgreSQL)
+  # ---------------------------------------------------------------------------
+  backend-e2e-postgres:
+    name: Backend E2E Tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -44,21 +83,20 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install CPU-only torch to save space
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ".[dev]"
+          pip install -e ".[dev]"
 
       - name: Wait for PostgreSQL
         run: |
@@ -67,209 +105,96 @@ jobs:
             sleep 2
           done
 
-      - name: Run E2E Tests (SQLite - Fast)
-        continue-on-error: true
+      - name: Run E2E Tests
         env:
-          SECRET_KEY: "e2e_test_secret_key_for_ci_only"
-          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
-          RATE_LIMIT_ENABLED: "false"
-        run: |
-          pytest tests/e2e_api -v --tb=short -x
-
-      - name: Run E2E Tests (PostgreSQL - Full)
-        continue-on-error: true
-        env:
-          SECRET_KEY: "e2e_test_secret_key_for_ci_only"
-          E2E_DATABASE_URL: "postgresql+asyncpg://postgres:testpass@localhost:5432/orthosense_e2e_test"
+          SECRET_KEY: "e2e_test_secret_key_for_ci"
           DATABASE_URL: "postgresql+asyncpg://postgres:testpass@localhost:5432/orthosense_e2e_test"
           RATE_LIMIT_ENABLED: "false"
         run: |
-          pytest tests/e2e_api -v --tb=short --cov=app --cov-report=xml
+          pytest tests/e2e tests/e2e_api -v --tb=short \
+            --cov=app \
+            --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
           files: ./backend/coverage.xml
           flags: backend-e2e
-          name: backend-e2e-coverage
-        continue-on-error: true
+          fail_ci_if_error: false
 
-  # ============================================================================
-  # Backend E2E Tests (Existing tests in tests/e2e/)
-  # ============================================================================
-  backend-e2e-existing:
-    name: Backend E2E Tests (Existing)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ".[dev]"
-
-      - name: Run Existing E2E Tests
-        continue-on-error: true
-        env:
-          SECRET_KEY: "e2e_test_secret_key_for_ci_only"
-          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
-          RATE_LIMIT_ENABLED: "false"
-        run: |
-          pytest tests/e2e -v --tb=short
-
-  # ============================================================================
-  # Flutter E2E Tests
-  # ============================================================================
+  # ---------------------------------------------------------------------------
+  # Job: Flutter E2E Tests
+  # ---------------------------------------------------------------------------
   flutter-e2e:
     name: Flutter E2E Tests
     runs-on: macos-latest
-    continue-on-error: true  # Flutter E2E may fail in CI without device
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
           cache: true
 
-      - name: Get Flutter dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Run Flutter E2E Tests
-        continue-on-error: true
-        run: flutter test test/e2e
-
-      - name: Run Flutter E2E Tests with Coverage
-        continue-on-error: true
+      - name: Run E2E Tests
         run: flutter test test/e2e --coverage
 
-      - name: Upload Flutter Coverage
+      - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage/lcov.info
           flags: flutter-e2e
-          name: flutter-e2e-coverage
-        continue-on-error: true
+          fail_ci_if_error: false
 
-  # ============================================================================
-  # Flutter E2E Tests on Android Emulator
-  # ============================================================================
-  flutter-e2e-android:
-    name: Flutter E2E Tests (Android)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-
-      - name: Get Flutter dependencies
-        run: flutter pub get
-
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Run E2E Tests on Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        continue-on-error: true
-        with:
-          api-level: 31
-          arch: x86_64
-          profile: Nexus 6
-          script: |
-            flutter build apk --debug || true
-            flutter test test/e2e || echo "E2E tests completed or skipped"
-
-  # ============================================================================
-  # E2E Test Summary
-  # ============================================================================
-  e2e-summary:
+  # ---------------------------------------------------------------------------
+  # Job: E2E Test Summary
+  # ---------------------------------------------------------------------------
+  summary:
     name: E2E Test Summary
-    needs: [backend-e2e, backend-e2e-existing, flutter-e2e]
+    needs: [backend-e2e-sqlite, backend-e2e-postgres, flutter-e2e]
     runs-on: ubuntu-latest
     if: always()
 
     steps:
-      - name: Check E2E Results
+      - name: Check Results
         run: |
           echo "## 🧪 E2E Test Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
           
-          backend_status="${{ needs.backend-e2e.result }}"
-          backend_existing_status="${{ needs.backend-e2e-existing.result }}"
-          flutter_status="${{ needs.flutter-e2e.result }}"
-          
-          # Backend E2E
-          if [[ "$backend_status" == "success" ]]; then
-            echo "| Backend E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-          elif [[ "$backend_status" == "failure" ]]; then
-            echo "| Backend E2E | ⚠️ Failed |" >> $GITHUB_STEP_SUMMARY
-            echo "::warning::Backend E2E tests failed"
+          if [[ "${{ needs.backend-e2e-sqlite.result }}" == "success" ]]; then
+            echo "| Backend E2E (SQLite) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Backend E2E | ⏭️ $backend_status |" >> $GITHUB_STEP_SUMMARY
+            echo "| Backend E2E (SQLite) | ❌ ${{ needs.backend-e2e-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
           fi
           
-          # Backend E2E Existing
-          if [[ "$backend_existing_status" == "success" ]]; then
-            echo "| Backend E2E (Existing) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-          elif [[ "$backend_existing_status" == "failure" ]]; then
-            echo "| Backend E2E (Existing) | ⚠️ Failed |" >> $GITHUB_STEP_SUMMARY
-            echo "::warning::Backend E2E (Existing) tests failed"
+          if [[ "${{ needs.backend-e2e-postgres.result }}" == "success" ]]; then
+            echo "| Backend E2E (PostgreSQL) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Backend E2E (Existing) | ⏭️ $backend_existing_status |" >> $GITHUB_STEP_SUMMARY
+            echo "| Backend E2E (PostgreSQL) | ❌ ${{ needs.backend-e2e-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
           fi
           
-          # Flutter E2E (expected to fail in CI without device)
-          if [[ "$flutter_status" == "success" ]]; then
+          if [[ "${{ needs.flutter-e2e.result }}" == "success" ]]; then
             echo "| Flutter E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-          elif [[ "$flutter_status" == "failure" ]]; then
-            echo "| Flutter E2E | ⚠️ Failed (expected in CI) |" >> $GITHUB_STEP_SUMMARY
-            echo "::warning::Flutter E2E tests failed (may be expected in CI without device)"
           else
-            echo "| Flutter E2E | ⏭️ $flutter_status |" >> $GITHUB_STEP_SUMMARY
+            echo "| Flutter E2E | ❌ ${{ needs.flutter-e2e.result }} |" >> $GITHUB_STEP_SUMMARY
           fi
           
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "_Note: Flutter E2E tests may fail in CI without a device - this is expected._" >> $GITHUB_STEP_SUMMARY
-          
-          # Only fail the summary if backend tests failed
-          # Flutter E2E failures are expected in CI without device
-          if [[ "$backend_status" == "failure" ]] || [[ "$backend_existing_status" == "failure" ]]; then
-            echo "❌ Some backend E2E tests failed"
+          # Fail if any backend test failed
+          if [[ "${{ needs.backend-e2e-sqlite.result }}" != "success" ]] || \
+             [[ "${{ needs.backend-e2e-postgres.result }}" != "success" ]]; then
+            echo ""
+            echo "❌ Backend E2E tests failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
           
-          echo "✅ E2E tests summary completed successfully"
+          echo ""
+          echo "✅ All E2E tests completed" >> $GITHUB_STEP_SUMMARY
