@@ -136,3 +136,14 @@ todo
 *.tfstate.backup
 *.tfvars
 *.tfplan
+
+# === AI Tools (Claude, Copilot, Cursor, etc.) ===
+.claude/
+.copilot/
+.cursor/
+.aider*
+.continue/
+.codeium/
+.tabnine/
+CLAUDE.md
+.github/copilot-instructions.md

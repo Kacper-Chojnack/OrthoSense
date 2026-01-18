@@ -14,7 +14,9 @@ import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dar
 import 'package:orthosense/features/dashboard/presentation/providers/trend_provider.dart';
 import 'package:orthosense/features/exercise/data/analysis_result_saver.dart';
 import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
+import 'package:orthosense/features/exercise/presentation/widgets/analysis_tips_dialog.dart';
 import 'package:orthosense/features/exercise/presentation/widgets/countdown_overlay.dart';
+import 'package:orthosense/core/providers/preferences_provider.dart';
 
 /// Analysis phases for the exercise session.
 enum AnalysisPhase {
@@ -162,7 +164,23 @@ class _LiveAnalysisScreenState extends ConsumerState<LiveAnalysisScreen>
     super.dispose();
   }
 
-  void _startCountdown() {
+  Future<void> _startCountdown() async {
+    final prefs = ref.read(preferencesServiceProvider);
+
+    // Show tips dialog if not dismissed
+    if (!prefs.areAnalysisTipsDismissed) {
+      final dontShowAgain = await AnalysisTipsDialog.show(context);
+      if (dontShowAgain == null) {
+        // User dismissed dialog without continuing
+        return;
+      }
+      if (dontShowAgain) {
+        await prefs.setAnalysisTipsDismissed(value: true);
+      }
+    }
+
+    if (!mounted) return;
+
     setState(() {
       _currentPhase = AnalysisPhase.countdown;
     });

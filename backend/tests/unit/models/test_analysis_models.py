@@ -17,7 +17,6 @@ from app.models.analysis import (
     AnalysisError,
     AnalysisResult,
     AnalysisStatus,
-    LandmarksAnalysisRequest,
     TaskStatusResponse,
     VideoAnalysisResponse,
 )
@@ -46,74 +45,6 @@ class TestAnalysisStatus:
         """Status is a string enum."""
         assert isinstance(AnalysisStatus.PENDING, str)
         assert isinstance(AnalysisStatus.PENDING, AnalysisStatus)
-
-
-class TestLandmarksAnalysisRequest:
-    """Tests for LandmarksAnalysisRequest model."""
-
-    def test_valid_request_creation(self) -> None:
-        """Valid request is created successfully."""
-        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)] for _ in range(30)]
-        request = LandmarksAnalysisRequest(
-            landmarks=landmarks,
-            exercise_name="Deep Squat",
-        )
-
-        assert request.exercise_name == "Deep Squat"
-        assert len(request.landmarks) == 30
-
-    def test_default_fps_value(self) -> None:
-        """Default FPS is 30.0."""
-        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-        request = LandmarksAnalysisRequest(
-            landmarks=landmarks,
-            exercise_name="Test",
-        )
-
-        assert request.fps == 30.0
-
-    def test_custom_fps_value(self) -> None:
-        """Custom FPS value is accepted."""
-        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-        request = LandmarksAnalysisRequest(
-            landmarks=landmarks,
-            exercise_name="Test",
-            fps=60.0,
-        )
-
-        assert request.fps == 60.0
-
-    def test_fps_minimum_constraint(self) -> None:
-        """FPS must be at least 1.0."""
-        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-
-        with pytest.raises(ValidationError):
-            LandmarksAnalysisRequest(
-                landmarks=landmarks,
-                exercise_name="Test",
-                fps=0.5,
-            )
-
-    def test_fps_maximum_constraint(self) -> None:
-        """FPS must be at most 120.0."""
-        landmarks = [[[0.5, 0.5, 0.0] for _ in range(33)]]
-
-        with pytest.raises(ValidationError):
-            LandmarksAnalysisRequest(
-                landmarks=landmarks,
-                exercise_name="Test",
-                fps=121.0,
-            )
-
-    def test_landmarks_with_visibility(self) -> None:
-        """Landmarks with visibility scores are accepted."""
-        landmarks = [[[0.5, 0.5, 0.0, 0.9] for _ in range(33)] for _ in range(30)]
-        request = LandmarksAnalysisRequest(
-            landmarks=landmarks,
-            exercise_name="Test",
-        )
-
-        assert len(request.landmarks[0][0]) == 4
 
 
 class TestVideoAnalysisResponse:
@@ -404,16 +335,3 @@ class TestModelSerialization:
         assert isinstance(json_str, str)
         assert "session-123" in json_str
         assert "Deep Squat" in json_str
-
-    def test_landmarks_request_from_dict(self) -> None:
-        """Landmarks request created from dict."""
-        data = {
-            "landmarks": [[[0.5, 0.5, 0.0] for _ in range(33)]],
-            "exercise_name": "Test",
-            "fps": 25.0,
-        }
-
-        request = LandmarksAnalysisRequest.model_validate(data)
-
-        assert request.exercise_name == "Test"
-        assert request.fps == 25.0

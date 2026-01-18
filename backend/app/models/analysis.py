@@ -1,6 +1,7 @@
 """Pydantic schemas for AI analysis endpoints.
 
-These schemas define the request/response models for video and frame analysis.
+These schemas define the response models for exercise metadata.
+All actual movement analysis is performed client-side (Edge AI).
 """
 
 from datetime import datetime
@@ -16,25 +17,6 @@ class AnalysisStatus(str, Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
-
-
-class LandmarksAnalysisRequest(BaseModel):
-    """Request model for landmarks-based analysis (Edge AI)."""
-
-    landmarks: list[list[list[float]]] = Field(
-        description="Pose landmarks: frames × 33 joints × 3 coordinates [x, y, z]"
-    )
-    exercise_name: str = Field(
-        description="Name of the exercise detected by client TFLite model (e.g., 'Deep Squat')"
-    )
-    fps: float = Field(
-        default=30.0,
-        ge=1.0,
-        le=120.0,
-        description="Video frames per second",
-    )
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class VideoAnalysisResponse(BaseModel):

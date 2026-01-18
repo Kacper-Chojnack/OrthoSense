@@ -11,6 +11,7 @@ class PreferencesService {
   static const String keySelectedVoiceMap = 'selected_voice_map';
   static const String keyNotificationsEnabled = 'notifications_enabled';
   static const String keySkipExerciseVideoPrefix = 'skip_exercise_video_';
+  static const String keyAnalysisTipsDismissed = 'analysis_tips_dismissed';
 
   final SharedPreferences _prefs;
 
@@ -66,6 +67,12 @@ class PreferencesService {
     required int exerciseId,
     required bool skip,
   }) => _prefs.setBool('$keySkipExerciseVideoPrefix$exerciseId', skip);
+
+  // Analysis Tips Dialog
+  bool get areAnalysisTipsDismissed =>
+      _prefs.getBool(keyAnalysisTipsDismissed) ?? false;
+  Future<void> setAnalysisTipsDismissed({required bool value}) =>
+      _prefs.setBool(keyAnalysisTipsDismissed, value);
 
   // Reset all exercise video skip preferences
   Future<void> resetAllExerciseVideoPreferences() async {
