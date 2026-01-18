@@ -8,7 +8,7 @@
 [![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
 [![E2E Tests](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml)
 [![Security Scan](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml)
-[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/dashboard?id=Kacper-Chojnack_OrthoSense)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Real-time movement analysis • Privacy-first design • Edge AI processing**
@@ -70,6 +70,7 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 | **Frontend** | ![Flutter](https://img.shields.io/badge/Flutter-3.24-02569B?logo=flutter) | Cross-platform mobile development |
 | **State Management** | ![Riverpod](https://img.shields.io/badge/Riverpod-2.5-blue) | Reactive state management |
 | **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi) | High-performance REST API |
+| **Python** | ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python) | Backend runtime |
 | **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql) | Production data storage |
 | **Local DB** | ![SQLite](https://img.shields.io/badge/SQLite-Drift-003B57?logo=sqlite) | Offline-first persistence |
 | **AI Framework** | ![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose-orange) | Real-time pose estimation |
@@ -89,7 +90,7 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 # Required
 - Flutter SDK 3.24+
 - Docker & Docker Compose
-- Python 3.11+
+- Python 3.13+
 - Xcode 15+ (for iOS)
 
 # Optional
@@ -138,33 +139,53 @@ flutter pub run build_runner watch   # Watch mode
 
 ## 🏗 Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Mobile Application                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  Camera Input │  │ MediaPipe AI │  │  TFLite ML  │     │
-│  │   (Local)    │→ │ Pose Detector│→ │  Classifier  │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│           ↓                ↓                  ↓             │
-│  ┌─────────────────────────────────────────────────┐       │
-│  │         Riverpod State Management               │       │
-│  └─────────────────────────────────────────────────┘       │
-│           ↓                                                 │
-│  ┌──────────────┐         ┌──────────────┐                │
-│  │ SQLite (Drift)│         │  REST Client │                │
-│  │ Offline Data │         │   (Dio)      │                │
-│  └──────────────┘         └──────┬───────┘                │
-└────────────────────────────────────┼──────────────────────┘
-                                     │ HTTPS
-                  ┌──────────────────▼──────────────────┐
-                  │       FastAPI Backend               │
-                  │  ┌────────────┐  ┌──────────────┐  │
-                  │  │ Auth (JWT) │  │   Rate Limit │  │
-                  │  └────────────┘  └──────────────┘  │
-                  │  ┌──────────────────────────────┐  │
-                  │  │   SQLModel + PostgreSQL      │  │
-                  │  └──────────────────────────────┘  │
-                  └─────────────────────────────────────┘
+```plantuml
+@startuml
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+skinparam componentStyle rectangle
+
+package "Mobile Application (iOS)" {
+  component "Camera Input\n(Local)" as camera
+  component "MediaPipe AI\nPose Detector" as mediapipe
+  component "TFLite ML\nClassifier" as tflite
+  component "Riverpod State Management" as riverpod
+  database "SQLite (Drift)\nOffline Data" as sqlite
+  component "REST Client\n(Dio)" as dio
+  
+  camera -down-> mediapipe : video frames
+  mediapipe -down-> tflite : pose landmarks
+  tflite -down-> riverpod : predictions
+  riverpod -down-> sqlite : persist
+  riverpod -down-> dio : sync
+}
+
+package "FastAPI Backend" {
+  component "Auth (JWT)" as auth
+  component "Rate Limit" as ratelimit
+  database "SQLModel + PostgreSQL" as postgres
+  component "Business Logic" as logic
+  
+  auth -down-> logic
+  ratelimit -down-> logic
+  logic -down-> postgres
+}
+
+dio -down-> auth : HTTPS
+
+note right of camera
+  All video processing
+  happens on-device.
+  Privacy-first design.
+end note
+
+note left of postgres
+  Only metadata synced.
+  No video data in cloud.
+end note
+
+@enduml
 ```
 
 ### Key Design Patterns
@@ -299,7 +320,7 @@ This is an academic project currently not accepting external contributions. Howe
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-**Copyright © 2025 Kacper Chojnacki**
+**Copyright © 2025 Kacper Chojnacki & Zofia Dekowska**
 
 ---
 
@@ -354,6 +375,7 @@ Polsko-Japońska Akademia Technik Komputerowych (PJATK), Gdańsk
 | **Frontend** | Flutter 3.24 | Rozwój aplikacji mobilnej |
 | **Zarządzanie stanem** | Riverpod 2.5 | Reaktywne zarządzanie stanem |
 | **Backend** | FastAPI 0.115 | REST API wysokiej wydajności |
+| **Python** | Python 3.13 | Środowisko backendu |
 | **Baza danych** | PostgreSQL 16 | Przechowywanie danych produkcyjnych |
 | **Baza lokalna** | SQLite (Drift) | Tryb offline |
 | **AI** | MediaPipe Pose | Estymacja pozy w czasie rzeczywistym |
