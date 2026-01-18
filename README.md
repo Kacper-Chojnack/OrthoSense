@@ -6,9 +6,8 @@
 
 [![Backend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml)
 [![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
-[![E2E Tests](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml)
 [![Security Scan](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/dashboard?id=Kacper-Chojnack_OrthoSense)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status&token=509be37e4fe2d462aeb6cf2510f27f13e95a2028)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Real-time movement analysis • Privacy-first design • Edge AI processing**
