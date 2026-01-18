@@ -58,10 +58,10 @@ jobs:
         run: ruff check . --output-format=github
 
       - name: Run Ruff Formatting Check
-        run: ruff format . --check || echo "::warning::Formatting issues found - run 'ruff format .' to fix"
+        run: ruff format . --check
 
       - name: Run MyPy Type Checking
-        run: mypy app --ignore-missing-imports || echo "::warning::Type checking issues found"
+        run: mypy app --ignore-missing-imports
 
   # ---------------------------------------------------------------------------
   # Job: Unit Tests

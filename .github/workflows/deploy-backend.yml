@@ -75,7 +75,6 @@ jobs:
 
       - name: Run MyPy type checker
         run: mypy app --ignore-missing-imports
-        continue-on-error: true
 
   # ---------------------------------------------------------------------------
   # Job: Security Scan
@@ -288,12 +287,26 @@ jobs:
 
       - name: Wait for deployment
         if: steps.check-service.outputs.service_exists == 'true'
+        timeout-minutes: 10
         run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-dev-backend"
           echo "Waiting for deployment to complete..."
-          sleep 60
-          aws apprunner describe-service \
-            --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-dev-backend \
-            --query 'Service.Status' --output text
+          for i in {1..30}; do
+            STATUS=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.Status' --output text)
+            echo "Attempt $i: Status = $STATUS"
+            if [[ "$STATUS" == "RUNNING" ]]; then
+              echo "Deployment completed successfully"
+              exit 0
+            elif [[ "$STATUS" == "CREATE_FAILED" || "$STATUS" == "DELETE_FAILED" || "$STATUS" == "OPERATION_IN_PROGRESS" ]]; then
+              if [[ "$STATUS" != "OPERATION_IN_PROGRESS" ]]; then
+                echo "Deployment failed with status: $STATUS"
+                exit 1
+              fi
+            fi
+            sleep 20
+          done
+          echo "Deployment timed out"
+          exit 1
 
   # ---------------------------------------------------------------------------
   # Job: Deploy to Staging
@@ -336,12 +349,26 @@ jobs:
 
       - name: Wait for deployment
         if: steps.check-service.outputs.service_exists == 'true'
+        timeout-minutes: 10
         run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-staging-backend"
           echo "Waiting for deployment to complete..."
-          sleep 60
-          aws apprunner describe-service \
-            --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-staging-backend \
-            --query 'Service.Status' --output text
+          for i in {1..30}; do
+            STATUS=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.Status' --output text)
+            echo "Attempt $i: Status = $STATUS"
+            if [[ "$STATUS" == "RUNNING" ]]; then
+              echo "Deployment completed successfully"
+              exit 0
+            elif [[ "$STATUS" == "CREATE_FAILED" || "$STATUS" == "DELETE_FAILED" || "$STATUS" == "OPERATION_IN_PROGRESS" ]]; then
+              if [[ "$STATUS" != "OPERATION_IN_PROGRESS" ]]; then
+                echo "Deployment failed with status: $STATUS"
+                exit 1
+              fi
+            fi
+            sleep 20
+          done
+          echo "Deployment timed out"
+          exit 1
 
   # ---------------------------------------------------------------------------
   # Job: Deploy to Production (Manual Approval Required)
@@ -384,15 +411,39 @@ jobs:
 
       - name: Wait for deployment
         if: steps.check-service.outputs.service_exists == 'true'
+        timeout-minutes: 15
         run: |
+          SERVICE_ARN="arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-prod-backend"
           echo "Waiting for deployment to complete..."
-          sleep 90
-          aws apprunner describe-service \
-            --service-arn arn:aws:apprunner:${{ env.AWS_REGION }}:${{ secrets.AWS_ACCOUNT_ID }}:service/orthosense-prod-backend \
-            --query 'Service.Status' --output text
+          for i in {1..45}; do
+            STATUS=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --query 'Service.Status' --output text)
+            echo "Attempt $i: Status = $STATUS"
+            if [[ "$STATUS" == "RUNNING" ]]; then
+              echo "Deployment completed successfully"
+              exit 0
+            elif [[ "$STATUS" == "CREATE_FAILED" || "$STATUS" == "DELETE_FAILED" || "$STATUS" == "OPERATION_IN_PROGRESS" ]]; then
+              if [[ "$STATUS" != "OPERATION_IN_PROGRESS" ]]; then
+                echo "Deployment failed with status: $STATUS"
+                exit 1
+              fi
+            fi
+            sleep 20
+          done
+          echo "Deployment timed out"
+          exit 1
 
       - name: Health check
         if: steps.check-service.outputs.service_exists == 'true'
+        timeout-minutes: 5
         run: |
           echo "Running health check..."
-          curl -f https://api.orthosense.app/health || echo "Health check failed - service may still be starting"
+          for i in {1..10}; do
+            if curl -sf https://api.orthosense.app/health; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying in 30s..."
+            sleep 30
+          done
+          echo "Health check failed after 10 attempts"
+          exit 1

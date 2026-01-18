@@ -82,7 +82,7 @@ jobs:
 
       - name: Run Frontend Tests with Coverage
         timeout-minutes: 10
-        run: flutter test --coverage --coverage-path=coverage/lcov.info || true
+        run: flutter test --coverage --coverage-path=coverage/lcov.info
 
       - name: Convert LCOV to SonarQube Format
         run: |

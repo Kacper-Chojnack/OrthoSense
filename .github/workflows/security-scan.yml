@@ -52,12 +52,8 @@ jobs:
       - name: Run pip-audit
         working-directory: backend
         run: |
-          pip-audit --format json --output pip-audit-report.json 2>&1 || true
-          echo "::notice::pip-audit scan completed - check artifacts for report"
-
-      - name: Display Vulnerabilities
-        working-directory: backend
-        run: pip-audit 2>&1 || echo "::warning::Dependency vulnerabilities found - review pip-audit-report.json artifact"
+          pip-audit --format json --output pip-audit-report.json
+          pip-audit
 
       - name: Upload pip-audit Report
         uses: actions/upload-artifact@v4
@@ -98,7 +94,7 @@ jobs:
       - name: Run Bandit
         working-directory: backend
         run: |
-          bandit -r app -f json -o bandit-report.json -ll || true
+          bandit -r app -f json -o bandit-report.json -ll
           bandit -r app -ll -f txt
 
       - name: Upload Bandit Report
@@ -110,7 +106,7 @@ jobs:
       - name: Run Semgrep
         run: |
           semgrep scan --config p/owasp-top-ten --config p/python --config p/security-audit \
-            --sarif --output semgrep.sarif backend/ || true
+            --sarif --output semgrep.sarif backend/
 
       - name: Upload Semgrep SARIF
         uses: github/codeql-action/upload-sarif@v4
@@ -133,13 +129,12 @@ jobs:
       - name: Install Gitleaks
         run: |
           wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+          echo "ba6dbb656933921c775ee5a2d1c13a91046e7952e9d919f9bac4cec61d628e7d  gitleaks_8.18.4_linux_x64.tar.gz" | sha256sum -c -
           tar -xzf gitleaks_8.18.4_linux_x64.tar.gz
           chmod +x gitleaks
 
       - name: Run Gitleaks
-        run: |
-          ./gitleaks detect --source . --report-format json --report-path gitleaks-report.json --verbose --exit-code 0 || true
-          echo "::notice::Gitleaks scan completed - check artifacts for report"
+        run: ./gitleaks detect --source . --report-format json --report-path gitleaks-report.json --verbose
 
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4

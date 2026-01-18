@@ -129,7 +129,6 @@ jobs:
     name: Flutter E2E Tests
     runs-on: macos-latest
     timeout-minutes: 30
-    continue-on-error: true  # Flutter E2E may fail in CI without proper device setup
 
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +144,7 @@ jobs:
         run: flutter pub get
 
       - name: Run E2E Tests
-        run: flutter test test/e2e --coverage || echo "::warning::Flutter E2E tests failed - may need device setup"
+        run: flutter test test/e2e --coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
@@ -186,19 +185,17 @@ jobs:
           if [[ "${{ needs.flutter-e2e.result }}" == "success" ]]; then
             echo "| Flutter E2E | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| Flutter E2E | ⚠️ ${{ needs.flutter-e2e.result }} (optional) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Flutter E2E | ❌ ${{ needs.flutter-e2e.result }} |" >> $GITHUB_STEP_SUMMARY
           fi
-          
-          # Only fail if backend tests failed (Flutter E2E is optional in CI)
+
+          # All E2E tests must pass
           if [[ "${{ needs.backend-e2e-sqlite.result }}" != "success" ]] || \
-             [[ "${{ needs.backend-e2e-postgres.result }}" != "success" ]]; then
+             [[ "${{ needs.backend-e2e-postgres.result }}" != "success" ]] || \
+             [[ "${{ needs.flutter-e2e.result }}" != "success" ]]; then
             echo ""
-            echo "❌ Backend E2E tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "❌ E2E tests failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          
+
           echo ""
-          echo "✅ Backend E2E tests passed" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.flutter-e2e.result }}" != "success" ]]; then
-            echo "⚠️ Flutter E2E tests need manual verification" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "✅ All E2E tests passed" >> $GITHUB_STEP_SUMMARY
