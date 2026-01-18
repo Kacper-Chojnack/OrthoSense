@@ -1,13 +1,7 @@
-"""Pytest fixtures for async testing with authentication support."""
-
+import asyncio
 import os
 from collections.abc import AsyncGenerator
 from uuid import uuid4
-
-# Set environment variables BEFORE importing app modules
-os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
-os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
 
 import pytest
 import pytest_asyncio
@@ -16,10 +10,32 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
+# Set environment variables BEFORE importing app modules
+os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
+
 from app.core.database import get_session
 from app.core.security import create_access_token, hash_password
 from app.main import app
 from app.models.user import User
+
+"""Pytest fixtures for async testing with authentication support."""
+
+
+# Ensure clean event loop shutdown after all tests
+@pytest.fixture(scope="session", autouse=True)
+def event_loop_policy():
+    policy = asyncio.get_event_loop_policy()
+    yield policy
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.stop()
+        if not loop.is_closed():
+            loop.close()
+    except Exception:
+        pass
 
 
 @pytest_asyncio.fixture
@@ -30,6 +46,15 @@ async def async_engine():
         echo=False,
         connect_args={"check_same_thread": False},
     )
+    import os
+
+    """Pytest fixtures for async testing with authentication support."""
+
+    # Set environment variables BEFORE importing app modules
+    os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+    os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
+
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield engine
@@ -45,7 +70,11 @@ async def session(async_engine) -> AsyncGenerator[AsyncSession]:
         expire_on_commit=False,
     )
     async with async_session_factory() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
+            await session.get_bind().dispose()
 
 
 @pytest_asyncio.fixture
