@@ -177,8 +177,9 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-minimum-32-characters-long
           ENVIRONMENT: test
+        timeout-minutes: 10
         run: |
-          pytest -v --tb=short --cov=app --cov-report=xml --cov-report=html
+          pytest -v --tb=short --cov=app --cov-report=xml --timeout=300
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
