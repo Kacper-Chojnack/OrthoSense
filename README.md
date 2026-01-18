@@ -139,54 +139,9 @@ flutter pub run build_runner watch   # Watch mode
 
 ## 🏗 Architecture
 
-```plantuml
-@startuml
-!theme plain
-skinparam backgroundColor #FEFEFE
-skinparam roundcorner 10
-skinparam componentStyle rectangle
-
-package "Mobile Application (iOS)" {
-  component "Camera Input\n(Local)" as camera
-  component "MediaPipe AI\nPose Detector" as mediapipe
-  component "TFLite ML\nClassifier" as tflite
-  component "Riverpod State Management" as riverpod
-  database "SQLite (Drift)\nOffline Data" as sqlite
-  component "REST Client\n(Dio)" as dio
-  
-  camera -down-> mediapipe : video frames
-  mediapipe -down-> tflite : pose landmarks
-  tflite -down-> riverpod : predictions
-  riverpod -down-> sqlite : persist
-  riverpod -down-> dio : sync
-}
-
-package "FastAPI Backend" {
-  component "Auth (JWT)" as auth
-  component "Rate Limit" as ratelimit
-  database "SQLModel + PostgreSQL" as postgres
-  component "Business Logic" as logic
-  
-  auth -down-> logic
-  ratelimit -down-> logic
-  logic -down-> postgres
-}
-
-dio -down-> auth : HTTPS
-
-note right of camera
-  All video processing
-  happens on-device.
-  Privacy-first design.
-end note
-
-note left of postgres
-  Only metadata synced.
-  No video data in cloud.
-end note
-
-@enduml
-```
+<div align="center">
+  <img src="docs/diagrams/diagram.png" alt="OrthoSense Architecture Diagram" width="800">
+</div>
 
 ### Key Design Patterns
 
