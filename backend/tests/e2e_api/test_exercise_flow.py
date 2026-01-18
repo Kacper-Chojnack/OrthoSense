@@ -353,81 +353,12 @@ class TestExerciseSessionFlowE2E:
 
 
 class TestExerciseAnalysisE2E:
-    """E2E tests: Exercise analysis with pose landmarks."""
-
-    async def test_landmarks_analysis_flow(
-        self,
-        client: AsyncClient,
-        session: AsyncSession,
-    ) -> None:
-        """E2E: Submit pose landmarks for analysis."""
-        # Generate test landmarks
-        landmarks_data = []
-        for _ in range(30):  # 30 frames of pose data
-            frame = _generate_fake_pose_landmarks(quality=90)
-            landmarks_data.append(
-                [
-                    [lm["x"], lm["y"], lm["z"], lm["visibility"]]
-                    for lm in frame["landmarks"]
-                ]
-            )
-
-        # STEP: Submit landmarks for analysis
-        analysis_response = await client.post(
-            "/api/v1/analysis/landmarks",
-            json={
-                "landmarks": landmarks_data,
-                "exercise_name": "squat",
-            },
-        )
-
-        # VERIFY: Analysis completed
-        assert analysis_response.status_code == 200
-        analysis_data = analysis_response.json()
-
-        # Check expected fields in response
-        assert (
-            "analysis" in analysis_data
-            or "result" in analysis_data
-            or "error" not in analysis_data
-        )
-
-    async def test_invalid_landmarks_rejected(
-        self,
-        client: AsyncClient,
-    ) -> None:
-        """E2E: Invalid landmark data is rejected."""
-        # STEP: Submit invalid landmarks (wrong number of joints)
-        invalid_landmarks = [
-            [[0.5, 0.5, 0.0] for _ in range(10)]  # Only 10 joints instead of 33
-        ]
-
-        analysis_response = await client.post(
-            "/api/v1/analysis/landmarks",
-            json={
-                "landmarks": invalid_landmarks,
-                "exercise_name": "squat",
-            },
-        )
-
-        # VERIFY: Rejected with 400
-        assert analysis_response.status_code == 400
-
-    async def test_empty_landmarks_rejected(
-        self,
-        client: AsyncClient,
-    ) -> None:
-        """E2E: Empty landmark data is rejected."""
-        analysis_response = await client.post(
-            "/api/v1/analysis/landmarks",
-            json={
-                "landmarks": [],
-                "exercise_name": "squat",
-            },
-        )
-
-        # VERIFY: Rejected
-        assert analysis_response.status_code == 400
+    """E2E tests: Exercise analysis endpoints.
+    
+    Note: /analysis/landmarks endpoint was removed as part of the
+    offline-first architecture. All movement analysis is performed
+    client-side using Edge AI (ML Kit + TFLite).
+    """
 
     async def test_list_available_exercises(
         self,
