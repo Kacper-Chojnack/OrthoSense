@@ -54,7 +54,7 @@ enable_enhanced_monitoring = true
 log_retention_days         = 60
 
 # GitHub
-github_org  = "kacper-chojnack"
+github_org  = "Kacper-Chojnack"
 github_repo = "OrthoSense"
 
 # Tags
