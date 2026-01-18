@@ -2,7 +2,7 @@
 ///
 /// Test coverage:
 /// 1. AuthTokens model
-/// 2. UserModel model  
+/// 2. UserModel model
 /// 3. UserRole enum
 /// 4. AuthState sealed class
 library;

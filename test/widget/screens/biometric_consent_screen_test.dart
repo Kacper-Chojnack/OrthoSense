@@ -120,8 +120,7 @@ void main() {
 
     test('steps have correct order', () {
       final steps = ProcessFlowSteps.all;
-      final titles =
-          steps.map((s) => s.title.toLowerCase()).toList();
+      final titles = steps.map((s) => s.title.toLowerCase()).toList();
 
       expect(titles[0], contains('camera'));
       expect(titles[1], contains('edge'));
@@ -344,19 +343,22 @@ enum KeyPoint {
     icon: Icons.videocam_off,
     iconColor: Colors.red,
     title: 'No Video Storage',
-    description: 'Raw video is processed in real-time and immediately discarded.',
+    description:
+        'Raw video is processed in real-time and immediately discarded.',
   ),
   anonymizedMetrics(
     icon: Icons.analytics,
     iconColor: Colors.blue,
     title: 'Anonymized Metrics Only',
-    description: 'We only store anonymized numerical data: joint angles and scores.',
+    description:
+        'We only store anonymized numerical data: joint angles and scores.',
   ),
   secureEncrypted(
     icon: Icons.lock,
     iconColor: Colors.purple,
     title: 'Secure & Encrypted',
-    description: 'All stored metrics are encrypted and can only be accessed by you.',
+    description:
+        'All stored metrics are encrypted and can only be accessed by you.',
   );
 
   const KeyPoint({
@@ -544,7 +546,10 @@ class _InfoSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Text(description),
                 ],
               ),

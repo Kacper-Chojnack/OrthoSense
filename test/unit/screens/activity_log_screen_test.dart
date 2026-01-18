@@ -26,7 +26,10 @@ void main() {
     });
 
     test('has pendingSync filter', () {
-      expect(ActivityFilter.values.contains(ActivityFilter.pendingSync), isTrue);
+      expect(
+        ActivityFilter.values.contains(ActivityFilter.pendingSync),
+        isTrue,
+      );
     });
 
     test('has exactly 4 filter options', () {

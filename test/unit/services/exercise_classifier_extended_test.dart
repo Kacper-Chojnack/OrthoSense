@@ -264,7 +264,8 @@ void main() {
       const targetFrames = 60;
 
       for (var i = 0; i < targetFrames; i++) {
-        final srcIndex = ((i * (currentFrames - 1)) / (targetFrames - 1)).round();
+        final srcIndex = ((i * (currentFrames - 1)) / (targetFrames - 1))
+            .round();
         expect(srcIndex, greaterThanOrEqualTo(0));
         expect(srcIndex, lessThan(currentFrames));
       }
@@ -424,8 +425,8 @@ List<double> _softmax(List<double> logits) {
 
 List<double> _softmaxIfNeeded(List<double> values) {
   final sum = values.fold(0.0, (a, b) => a + b);
-  final isNormalized = (sum - 1.0).abs() < 0.01 && 
-      values.every((e) => e >= 0 && e <= 1);
+  final isNormalized =
+      (sum - 1.0).abs() < 0.01 && values.every((e) => e >= 0 && e <= 1);
   return isNormalized ? values : _softmax(values);
 }
 

@@ -43,8 +43,7 @@ void main() {
 
     group('queue processing', () {
       test('should dequeue items when syncing', () async {
-        when(() => mockQueue.dequeue())
-            .thenAnswer((_) async => null);
+        when(() => mockQueue.dequeue()).thenAnswer((_) async => null);
 
         final item = await mockQueue.dequeue();
         expect(item, isNull);
@@ -52,9 +51,8 @@ void main() {
 
       test('should mark items completed on success', () async {
         const itemId = 'test-item-1';
-        
-        when(() => mockQueue.markCompleted(itemId))
-            .thenAnswer((_) async {});
+
+        when(() => mockQueue.markCompleted(itemId)).thenAnswer((_) async {});
 
         await mockQueue.markCompleted(itemId);
         verify(() => mockQueue.markCompleted(itemId)).called(1);
@@ -63,9 +61,10 @@ void main() {
       test('should mark items failed on error', () async {
         const itemId = 'test-item-1';
         const error = 'Network error';
-        
-        when(() => mockQueue.markFailed(itemId, error))
-            .thenAnswer((_) async {});
+
+        when(
+          () => mockQueue.markFailed(itemId, error),
+        ).thenAnswer((_) async {});
 
         await mockQueue.markFailed(itemId, error);
         verify(() => mockQueue.markFailed(itemId, error)).called(1);
@@ -74,8 +73,7 @@ void main() {
 
     group('retry logic', () {
       test('should retry failed items', () async {
-        when(() => mockQueue.peek())
-            .thenReturn(null);
+        when(() => mockQueue.peek()).thenReturn(null);
 
         final item = mockQueue.peek();
         expect(item, isNull);
@@ -83,7 +81,7 @@ void main() {
 
       test('should respect max retry count', () async {
         const maxRetries = 3;
-        
+
         // Items exceeding max retries should be abandoned
         expect(maxRetries, equals(3));
       });
@@ -91,16 +89,18 @@ void main() {
 
     group('connectivity listener', () {
       test('should listen to connectivity changes', () {
-        when(() => mockConnectivity.onConnectivityChanged)
-            .thenAnswer((_) => Stream.value(true));
+        when(
+          () => mockConnectivity.onConnectivityChanged,
+        ).thenAnswer((_) => Stream.value(true));
 
         final stream = mockConnectivity.onConnectivityChanged;
         expect(stream, isNotNull);
       });
 
       test('should trigger sync on reconnection', () async {
-        when(() => mockConnectivity.onConnectivityChanged)
-            .thenAnswer((_) => Stream.value(true));
+        when(
+          () => mockConnectivity.onConnectivityChanged,
+        ).thenAnswer((_) => Stream.value(true));
         when(() => mockConnectivity.isOnline).thenReturn(true);
 
         // On reconnection, should attempt sync

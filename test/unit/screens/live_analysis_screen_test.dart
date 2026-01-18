@@ -23,7 +23,7 @@ void main() {
         'calibrationClassification',
         'calibrationVariant',
         'analyzing',
-        'completed'
+        'completed',
       ];
       expect(phases.contains('idle'), isTrue);
     });
@@ -95,7 +95,9 @@ void main() {
     });
 
     test('should process frame when enough time elapsed', () {
-      final lastProcess = DateTime.now().subtract(const Duration(milliseconds: 100));
+      final lastProcess = DateTime.now().subtract(
+        const Duration(milliseconds: 100),
+      );
       final now = DateTime.now();
       const interval = Duration(milliseconds: 66);
 
@@ -147,8 +149,7 @@ void main() {
       final lastSpokenAt = DateTime.now();
       const cooldown = Duration(seconds: 3);
 
-      final canSpeak =
-          DateTime.now().difference(lastSpokenAt) >= cooldown;
+      final canSpeak = DateTime.now().difference(lastSpokenAt) >= cooldown;
       expect(canSpeak, isFalse);
     });
   });

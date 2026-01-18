@@ -115,7 +115,10 @@ void main() {
     });
 
     test('high priority items come before normal', () async {
-      final normalItem = _createTestItem('normal', priority: SyncPriority.normal);
+      final normalItem = _createTestItem(
+        'normal',
+        priority: SyncPriority.normal,
+      );
       final highItem = _createTestItem('high', priority: SyncPriority.high);
 
       await queue.enqueue(normalItem);
@@ -126,17 +129,27 @@ void main() {
 
     test('critical priority items come first', () async {
       await queue.enqueue(_createTestItem('low', priority: SyncPriority.low));
-      await queue.enqueue(_createTestItem('normal', priority: SyncPriority.normal));
-      await queue.enqueue(_createTestItem('critical', priority: SyncPriority.critical));
+      await queue.enqueue(
+        _createTestItem('normal', priority: SyncPriority.normal),
+      );
+      await queue.enqueue(
+        _createTestItem('critical', priority: SyncPriority.critical),
+      );
       await queue.enqueue(_createTestItem('high', priority: SyncPriority.high));
 
       expect(queue.peek()?.id, equals('critical'));
     });
 
     test('FIFO within same priority', () async {
-      await queue.enqueue(_createTestItem('first', priority: SyncPriority.high));
-      await queue.enqueue(_createTestItem('second', priority: SyncPriority.high));
-      await queue.enqueue(_createTestItem('third', priority: SyncPriority.high));
+      await queue.enqueue(
+        _createTestItem('first', priority: SyncPriority.high),
+      );
+      await queue.enqueue(
+        _createTestItem('second', priority: SyncPriority.high),
+      );
+      await queue.enqueue(
+        _createTestItem('third', priority: SyncPriority.high),
+      );
 
       final first = await queue.dequeue();
       final second = await queue.dequeue();

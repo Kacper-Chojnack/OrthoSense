@@ -72,7 +72,7 @@ void main() {
 
       test('encodes nested map', () {
         final map = {
-          'outer': {'inner': 'value'}
+          'outer': {'inner': 'value'},
         };
         final result = converter.toSql(map);
         final decoded = json.decode(result);
@@ -82,7 +82,7 @@ void main() {
 
       test('encodes map with list', () {
         final map = {
-          'items': [1, 2, 3]
+          'items': [1, 2, 3],
         };
         final result = converter.toSql(map);
         final decoded = json.decode(result);
@@ -156,7 +156,8 @@ void main() {
     group('saveAnalysisResult', () {
       test('generates UUID for new result', () {
         // UUIDs follow pattern: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        const uuidPattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+        const uuidPattern =
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
         const sampleUuid = '123e4567-e89b-12d3-a456-426614174000';
 
         expect(RegExp(uuidPattern).hasMatch(sampleUuid), isTrue);
@@ -252,7 +253,10 @@ void main() {
         ];
 
         // Results should be ordered by date, newest first
-        expect(results.first.performedAt.isAfter(results.last.performedAt), isTrue);
+        expect(
+          results.first.performedAt.isAfter(results.last.performedAt),
+          isTrue,
+        );
       });
     });
 

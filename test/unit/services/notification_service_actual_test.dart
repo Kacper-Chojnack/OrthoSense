@@ -35,11 +35,17 @@ void main() {
         final now = DateTime(2024, 1, 15, 10, 0); // 10:00 AM
         const targetHour = 14;
         const targetMinute = 0;
-        
+
         // If now is 10:00 and target is 14:00, same day
-        final scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+        final scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         final isFuture = scheduled.isAfter(now);
-        
+
         expect(isFuture, isTrue);
         expect(scheduled.day, equals(now.day));
       });
@@ -48,12 +54,18 @@ void main() {
         final now = DateTime(2024, 1, 15, 16, 0); // 4:00 PM
         const targetHour = 10;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         if (scheduled.isBefore(now)) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.day, equals(16));
         expect(scheduled.hour, equals(10));
       });
@@ -62,12 +74,18 @@ void main() {
         final now = DateTime(2024, 1, 15, 23, 0);
         const targetHour = 0;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         if (scheduled.isBefore(now)) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.day, equals(16));
         expect(scheduled.hour, equals(0));
       });
@@ -76,13 +94,19 @@ void main() {
         final now = DateTime(2024, 1, 15, 10, 30);
         const targetHour = 10;
         const targetMinute = 30;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         // If at exact same time, treat as passed
         if (scheduled.isBefore(now) || scheduled.isAtSameMomentAs(now)) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.day, equals(16));
       });
 
@@ -90,12 +114,18 @@ void main() {
         final now = DateTime(2024, 1, 31, 23, 0);
         const targetHour = 1;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         if (scheduled.isBefore(now)) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.month, equals(2));
         expect(scheduled.day, equals(1));
       });
@@ -108,9 +138,15 @@ void main() {
         const targetWeekday = 1; // Monday
         const targetHour = 14;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
-        
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
+
         // Time is in future, weekday matches
         expect(now.weekday, equals(targetWeekday));
         expect(scheduled.isAfter(now), isTrue);
@@ -123,14 +159,20 @@ void main() {
         const targetWeekday = 1; // Monday
         const targetHour = 10;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
-        
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
+
         // Time has passed, need next Monday
         if (scheduled.isBefore(now)) {
           scheduled = scheduled.add(const Duration(days: 7));
         }
-        
+
         expect(scheduled.day, equals(22));
         expect(scheduled.weekday, equals(1));
       });
@@ -141,12 +183,18 @@ void main() {
         const targetWeekday = 3; // Wednesday
         const targetHour = 14;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         while (scheduled.weekday != targetWeekday) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.weekday, equals(3));
         expect(scheduled.day, equals(17));
       });
@@ -157,12 +205,18 @@ void main() {
         const targetWeekday = 2; // Tuesday
         const targetHour = 10;
         const targetMinute = 0;
-        
-        var scheduled = DateTime(now.year, now.month, now.day, targetHour, targetMinute);
+
+        var scheduled = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          targetHour,
+          targetMinute,
+        );
         while (scheduled.weekday != targetWeekday) {
           scheduled = scheduled.add(const Duration(days: 1));
         }
-        
+
         expect(scheduled.weekday, equals(2));
         expect(scheduled.day, equals(23));
       });
@@ -173,7 +227,7 @@ void main() {
     test('reminder is scheduled 15 min before session', () {
       final sessionTime = DateTime(2024, 1, 15, 14, 0);
       final reminderTime = sessionTime.subtract(const Duration(minutes: 15));
-      
+
       expect(reminderTime.hour, equals(13));
       expect(reminderTime.minute, equals(45));
     });
@@ -181,7 +235,7 @@ void main() {
     test('reminder is skipped if time has passed', () {
       final sessionTime = DateTime.now().subtract(const Duration(hours: 1));
       final reminderTime = sessionTime.subtract(const Duration(minutes: 15));
-      
+
       final shouldSchedule = reminderTime.isAfter(DateTime.now());
       expect(shouldSchedule, isFalse);
     });
@@ -189,7 +243,7 @@ void main() {
     test('reminder is scheduled if time is future', () {
       final sessionTime = DateTime.now().add(const Duration(hours: 2));
       final reminderTime = sessionTime.subtract(const Duration(minutes: 15));
-      
+
       final shouldSchedule = reminderTime.isAfter(DateTime.now());
       expect(shouldSchedule, isTrue);
     });
@@ -274,14 +328,14 @@ void main() {
     test('ID can be any integer', () {
       const sessionId = 'session-123';
       final notificationId = sessionId.hashCode;
-      
+
       expect(notificationId, isA<int>());
     });
 
     test('different sessions get different IDs', () {
       final id1 = 'session-1'.hashCode;
       final id2 = 'session-2'.hashCode;
-      
+
       expect(id1, isNot(equals(id2)));
     });
   });

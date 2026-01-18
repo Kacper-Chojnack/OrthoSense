@@ -257,8 +257,9 @@ void main() {
         MockExerciseResult(id: '3', sessionId: 'session-1'),
       ];
 
-      final sessionResults =
-          results.where((r) => r.sessionId == session.id).toList();
+      final sessionResults = results
+          .where((r) => r.sessionId == session.id)
+          .toList();
 
       expect(sessionResults.length, equals(3));
     });

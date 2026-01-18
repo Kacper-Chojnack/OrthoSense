@@ -68,51 +68,83 @@ void main() {
     group('connection types', () {
       test('wifi is considered online', () {
         const result = 'wifi';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isTrue);
       });
 
       test('mobile is considered online', () {
         const result = 'mobile';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isTrue);
       });
 
       test('ethernet is considered online', () {
         const result = 'ethernet';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isTrue);
       });
 
       test('vpn is considered online', () {
         const result = 'vpn';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isTrue);
       });
 
       test('none is considered offline', () {
         const result = 'none';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isFalse);
       });
 
       test('bluetooth only is considered offline', () {
         const result = 'bluetooth';
-        final hasConnection = ['wifi', 'mobile', 'ethernet', 'vpn'].contains(result);
+        final hasConnection = [
+          'wifi',
+          'mobile',
+          'ethernet',
+          'vpn',
+        ].contains(result);
         expect(hasConnection, isFalse);
       });
 
       test('multiple results with at least one valid is online', () {
         const results = ['none', 'wifi'];
-        final hasConnection =
-            results.any((r) => ['wifi', 'mobile', 'ethernet', 'vpn'].contains(r));
+        final hasConnection = results.any(
+          (r) => ['wifi', 'mobile', 'ethernet', 'vpn'].contains(r),
+        );
         expect(hasConnection, isTrue);
       });
 
       test('empty results is offline', () {
         const results = <String>[];
-        final hasConnection =
-            results.any((r) => ['wifi', 'mobile', 'ethernet', 'vpn'].contains(r));
+        final hasConnection = results.any(
+          (r) => ['wifi', 'mobile', 'ethernet', 'vpn'].contains(r),
+        );
         expect(hasConnection, isFalse);
       });
     });

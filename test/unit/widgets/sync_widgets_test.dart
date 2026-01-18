@@ -120,32 +120,32 @@ void main() {
     group('banner visibility', () {
       test('shows banner when offline', () {
         const status = SyncStatus.offline;
-        final shouldShow = status == SyncStatus.offline ||
-            status == SyncStatus.error;
+        final shouldShow =
+            status == SyncStatus.offline || status == SyncStatus.error;
 
         expect(shouldShow, isTrue);
       });
 
       test('shows banner when error', () {
         const status = SyncStatus.error;
-        final shouldShow = status == SyncStatus.offline ||
-            status == SyncStatus.error;
+        final shouldShow =
+            status == SyncStatus.offline || status == SyncStatus.error;
 
         expect(shouldShow, isTrue);
       });
 
       test('hides banner when synced', () {
         const status = SyncStatus.idle;
-        final shouldShow = status == SyncStatus.offline ||
-            status == SyncStatus.error;
+        final shouldShow =
+            status == SyncStatus.offline || status == SyncStatus.error;
 
         expect(shouldShow, isFalse);
       });
 
       test('hides banner when syncing', () {
         const status = SyncStatus.syncing;
-        final shouldShow = status == SyncStatus.offline ||
-            status == SyncStatus.error;
+        final shouldShow =
+            status == SyncStatus.offline || status == SyncStatus.error;
 
         expect(shouldShow, isFalse);
       });
@@ -276,25 +276,25 @@ void main() {
 StatusDisplay _getStatusDisplay(SyncState state) {
   return switch (state.status) {
     SyncStatus.idle when state.hasPendingItems => StatusDisplay(
-        icon: Icons.cloud_upload_outlined,
-        label: '${state.pendingCount} pending',
-      ),
+      icon: Icons.cloud_upload_outlined,
+      label: '${state.pendingCount} pending',
+    ),
     SyncStatus.idle => StatusDisplay(
-        icon: Icons.cloud_done_outlined,
-        label: 'Synced',
-      ),
+      icon: Icons.cloud_done_outlined,
+      label: 'Synced',
+    ),
     SyncStatus.syncing => StatusDisplay(
-        icon: Icons.sync,
-        label: 'Syncing...',
-      ),
+      icon: Icons.sync,
+      label: 'Syncing...',
+    ),
     SyncStatus.error => StatusDisplay(
-        icon: Icons.cloud_off_outlined,
-        label: 'Sync error',
-      ),
+      icon: Icons.cloud_off_outlined,
+      label: 'Sync error',
+    ),
     SyncStatus.offline => StatusDisplay(
-        icon: Icons.signal_wifi_off_outlined,
-        label: 'Offline',
-      ),
+      icon: Icons.signal_wifi_off_outlined,
+      label: 'Offline',
+    ),
   };
 }
 

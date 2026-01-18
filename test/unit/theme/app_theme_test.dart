@@ -194,7 +194,10 @@ void main() {
       final dark = AppThemeMock.darkTheme;
 
       expect(light.useMaterial3, equals(dark.useMaterial3));
-      expect(light.appBarTheme.centerTitle, equals(dark.appBarTheme.centerTitle));
+      expect(
+        light.appBarTheme.centerTitle,
+        equals(dark.appBarTheme.centerTitle),
+      );
     });
 
     test('light and dark have different brightness', () {

@@ -84,19 +84,49 @@ void main() {
     });
 
     test('handles network error status codes', () {
-      expect(_getErrorMessageForStatusCode(401), equals('Invalid email or password'));
-      expect(_getErrorMessageForStatusCode(400), equals('Invalid request. Please check your input.'));
-      expect(_getErrorMessageForStatusCode(403), equals('Access denied. Please try again.'));
-      expect(_getErrorMessageForStatusCode(404), equals('Service not found. Please try again later.'));
-      expect(_getErrorMessageForStatusCode(500), equals('Server error. Please try again later.'));
-      expect(_getErrorMessageForStatusCode(502), equals('Server is temporarily unavailable. Please try again.'));
-      expect(_getErrorMessageForStatusCode(503), equals('Server is temporarily unavailable. Please try again.'));
-      expect(_getErrorMessageForStatusCode(504), equals('Server is temporarily unavailable. Please try again.'));
+      expect(
+        _getErrorMessageForStatusCode(401),
+        equals('Invalid email or password'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(400),
+        equals('Invalid request. Please check your input.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(403),
+        equals('Access denied. Please try again.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(404),
+        equals('Service not found. Please try again later.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(500),
+        equals('Server error. Please try again later.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(502),
+        equals('Server is temporarily unavailable. Please try again.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(503),
+        equals('Server is temporarily unavailable. Please try again.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(504),
+        equals('Server is temporarily unavailable. Please try again.'),
+      );
     });
 
     test('returns generic message for unknown status', () {
-      expect(_getErrorMessageForStatusCode(418), equals('An error occurred. Please try again.'));
-      expect(_getErrorMessageForStatusCode(null), equals('An error occurred. Please try again.'));
+      expect(
+        _getErrorMessageForStatusCode(418),
+        equals('An error occurred. Please try again.'),
+      );
+      expect(
+        _getErrorMessageForStatusCode(null),
+        equals('An error occurred. Please try again.'),
+      );
     });
   });
 
@@ -364,9 +394,9 @@ sealed class AuthState {
   bool get isLoading => this is AuthStateLoading;
   bool get isAuthenticated => this is AuthStateAuthenticated;
   MockUserModel? get user => switch (this) {
-        AuthStateAuthenticated(:final user) => user,
-        _ => null,
-      };
+    AuthStateAuthenticated(:final user) => user,
+    _ => null,
+  };
 }
 
 class AuthStateInitial extends AuthState {

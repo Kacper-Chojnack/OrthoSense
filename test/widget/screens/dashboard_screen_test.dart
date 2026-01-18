@@ -264,9 +264,14 @@ void main() {
 int _calculateStreak(List<DateTime> sessionDates) {
   if (sessionDates.isEmpty) return 0;
 
-  final sortedDates = sessionDates.map(
-    (d) => DateTime(d.year, d.month, d.day),
-  ).toSet().toList()..sort((a, b) => b.compareTo(a));
+  final sortedDates =
+      sessionDates
+          .map(
+            (d) => DateTime(d.year, d.month, d.day),
+          )
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a));
 
   if (sortedDates.isEmpty) return 0;
 

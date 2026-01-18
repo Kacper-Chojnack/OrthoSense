@@ -161,18 +161,24 @@ void main() {
 
     setUp(() {
       testFrames = [
-        PoseFrame(landmarks: [
-          const PoseLandmark(x: 0.1, y: 0.1, z: 0.0),
-          const PoseLandmark(x: 0.2, y: 0.2, z: 0.0),
-        ]),
-        PoseFrame(landmarks: [
-          const PoseLandmark(x: 0.3, y: 0.3, z: 0.0),
-          const PoseLandmark(x: 0.4, y: 0.4, z: 0.0),
-        ]),
-        PoseFrame(landmarks: [
-          const PoseLandmark(x: 0.5, y: 0.5, z: 0.0),
-          const PoseLandmark(x: 0.6, y: 0.6, z: 0.0),
-        ]),
+        PoseFrame(
+          landmarks: [
+            const PoseLandmark(x: 0.1, y: 0.1, z: 0.0),
+            const PoseLandmark(x: 0.2, y: 0.2, z: 0.0),
+          ],
+        ),
+        PoseFrame(
+          landmarks: [
+            const PoseLandmark(x: 0.3, y: 0.3, z: 0.0),
+            const PoseLandmark(x: 0.4, y: 0.4, z: 0.0),
+          ],
+        ),
+        PoseFrame(
+          landmarks: [
+            const PoseLandmark(x: 0.5, y: 0.5, z: 0.0),
+            const PoseLandmark(x: 0.6, y: 0.6, z: 0.0),
+          ],
+        ),
       ];
     });
 
@@ -419,11 +425,11 @@ class PoseLandmark {
   }
 
   Map<String, dynamic> toJson() => {
-        'x': x,
-        'y': y,
-        'z': z,
-        'visibility': visibility,
-      };
+    'x': x,
+    'y': y,
+    'z': z,
+    'visibility': visibility,
+  };
 
   factory PoseLandmark.fromJson(Map<String, dynamic> json) {
     return PoseLandmark(
@@ -453,8 +459,8 @@ class PoseFrame {
   }
 
   Map<String, dynamic> toJson() => {
-        'landmarks': landmarks.map((l) => l.toJson()).toList(),
-      };
+    'landmarks': landmarks.map((l) => l.toJson()).toList(),
+  };
 
   factory PoseFrame.fromJson(Map<String, dynamic> json) {
     return PoseFrame(
@@ -493,9 +499,9 @@ class PoseLandmarks {
   bool get isNotEmpty => frames.isNotEmpty;
 
   Map<String, dynamic> toJson() => {
-        'frames': frames.map((f) => f.toJson()).toList(),
-        'fps': fps,
-      };
+    'frames': frames.map((f) => f.toJson()).toList(),
+    'fps': fps,
+  };
 
   factory PoseLandmarks.fromJson(Map<String, dynamic> json) {
     return PoseLandmarks(
@@ -513,21 +519,21 @@ double _calculateAngle(PoseLandmark p1, PoseLandmark p2, PoseLandmark p3) {
   // Vector from p2 to p1
   final v1x = p1.x - p2.x;
   final v1y = p1.y - p2.y;
-  
+
   // Vector from p2 to p3
   final v2x = p3.x - p2.x;
   final v2y = p3.y - p2.y;
-  
+
   // Dot product and magnitudes
   final dotProduct = v1x * v2x + v1y * v2y;
   final mag1 = math.sqrt(v1x * v1x + v1y * v1y);
   final mag2 = math.sqrt(v2x * v2x + v2y * v2y);
-  
+
   // Calculate angle in radians, then convert to degrees
   final cosAngle = dotProduct / (mag1 * mag2);
   final clampedCos = cosAngle.clamp(-1.0, 1.0);
   final angleRad = math.acos(clampedCos);
-  
+
   return angleRad * 180 / math.pi;
 }
 

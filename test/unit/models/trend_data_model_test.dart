@@ -267,7 +267,10 @@ void main() {
       expect(stats.averageScore, equals(85.5));
       expect(stats.scoreChange, equals(2.5));
       expect(stats.activeStreakDays, equals(7));
-      expect(stats.totalTimeThisMonth, equals(const Duration(hours: 10, minutes: 30)));
+      expect(
+        stats.totalTimeThisMonth,
+        equals(const Duration(hours: 10, minutes: 30)),
+      );
       expect(stats.completionRate, equals(92.5));
     });
 
@@ -281,11 +284,11 @@ void main() {
   group('Date label formatting logic', () {
     test('days7 format uses weekday names', () {
       const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      
+
       // Monday
       final monday = DateTime(2024, 1, 15); // Monday
       expect(weekdays[monday.weekday - 1], equals('Mon'));
-      
+
       // Sunday
       final sunday = DateTime(2024, 1, 21); // Sunday
       expect(weekdays[sunday.weekday - 1], equals('Sun'));
@@ -294,14 +297,14 @@ void main() {
     test('days30 format uses day/month', () {
       final date = DateTime(2024, 3, 15);
       final label = '${date.day}/${date.month}';
-      
+
       expect(label, equals('15/3'));
     });
 
     test('days90 format uses day/month', () {
       final date = DateTime(2024, 12, 25);
       final label = '${date.day}/${date.month}';
-      
+
       expect(label, equals('25/12'));
     });
   });
@@ -311,35 +314,35 @@ void main() {
       // Based on _extractMetricValue in trend_provider
       const score = 75;
       final value = score.toDouble();
-      
+
       expect(value, equals(75.0));
     });
 
     test('sessionScore directly uses score', () {
       const score = 85;
       final value = score.toDouble();
-      
+
       expect(value, equals(85.0));
     });
 
     test('exerciseDuration converts seconds to minutes', () {
       const durationSeconds = 180;
       final value = durationSeconds / 60.0;
-      
+
       expect(value, equals(3.0)); // 3 minutes
     });
 
     test('completionRate uses isCorrect boolean', () {
       const isCorrect = true;
       final value = isCorrect ? 100.0 : 0.0;
-      
+
       expect(value, equals(100.0));
     });
 
     test('completionRate returns 0 for incorrect', () {
       const isCorrect = false;
       final value = isCorrect ? 100.0 : 0.0;
-      
+
       expect(value, equals(0.0));
     });
   });
@@ -348,7 +351,7 @@ void main() {
     test('rangeOfMotion bounds are 0-180', () {
       const minValue = 0.0;
       const maxValue = 180.0;
-      
+
       expect(minValue, equals(0.0));
       expect(maxValue, equals(180.0));
     });
@@ -356,7 +359,7 @@ void main() {
     test('sessionScore bounds are 0-100', () {
       const minValue = 0.0;
       const maxValue = 100.0;
-      
+
       expect(minValue, equals(0.0));
       expect(maxValue, equals(100.0));
     });
@@ -364,7 +367,7 @@ void main() {
     test('exerciseDuration bounds are 0-60', () {
       const minValue = 0.0;
       const maxValue = 60.0;
-      
+
       expect(minValue, equals(0.0));
       expect(maxValue, equals(60.0));
     });
@@ -372,7 +375,7 @@ void main() {
     test('completionRate bounds are 0-100', () {
       const minValue = 0.0;
       const maxValue = 100.0;
-      
+
       expect(minValue, equals(0.0));
       expect(maxValue, equals(100.0));
     });
@@ -380,7 +383,7 @@ void main() {
     test('painLevel bounds are 0-10', () {
       const minValue = 0.0;
       const maxValue = 10.0;
-      
+
       expect(minValue, equals(0.0));
       expect(maxValue, equals(10.0));
     });
@@ -388,7 +391,7 @@ void main() {
     test('value clamping works correctly', () {
       const minValue = 0.0;
       const maxValue = 100.0;
-      
+
       expect((-5.0).clamp(minValue, maxValue), equals(0.0));
       expect((50.0).clamp(minValue, maxValue), equals(50.0));
       expect((150.0).clamp(minValue, maxValue), equals(100.0));
@@ -399,7 +402,7 @@ void main() {
     test('no sessions returns 0 streak', () {
       const results = <DateTime>[];
       final streak = results.isEmpty ? 0 : 1;
-      
+
       expect(streak, equals(0));
     });
 
@@ -410,7 +413,7 @@ void main() {
         DateTime(2024, 1, 14), // Day 2
         DateTime(2024, 1, 13), // Day 3
       ];
-      
+
       int streak = 1;
       for (int i = 0; i < sessionDates.length - 1; i++) {
         final diff = sessionDates[i].difference(sessionDates[i + 1]).inDays;
@@ -420,7 +423,7 @@ void main() {
           break;
         }
       }
-      
+
       expect(streak, equals(3));
     });
 
@@ -431,7 +434,7 @@ void main() {
         DateTime(2024, 1, 12), // Gap!
         DateTime(2024, 1, 11),
       ];
-      
+
       int streak = 1;
       for (int i = 0; i < sessionDates.length - 1; i++) {
         final diff = sessionDates[i].difference(sessionDates[i + 1]).inDays;
@@ -441,7 +444,7 @@ void main() {
           break;
         }
       }
-      
+
       expect(streak, equals(2)); // Only first two days
     });
   });
@@ -450,14 +453,14 @@ void main() {
     test('average calculation', () {
       final values = [80.0, 85.0, 90.0, 95.0, 100.0];
       final average = values.reduce((a, b) => a + b) / values.length;
-      
+
       expect(average, equals(90.0));
     });
 
     test('average with single value', () {
       final values = [75.0];
       final average = values.reduce((a, b) => a + b) / values.length;
-      
+
       expect(average, equals(75.0));
     });
 
@@ -465,11 +468,11 @@ void main() {
       final values = [60.0, 65.0, 70.0, 80.0, 85.0, 90.0];
       final firstHalf = values.take(values.length ~/ 2).toList();
       final secondHalf = values.skip(values.length ~/ 2).toList();
-      
+
       final firstAvg = firstHalf.reduce((a, b) => a + b) / firstHalf.length;
       final secondAvg = secondHalf.reduce((a, b) => a + b) / secondHalf.length;
       final change = secondAvg - firstAvg;
-      
+
       expect(firstAvg, equals(65.0));
       expect(secondAvg, equals(85.0));
       expect(change, equals(20.0));
@@ -479,11 +482,11 @@ void main() {
       final values = [90.0, 85.0, 80.0, 70.0, 65.0, 60.0];
       final firstHalf = values.take(values.length ~/ 2).toList();
       final secondHalf = values.skip(values.length ~/ 2).toList();
-      
+
       final firstAvg = firstHalf.reduce((a, b) => a + b) / firstHalf.length;
       final secondAvg = secondHalf.reduce((a, b) => a + b) / secondHalf.length;
       final change = secondAvg - firstAvg;
-      
+
       expect(change, lessThan(0));
     });
   });

@@ -193,7 +193,7 @@ void main() {
 
     test('saveThemeMode uses correct string values', () {
       final conversions = <ThemeMode, String>{};
-      
+
       for (final mode in ThemeMode.values) {
         final value = switch (mode) {
           ThemeMode.light => 'light',
@@ -212,14 +212,14 @@ void main() {
   group('Edge cases', () {
     test('handles case sensitivity in theme values', () {
       const values = ['LIGHT', 'Light', 'lIgHt', 'light'];
-      
+
       for (final value in values) {
         final mode = switch (value.toLowerCase()) {
           'light' => ThemeMode.light,
           'dark' => ThemeMode.dark,
           _ => ThemeMode.system,
         };
-        
+
         if (value.toLowerCase() == 'light') {
           expect(mode, equals(ThemeMode.light));
         }

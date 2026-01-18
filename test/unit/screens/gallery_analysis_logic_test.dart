@@ -379,8 +379,7 @@ Recommendations:
         isAnalyzing: false,
       );
 
-      final canAnalyze =
-          state.selectedVideo != null && !state.isAnalyzing;
+      final canAnalyze = state.selectedVideo != null && !state.isAnalyzing;
 
       expect(canAnalyze, isTrue);
     });
@@ -391,8 +390,7 @@ Recommendations:
         isAnalyzing: true,
       );
 
-      final canAnalyze =
-          state.selectedVideo != null && !state.isAnalyzing;
+      final canAnalyze = state.selectedVideo != null && !state.isAnalyzing;
 
       expect(canAnalyze, isFalse);
     });

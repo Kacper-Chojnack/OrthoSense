@@ -52,8 +52,7 @@ void main() {
         const disclaimerAccepted = true;
         const privacyPolicyAccepted = false;
 
-        final showsPrivacyPolicy =
-            disclaimerAccepted && !privacyPolicyAccepted;
+        final showsPrivacyPolicy = disclaimerAccepted && !privacyPolicyAccepted;
 
         expect(showsPrivacyPolicy, isTrue);
       });
@@ -63,7 +62,8 @@ void main() {
         const privacyPolicyAccepted = true;
         const biometricConsentAccepted = false;
 
-        final showsBiometricConsent = disclaimerAccepted &&
+        final showsBiometricConsent =
+            disclaimerAccepted &&
             privacyPolicyAccepted &&
             !biometricConsentAccepted;
 
@@ -76,7 +76,8 @@ void main() {
         const biometricConsentAccepted = true;
         const voiceSelected = false;
 
-        final showsVoiceSelection = disclaimerAccepted &&
+        final showsVoiceSelection =
+            disclaimerAccepted &&
             privacyPolicyAccepted &&
             biometricConsentAccepted &&
             !voiceSelected;
@@ -90,7 +91,8 @@ void main() {
         const biometricConsentAccepted = true;
         const voiceSelected = true;
 
-        final showsChild = disclaimerAccepted &&
+        final showsChild =
+            disclaimerAccepted &&
             privacyPolicyAccepted &&
             biometricConsentAccepted &&
             voiceSelected;
@@ -222,7 +224,8 @@ void main() {
       String getNextScreen(Map<String, bool> status) {
         if (!status['disclaimerAccepted']!) return 'DisclaimerScreen';
         if (!status['privacyPolicyAccepted']!) return 'PrivacyPolicyScreen';
-        if (!status['biometricConsentAccepted']!) return 'BiometricConsentScreen';
+        if (!status['biometricConsentAccepted']!)
+          return 'BiometricConsentScreen';
         if (!status['voiceSelected']!) return 'VoiceSelectionScreen';
         return 'child';
       }

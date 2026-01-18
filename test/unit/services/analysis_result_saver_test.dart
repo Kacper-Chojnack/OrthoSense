@@ -35,8 +35,11 @@ void main() {
 
       test('should add timestamp', () async {
         final timestamp = DateTime.now();
-        
-        expect(timestamp.isBefore(DateTime.now().add(const Duration(seconds: 1))), isTrue);
+
+        expect(
+          timestamp.isBefore(DateTime.now().add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
 
       test('should set synced to false initially', () async {
@@ -171,9 +174,7 @@ void main() {
         {'type': 'warning', 'message': 'Watch knee position'},
       ];
 
-      final feedback = diagnostics
-          .map((d) => d['message'] as String)
-          .toList();
+      final feedback = diagnostics.map((d) => d['message'] as String).toList();
 
       expect(feedback.length, equals(2));
     });

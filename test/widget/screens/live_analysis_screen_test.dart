@@ -23,8 +23,13 @@ import 'package:orthosense/core/services/tts_service.dart';
 import 'package:orthosense/features/exercise/presentation/screens/live_analysis_screen.dart';
 
 class MockPoseDetectionService extends Mock implements PoseDetectionService {}
-class MockExerciseClassifierService extends Mock implements ExerciseClassifierService {}
-class MockMovementDiagnosticsService extends Mock implements MovementDiagnosticsService {}
+
+class MockExerciseClassifierService extends Mock
+    implements ExerciseClassifierService {}
+
+class MockMovementDiagnosticsService extends Mock
+    implements MovementDiagnosticsService {}
+
 class MockTtsService extends Mock implements TtsService {}
 
 void main() {
@@ -81,7 +86,10 @@ void main() {
       expect(AnalysisPhase.values, contains(AnalysisPhase.idle));
       expect(AnalysisPhase.values, contains(AnalysisPhase.countdown));
       expect(AnalysisPhase.values, contains(AnalysisPhase.setup));
-      expect(AnalysisPhase.values, contains(AnalysisPhase.calibrationClassification));
+      expect(
+        AnalysisPhase.values,
+        contains(AnalysisPhase.calibrationClassification),
+      );
       expect(AnalysisPhase.values, contains(AnalysisPhase.calibrationVariant));
       expect(AnalysisPhase.values, contains(AnalysisPhase.analyzing));
       expect(AnalysisPhase.values, contains(AnalysisPhase.completed));
@@ -142,7 +150,7 @@ void main() {
   group('Error Count Tracking', () {
     test('error counts accumulate correctly', () {
       final errorCounts = <String, int>{};
-      
+
       void addError(String error) {
         errorCounts[error] = (errorCounts[error] ?? 0) + 1;
       }
@@ -159,7 +167,7 @@ void main() {
       const totalFrames = 100;
       const correctFrames = 75;
       final ratio = correctFrames / totalFrames;
-      
+
       expect(ratio, equals(0.75));
       expect(ratio > 0.7, isTrue); // Session would be marked correct
     });
@@ -168,7 +176,7 @@ void main() {
   group('Calibration', () {
     test('calibration votes collect exercise guesses', () {
       final votes = <String>['Deep Squat', 'Deep Squat', 'Hurdle Step'];
-      
+
       // Count votes
       final counts = <String, int>{};
       for (final vote in votes) {
@@ -240,14 +248,14 @@ void main() {
     test('feedback scale animation range', () {
       const beginValue = 0.8;
       const endValue = 1.0;
-      
+
       expect(endValue - beginValue, closeTo(0.2, 0.0001));
     });
 
     test('pulse animation range', () {
       const beginValue = 1.0;
       const endValue = 1.05;
-      
+
       expect(endValue - beginValue, closeTo(0.05, 0.0001));
     });
   });

@@ -177,9 +177,10 @@ void main() {
     test('decodes JWT expiry claim', () {
       // Mock JWT payload with exp claim
       final payload = {
-        'exp': DateTime.now()
-            .add(const Duration(hours: 1))
-            .millisecondsSinceEpoch ~/
+        'exp':
+            DateTime.now()
+                .add(const Duration(hours: 1))
+                .millisecondsSinceEpoch ~/
             1000,
       };
 
@@ -194,9 +195,10 @@ void main() {
     test('expired JWT is detected', () {
       // Mock JWT payload with expired exp claim
       final payload = {
-        'exp': DateTime.now()
-            .subtract(const Duration(hours: 1))
-            .millisecondsSinceEpoch ~/
+        'exp':
+            DateTime.now()
+                .subtract(const Duration(hours: 1))
+                .millisecondsSinceEpoch ~/
             1000,
       };
 

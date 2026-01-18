@@ -201,7 +201,7 @@ void main() {
         for (var i = 0; i < 6; i++) {
           await syncQueue.markFailed('test-1', 'Error');
         }
-        
+
         // Now mark as completed
         await syncQueue.markCompleted('test-1');
         expect(syncQueue.failedCount, equals(0));
@@ -235,7 +235,7 @@ void main() {
         );
 
         await syncQueue.enqueue(item);
-        
+
         // Fail enough times to exceed max retries (default 5)
         for (var i = 0; i < 6; i++) {
           await syncQueue.markFailed('test-1', 'Error $i', maxRetries: 5);
@@ -290,14 +290,14 @@ void main() {
         );
 
         await syncQueue.enqueue(item);
-        
+
         // Force into failed queue
         for (var i = 0; i < 6; i++) {
           await syncQueue.markFailed('test-1', 'Error', maxRetries: 5);
         }
-        
+
         expect(syncQueue.failedCount, equals(1));
-        
+
         await syncQueue.retryFailed();
         expect(syncQueue.failedCount, equals(0));
         expect(syncQueue.pendingCount, equals(1));
@@ -370,11 +370,11 @@ void main() {
         );
 
         await syncQueue.enqueue(item);
-        
+
         // Create new queue instance with same prefs
         final newQueue = SyncQueue(prefs);
         await newQueue.load();
-        
+
         expect(newQueue.pendingCount, equals(1));
         expect(newQueue.peek()?.id, equals('persisted-1'));
       });

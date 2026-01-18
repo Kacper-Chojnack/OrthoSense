@@ -227,9 +227,7 @@ void main() {
       });
 
       test('creates timestamp-based filename', () {
-        final timestamp = DateTime.now()
-            .toIso8601String()
-            .replaceAll(':', '-');
+        final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
         final filename = 'orthosense_data_$timestamp.json';
 
         expect(filename, startsWith('orthosense_data_'));

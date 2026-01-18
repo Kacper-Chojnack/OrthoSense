@@ -205,13 +205,11 @@ void main() {
       expect(idx0, equals(0));
 
       // Middle frame
-      final idxMid =
-          ((30 * (T - 1)) / (modelSequenceLength - 1)).round();
+      final idxMid = ((30 * (T - 1)) / (modelSequenceLength - 1)).round();
       expect(idxMid, closeTo(60, 1));
 
       // Last frame
-      final idxLast =
-          ((59 * (T - 1)) / (modelSequenceLength - 1)).round();
+      final idxLast = ((59 * (T - 1)) / (modelSequenceLength - 1)).round();
       expect(idxLast, closeTo(119, 1));
     });
   });
@@ -250,8 +248,9 @@ void main() {
       ];
 
       const threshold = 0.6;
-      final highConfidence =
-          confidences.where((c) => c.confidence >= threshold).toList();
+      final highConfidence = confidences
+          .where((c) => c.confidence >= threshold)
+          .toList();
 
       expect(highConfidence.length, equals(1));
       expect(highConfidence.first.exercise, equals('B'));

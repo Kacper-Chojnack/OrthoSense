@@ -17,7 +17,7 @@ void main() {
     setUp(() {
       mockQueue = MockSyncQueue();
       mockConnectivity = MockConnectivityService();
-      
+
       container = ProviderContainer(
         overrides: [],
       );
@@ -46,7 +46,7 @@ void main() {
 
       test('should track connectivity state', () {
         when(() => mockConnectivity.isOnline).thenReturn(true);
-        
+
         expect(mockConnectivity.isOnline, isTrue);
       });
     });
@@ -89,13 +89,14 @@ void main() {
     group('isOnlineProvider', () {
       test('should reflect connectivity state', () {
         when(() => mockConnectivity.isOnline).thenReturn(true);
-        
+
         expect(mockConnectivity.isOnline, isTrue);
       });
 
       test('should update on connectivity change', () {
-        when(() => mockConnectivity.onConnectivityChanged)
-            .thenAnswer((_) => Stream.fromIterable([true, false, true]));
+        when(
+          () => mockConnectivity.onConnectivityChanged,
+        ).thenAnswer((_) => Stream.fromIterable([true, false, true]));
 
         final stream = mockConnectivity.onConnectivityChanged;
         expect(stream, isNotNull);
@@ -128,7 +129,10 @@ void main() {
 
       test('should update after sync', () {
         final lastSync = DateTime.now();
-        expect(lastSync.isBefore(DateTime.now().add(const Duration(seconds: 1))), isTrue);
+        expect(
+          lastSync.isBefore(DateTime.now().add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
     });
 

@@ -18,16 +18,16 @@ import 'package:orthosense/core/database/app_database.dart';
 import 'package:orthosense/core/database/repositories/exercise_results_repository.dart';
 import 'package:orthosense/features/dashboard/presentation/screens/activity_log_screen.dart';
 
-class MockExerciseResultsRepository extends Mock implements ExerciseResultsRepository {}
+class MockExerciseResultsRepository extends Mock
+    implements ExerciseResultsRepository {}
 
 void main() {
   late MockExerciseResultsRepository mockRepository;
 
   setUp(() {
     mockRepository = MockExerciseResultsRepository();
-    
-    when(() => mockRepository.watchAll())
-        .thenAnswer((_) => Stream.value([]));
+
+    when(() => mockRepository.watchAll()).thenAnswer((_) => Stream.value([]));
   });
 
   Widget createTestWidget() {
@@ -91,7 +91,7 @@ void main() {
 
       final thisWeekChip = find.text('This Week');
       expect(thisWeekChip, findsOneWidget);
-      
+
       await tester.tap(thisWeekChip);
       await tester.pump();
     });
@@ -101,14 +101,14 @@ void main() {
     test('thisWeek filter calculates correct date range', () {
       final now = DateTime.now();
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      
+
       expect(startOfWeek.isBefore(now), isTrue);
     });
 
     test('thisMonth filter calculates correct date range', () {
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
-      
+
       expect(startOfMonth.isBefore(now), isTrue);
       expect(startOfMonth.month, equals(now.month));
     });
@@ -116,15 +116,14 @@ void main() {
     test('pendingSync filter checks syncStatus', () {
       const pendingSyncStatus = 'pending';
       const syncedStatus = 'synced';
-      
+
       expect(pendingSyncStatus, isNot(equals(syncedStatus)));
     });
   });
 
   group('Empty State', () {
     testWidgets('shows empty state when no data', (tester) async {
-      when(() => mockRepository.watchAll())
-          .thenAnswer((_) => Stream.value([]));
+      when(() => mockRepository.watchAll()).thenAnswer((_) => Stream.value([]));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
@@ -147,7 +146,7 @@ void main() {
   group('Export Options', () {
     test('export types are available', () {
       const exportTypes = ['pdf', 'csv', 'share'];
-      
+
       expect(exportTypes, contains('pdf'));
       expect(exportTypes, contains('csv'));
       expect(exportTypes, contains('share'));
@@ -226,15 +225,16 @@ void main() {
     testWidgets('shows loading indicator', (tester) async {
       // Use a completer instead of Future.delayed to avoid pending timers
       final completer = Completer<List<ExerciseResult>>();
-      
-      when(() => mockRepository.watchAll())
-          .thenAnswer((_) => Stream.fromFuture(completer.future));
+
+      when(
+        () => mockRepository.watchAll(),
+      ).thenAnswer((_) => Stream.fromFuture(completer.future));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Complete the future to clean up
       completer.complete([]);
       await tester.pumpAndSettle();
@@ -243,8 +243,9 @@ void main() {
 
   group('Error State', () {
     testWidgets('shows error state on failure', (tester) async {
-      when(() => mockRepository.watchAll())
-          .thenAnswer((_) => Stream.error(Exception('Database error')));
+      when(
+        () => mockRepository.watchAll(),
+      ).thenAnswer((_) => Stream.error(Exception('Database error')));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
@@ -253,8 +254,9 @@ void main() {
     });
 
     testWidgets('has retry button on error', (tester) async {
-      when(() => mockRepository.watchAll())
-          .thenAnswer((_) => Stream.error(Exception('Database error')));
+      when(
+        () => mockRepository.watchAll(),
+      ).thenAnswer((_) => Stream.error(Exception('Database error')));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();

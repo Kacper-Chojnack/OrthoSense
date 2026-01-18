@@ -57,7 +57,9 @@ void main() {
 
     test('handles empty results', () {
       final scores = <int>[];
-      final average = scores.isEmpty ? 0.0 : scores.reduce((a, b) => a + b) / scores.length;
+      final average = scores.isEmpty
+          ? 0.0
+          : scores.reduce((a, b) => a + b) / scores.length;
 
       expect(average, equals(0.0));
     });
@@ -82,7 +84,9 @@ void main() {
         MockExerciseResult(performedAt: now.subtract(const Duration(days: 10))),
       ];
 
-      final thisWeek = sessions.where((s) => s.performedAt.isAfter(weekAgo)).length;
+      final thisWeek = sessions
+          .where((s) => s.performedAt.isAfter(weekAgo))
+          .length;
 
       expect(thisWeek, equals(2));
     });
@@ -119,7 +123,11 @@ void main() {
       for (var i = 0; i < 30; i++) {
         final checkDate = currentDay.subtract(Duration(days: i));
         final hasSession = sessions.any((s) {
-          final sessionDate = DateTime(s.performedAt.year, s.performedAt.month, s.performedAt.day);
+          final sessionDate = DateTime(
+            s.performedAt.year,
+            s.performedAt.month,
+            s.performedAt.day,
+          );
           return sessionDate == checkDate;
         });
 
@@ -141,7 +149,11 @@ void main() {
 
       final today = DateTime(now.year, now.month, now.day);
       final hasSessionToday = sessions.any((s) {
-        final date = DateTime(s.performedAt.year, s.performedAt.month, s.performedAt.day);
+        final date = DateTime(
+          s.performedAt.year,
+          s.performedAt.month,
+          s.performedAt.day,
+        );
         return date == today;
       });
 
@@ -158,7 +170,11 @@ void main() {
 
       final today = DateTime(now.year, now.month, now.day);
       final sessionsToday = sessions.where((s) {
-        final date = DateTime(s.performedAt.year, s.performedAt.month, s.performedAt.day);
+        final date = DateTime(
+          s.performedAt.year,
+          s.performedAt.month,
+          s.performedAt.day,
+        );
         return date == today;
       });
 
@@ -226,12 +242,19 @@ void main() {
       final results = [
         MockExerciseResult(performedAt: now, score: 80),
         MockExerciseResult(performedAt: now, score: 85),
-        MockExerciseResult(performedAt: now.subtract(const Duration(days: 1)), score: 90),
+        MockExerciseResult(
+          performedAt: now.subtract(const Duration(days: 1)),
+          score: 90,
+        ),
       ];
 
       final grouped = <DateTime, List<MockExerciseResult>>{};
       for (final result in results) {
-        final date = DateTime(result.performedAt.year, result.performedAt.month, result.performedAt.day);
+        final date = DateTime(
+          result.performedAt.year,
+          result.performedAt.month,
+          result.performedAt.day,
+        );
         grouped.putIfAbsent(date, () => []).add(result);
       }
 
@@ -245,7 +268,9 @@ void main() {
         MockExerciseResult(score: 90),
       ];
 
-      final average = dayResults.map((r) => r.score).reduce((a, b) => a + b) / dayResults.length;
+      final average =
+          dayResults.map((r) => r.score).reduce((a, b) => a + b) /
+          dayResults.length;
 
       expect(average, equals(85.0));
     });

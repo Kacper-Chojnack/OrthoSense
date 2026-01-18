@@ -170,7 +170,10 @@ void main() {
         ),
       );
 
-      expect(find.text('No English voices found on this device.'), findsOneWidget);
+      expect(
+        find.text('No English voices found on this device.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows voice list', (tester) async {

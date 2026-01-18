@@ -38,15 +38,18 @@ void main() {
       expect(() => token.throwIfCancelled(), returnsNormally);
     });
 
-    test('throwIfCancelled throws PoseAnalysisCancelledException when cancelled', () {
-      final token = PoseAnalysisCancellationToken();
-      token.cancel();
+    test(
+      'throwIfCancelled throws PoseAnalysisCancelledException when cancelled',
+      () {
+        final token = PoseAnalysisCancellationToken();
+        token.cancel();
 
-      expect(
-        () => token.throwIfCancelled(),
-        throwsA(isA<PoseAnalysisCancelledException>()),
-      );
-    });
+        expect(
+          () => token.throwIfCancelled(),
+          throwsA(isA<PoseAnalysisCancelledException>()),
+        );
+      },
+    );
   });
 
   group('PoseAnalysisCancelledException', () {

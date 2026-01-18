@@ -368,7 +368,8 @@ class NotificationSchedule {
     return NotificationSchedule(
       hour: json['hour'] as int? ?? 9,
       minute: json['minute'] as int? ?? 0,
-      days: (json['days'] as List<dynamic>?)?.map((e) => e as int).toSet() ??
+      days:
+          (json['days'] as List<dynamic>?)?.map((e) => e as int).toSet() ??
           {1, 3, 5},
     );
   }

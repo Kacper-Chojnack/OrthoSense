@@ -29,7 +29,10 @@ class ExponentialBackoff {
     // Cap attempt to avoid overflow (2^30 is ~1 billion which is more than enough)
     final safeAttempt = attempt.clamp(0, 30);
     final exponentialDelay = baseDelay.inMilliseconds * pow(2, safeAttempt);
-    final cappedDelay = min(exponentialDelay, maxDelay.inMilliseconds.toDouble());
+    final cappedDelay = min(
+      exponentialDelay,
+      maxDelay.inMilliseconds.toDouble(),
+    );
     return Duration(milliseconds: cappedDelay.toInt());
   }
 

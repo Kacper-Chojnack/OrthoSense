@@ -194,7 +194,10 @@ void main() {
 
   group('TrendMetricType', () {
     test('rangeOfMotion properties', () {
-      expect(TrendMetricType.rangeOfMotion.displayName, equals('Range of Motion'));
+      expect(
+        TrendMetricType.rangeOfMotion.displayName,
+        equals('Range of Motion'),
+      );
       expect(TrendMetricType.rangeOfMotion.unit, equals('°'));
       expect(TrendMetricType.rangeOfMotion.maxValue, equals(180));
     });
@@ -206,13 +209,19 @@ void main() {
     });
 
     test('exerciseDuration properties', () {
-      expect(TrendMetricType.exerciseDuration.displayName, equals('Exercise Duration'));
+      expect(
+        TrendMetricType.exerciseDuration.displayName,
+        equals('Exercise Duration'),
+      );
       expect(TrendMetricType.exerciseDuration.unit, equals('min'));
       expect(TrendMetricType.exerciseDuration.maxValue, equals(60));
     });
 
     test('completionRate properties', () {
-      expect(TrendMetricType.completionRate.displayName, equals('Completion Rate'));
+      expect(
+        TrendMetricType.completionRate.displayName,
+        equals('Completion Rate'),
+      );
       expect(TrendMetricType.completionRate.unit, equals('%'));
       expect(TrendMetricType.completionRate.maxValue, equals(100));
     });
@@ -309,7 +318,9 @@ void main() {
     test('handles zero old value in percent change', () {
       const oldValue = 0.0;
       const newValue = 50.0;
-      final change = oldValue == 0 ? double.infinity : ((newValue - oldValue) / oldValue) * 100;
+      final change = oldValue == 0
+          ? double.infinity
+          : ((newValue - oldValue) / oldValue) * 100;
 
       expect(change, equals(double.infinity));
     });

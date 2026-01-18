@@ -186,7 +186,10 @@ void main() {
 
         expect(restored['feedback']['error_type'], equals('knee_valgus'));
         expect(restored['feedback']['count'], equals(3));
-        expect(restored['metadata']['timestamp'], equals('2024-01-15T10:30:00Z'));
+        expect(
+          restored['metadata']['timestamp'],
+          equals('2024-01-15T10:30:00Z'),
+        );
       });
 
       test('fromSql then toSql returns equivalent json', () {

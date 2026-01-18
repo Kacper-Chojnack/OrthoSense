@@ -60,8 +60,9 @@ void main() {
 
         // 1000 * 2^10 = 1024000, but capped at 5000
         final exponentialDelay = baseDelayMs * (1 << attempt);
-        final cappedDelay =
-            exponentialDelay > maxDelayMs ? maxDelayMs : exponentialDelay;
+        final cappedDelay = exponentialDelay > maxDelayMs
+            ? maxDelayMs
+            : exponentialDelay;
 
         expect(cappedDelay, equals(maxDelayMs));
       });
@@ -188,8 +189,9 @@ void main() {
 
         // 1 * 2^30 = 1073741824
         final exponentialDelay = baseDelayMs * (1 << attempt);
-        final cappedDelay =
-            exponentialDelay > maxDelayMs ? maxDelayMs : exponentialDelay;
+        final cappedDelay = exponentialDelay > maxDelayMs
+            ? maxDelayMs
+            : exponentialDelay;
 
         expect(cappedDelay, equals(maxDelayMs));
       });

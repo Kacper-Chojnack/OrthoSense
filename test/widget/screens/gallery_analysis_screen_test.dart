@@ -21,8 +21,12 @@ import 'package:orthosense/core/services/pose_detection_service.dart';
 import 'package:orthosense/features/exercise/presentation/screens/gallery_analysis_screen.dart';
 
 class MockPoseDetectionService extends Mock implements PoseDetectionService {}
-class MockExerciseClassifierService extends Mock implements ExerciseClassifierService {}
-class MockMovementDiagnosticsService extends Mock implements MovementDiagnosticsService {}
+
+class MockExerciseClassifierService extends Mock
+    implements ExerciseClassifierService {}
+
+class MockMovementDiagnosticsService extends Mock
+    implements MovementDiagnosticsService {}
 
 void main() {
   late MockPoseDetectionService mockPoseDetection;
@@ -93,10 +97,10 @@ void main() {
 
     test('analysis run ID increments on new analysis', () {
       var runId = 0;
-      
+
       runId++;
       expect(runId, equals(1));
-      
+
       runId++;
       expect(runId, equals(2));
     });
@@ -105,21 +109,21 @@ void main() {
   group('Cancellation Token', () {
     test('cancel token prevents stale callbacks', () {
       final token = PoseAnalysisCancellationToken();
-      
+
       expect(token.isCancelled, isFalse);
-      
+
       token.cancel();
-      
+
       expect(token.isCancelled, isTrue);
     });
 
     test('new analysis cancels previous token', () {
       var previousToken = PoseAnalysisCancellationToken();
       final newToken = PoseAnalysisCancellationToken();
-      
+
       // Simulate starting new analysis
       previousToken.cancel();
-      
+
       expect(previousToken.isCancelled, isTrue);
       expect(newToken.isCancelled, isFalse);
     });
@@ -130,7 +134,7 @@ void main() {
       final timestamp = DateTime.now().microsecondsSinceEpoch;
       const ext = '.mp4';
       final fileName = 'orthosense_gallery_$timestamp$ext';
-      
+
       expect(fileName, contains('orthosense_gallery_'));
       expect(fileName, endsWith('.mp4'));
     });
@@ -155,9 +159,9 @@ void main() {
 
     test('exercise detection updates result', () {
       var exercise = '';
-      
+
       exercise = 'Deep Squat';
-      
+
       expect(exercise, isNotEmpty);
       expect(exercise, equals('Deep Squat'));
     });
@@ -165,22 +169,24 @@ void main() {
 
   group('Error Handling', () {
     test('no pose detected error message', () {
-      const errorMessage = 'No pose detected in the video or video is too short.';
-      
+      const errorMessage =
+          'No pose detected in the video or video is too short.';
+
       expect(errorMessage, contains('No pose detected'));
     });
 
     test('insufficient visibility error message', () {
-      const errorMessage = 'Insufficient body visibility detected. '
+      const errorMessage =
+          'Insufficient body visibility detected. '
           'Please ensure your full body is visible in the video.';
-      
+
       expect(errorMessage, contains('Insufficient body visibility'));
     });
 
     test('generic analysis failure message', () {
       const error = 'Network timeout';
       final errorMessage = 'Analysis failed: $error';
-      
+
       expect(errorMessage, startsWith('Analysis failed:'));
     });
   });
@@ -189,16 +195,16 @@ void main() {
     test('video controller initialization', () {
       // Test video controller lifecycle
       const isInitialized = false;
-      
+
       expect(isInitialized, isFalse);
     });
 
     test('video disposal on screen exit', () {
       var disposed = false;
-      
+
       // Simulate dispose
       disposed = true;
-      
+
       expect(disposed, isTrue);
     });
   });
@@ -206,18 +212,18 @@ void main() {
   group('Progress Reporting', () {
     test('progress updates correctly during extraction', () {
       var progress = 0.0;
-      
+
       // Simulate progress updates
       for (var i = 1; i <= 10; i++) {
         progress = i / 10;
       }
-      
+
       expect(progress, equals(1.0));
     });
 
     test('progress clamped to valid range', () {
       final progress = 1.5.clamp(0.0, 1.0);
-      
+
       expect(progress, equals(1.0));
     });
   });
@@ -226,11 +232,11 @@ void main() {
     test('selecting video clears previous result', () {
       var result = <String, dynamic>{'exercise': 'Deep Squat'};
       String? error = 'Previous error';
-      
+
       // Simulate video selection
       result = {};
       error = null;
-      
+
       expect(result, isEmpty);
       expect(error, isNull);
     });
@@ -238,11 +244,11 @@ void main() {
     test('analysis completion resets analyzing state', () {
       var isAnalyzing = true;
       var isExtractingLandmarks = true;
-      
+
       // Simulate completion
       isAnalyzing = false;
       isExtractingLandmarks = false;
-      
+
       expect(isAnalyzing, isFalse);
       expect(isExtractingLandmarks, isFalse);
     });

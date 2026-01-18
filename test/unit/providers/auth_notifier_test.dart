@@ -40,8 +40,10 @@ void main() {
         );
 
         expect(state, isA<AuthStateAuthenticated>());
-        expect((state as AuthStateAuthenticated).user.email,
-            equals('test@example.com'));
+        expect(
+          (state as AuthStateAuthenticated).user.email,
+          equals('test@example.com'),
+        );
       });
 
       test('failed login returns unauthenticated state with message', () {
@@ -49,21 +51,26 @@ void main() {
         const state = AuthState.unauthenticated(message: errorMessage);
 
         expect(state, isA<AuthStateUnauthenticated>());
-        expect((state as AuthStateUnauthenticated).message, equals(errorMessage));
+        expect(
+          (state as AuthStateUnauthenticated).message,
+          equals(errorMessage),
+        );
       });
 
       test('validates email format', () {
         const email = 'test@example.com';
-        final isValid = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
-            .hasMatch(email);
+        final isValid = RegExp(
+          r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+        ).hasMatch(email);
 
         expect(isValid, isTrue);
       });
 
       test('rejects invalid email format', () {
         const email = 'invalid-email';
-        final isValid = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
-            .hasMatch(email);
+        final isValid = RegExp(
+          r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+        ).hasMatch(email);
 
         expect(isValid, isFalse);
       });
@@ -83,8 +90,10 @@ void main() {
         const errorMessage = 'Email already registered';
         const state = AuthState.unauthenticated(message: errorMessage);
 
-        expect((state as AuthStateUnauthenticated).message,
-            equals('Email already registered'));
+        expect(
+          (state as AuthStateUnauthenticated).message,
+          equals('Email already registered'),
+        );
       });
     });
 
@@ -169,7 +178,10 @@ void main() {
     test('unauthenticated state with message', () {
       const state = AuthState.unauthenticated(message: 'Error message');
       expect(state, isA<AuthStateUnauthenticated>());
-      expect((state as AuthStateUnauthenticated).message, equals('Error message'));
+      expect(
+        (state as AuthStateUnauthenticated).message,
+        equals('Error message'),
+      );
     });
 
     test('error state', () {
@@ -234,7 +246,7 @@ void main() {
         'detail': [
           {'msg': 'Email is required'},
           {'msg': 'Password is required'},
-        ]
+        ],
       };
       final detail = data['detail'] as List;
       final messages = detail.map((e) => e['msg']).join(', ');

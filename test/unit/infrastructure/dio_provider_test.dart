@@ -192,7 +192,8 @@ void main() {
 
       void getBaseUrl() {
         if (kReleaseMode && productionApiUrl.isEmpty) {
-          errorMessage = 'API_URL not configured. Build with: '
+          errorMessage =
+              'API_URL not configured. Build with: '
               'flutter build apk --dart-define=API_URL=https://your-api.awsapprunner.com';
         }
       }

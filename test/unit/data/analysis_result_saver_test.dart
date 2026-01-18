@@ -27,7 +27,9 @@ void main() {
         final now = DateTime.now();
         const durationSeconds = 120;
 
-        final startTime = now.subtract(const Duration(seconds: durationSeconds));
+        final startTime = now.subtract(
+          const Duration(seconds: durationSeconds),
+        );
         final difference = now.difference(startTime).inSeconds;
 
         expect(difference, equals(durationSeconds));

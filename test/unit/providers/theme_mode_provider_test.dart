@@ -235,19 +235,14 @@ class MockSettingsRepository {
 }
 
 class MockAsyncValue<T> {
-  MockAsyncValue.data(this.value)
-      : isLoading = false,
-        hasError = false;
+  MockAsyncValue.data(this.value) : isLoading = false, hasError = false;
 
-  MockAsyncValue.loading()
-      : value = null,
-        isLoading = true,
-        hasError = false;
+  MockAsyncValue.loading() : value = null, isLoading = true, hasError = false;
 
   MockAsyncValue.error(Object error)
-      : value = null,
-        isLoading = false,
-        hasError = true;
+    : value = null,
+      isLoading = false,
+      hasError = true;
 
   final T? value;
   final bool isLoading;

@@ -133,8 +133,13 @@ void main() {
       });
 
       test('generates timestamped filename', () {
-        final timestamp =
-            DateTime(2024, 1, 15, 10, 30).toIso8601String().replaceAll(':', '-');
+        final timestamp = DateTime(
+          2024,
+          1,
+          15,
+          10,
+          30,
+        ).toIso8601String().replaceAll(':', '-');
         final filename = 'orthosense_data_$timestamp.json';
 
         expect(filename, contains('orthosense_data_'));

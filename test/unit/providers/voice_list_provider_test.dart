@@ -89,7 +89,7 @@ void main() {
           'Allison',
           'Victoria',
           'Karen',
-          'Tessa'
+          'Tessa',
         ];
         expect(iosBestVoices.contains('Ava'), isTrue);
       });
@@ -176,8 +176,7 @@ void main() {
         const isAndroid = false;
 
         // On unknown platform, fallback returns true
-        final shouldInclude =
-            (!isIOS && !isAndroid) || platform == 'unknown';
+        final shouldInclude = (!isIOS && !isAndroid) || platform == 'unknown';
 
         expect(shouldInclude, isTrue);
       });

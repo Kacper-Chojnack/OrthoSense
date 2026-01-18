@@ -155,7 +155,7 @@ void main() {
 
       testWidgets('should show timeout options', (tester) async {
         final timeoutOptions = ['1 minute', '5 minutes', '15 minutes', 'Never'];
-        
+
         expect(timeoutOptions.length, equals(4));
       });
     });

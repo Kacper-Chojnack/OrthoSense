@@ -187,7 +187,9 @@ void main() {
   });
 
   group('ExerciseDemoVideoSheet Widget', () {
-    testWidgets('shows loading indicator before initialization', (tester) async {
+    testWidgets('shows loading indicator before initialization', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

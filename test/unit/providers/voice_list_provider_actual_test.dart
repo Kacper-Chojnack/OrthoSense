@@ -207,7 +207,10 @@ void main() {
       }).toList();
 
       expect(prioritized.length, equals(2));
-      expect(prioritized.map((v) => v['name']), containsAll(['Samantha', 'Alex']));
+      expect(
+        prioritized.map((v) => v['name']),
+        containsAll(['Samantha', 'Alex']),
+      );
     });
 
     test('falls back to all English voices if no best voices found', () {

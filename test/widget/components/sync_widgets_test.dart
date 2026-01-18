@@ -154,7 +154,9 @@ void main() {
   });
 
   group('SyncStatusIndicator Widget', () {
-    testWidgets('shows icon without label when showLabel false', (tester) async {
+    testWidgets('shows icon without label when showLabel false', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -387,25 +389,25 @@ class StatusDisplay {
 StatusDisplay _getStatusDisplay(SyncState state) {
   return switch (state.status) {
     SyncStatus.idle when state.hasPendingItems => StatusDisplay(
-        icon: Icons.cloud_upload_outlined,
-        label: '${state.pendingCount} pending',
-      ),
+      icon: Icons.cloud_upload_outlined,
+      label: '${state.pendingCount} pending',
+    ),
     SyncStatus.idle => StatusDisplay(
-        icon: Icons.cloud_done_outlined,
-        label: 'Synced',
-      ),
+      icon: Icons.cloud_done_outlined,
+      label: 'Synced',
+    ),
     SyncStatus.syncing => StatusDisplay(
-        icon: Icons.sync,
-        label: 'Syncing...',
-      ),
+      icon: Icons.sync,
+      label: 'Syncing...',
+    ),
     SyncStatus.error => StatusDisplay(
-        icon: Icons.cloud_off_outlined,
-        label: 'Sync error',
-      ),
+      icon: Icons.cloud_off_outlined,
+      label: 'Sync error',
+    ),
     SyncStatus.offline => StatusDisplay(
-        icon: Icons.signal_wifi_off_outlined,
-        label: 'Offline',
-      ),
+      icon: Icons.signal_wifi_off_outlined,
+      label: 'Offline',
+    ),
   };
 }
 

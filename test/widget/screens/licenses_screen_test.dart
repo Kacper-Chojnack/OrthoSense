@@ -196,7 +196,7 @@ void main() {
 
       // Find OrthoSense text
       expect(find.text('OrthoSense'), findsWidgets);
-      
+
       // Find the subtitle
       expect(find.text('Digital Health'), findsOneWidget);
     });
@@ -446,8 +446,9 @@ class TestLicensesScreenLoaded extends StatelessWidget {
                       )
                     : null,
               ),
-              subtitle:
-                  license.subtitle != null ? Text(license.subtitle!) : null,
+              subtitle: license.subtitle != null
+                  ? Text(license.subtitle!)
+                  : null,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -472,15 +473,15 @@ class TestLicensesScreenLoaded extends StatelessWidget {
           Text(
             'OrthoSense',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
           ),
           Text(
             'Version 1.0.0',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const Divider(height: 24),
         ],
@@ -520,16 +521,16 @@ class TestLicenseDetailScreen extends StatelessWidget {
               Text(
                 license.subtitle!,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                    ),
+                  color: colorScheme.primary,
+                ),
               ),
             const SizedBox(height: 16),
             SelectableText(
               license.license,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                    height: 1.5,
-                  ),
+                fontFamily: 'monospace',
+                height: 1.5,
+              ),
             ),
           ],
         ),

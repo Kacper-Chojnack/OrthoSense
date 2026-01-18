@@ -49,7 +49,7 @@ void main() {
       test('copyWith status preserves other fields', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(status: AudioPlaybackStatus.playing);
-        
+
         expect(updated.status, equals(AudioPlaybackStatus.playing));
         expect(updated.isMuted, equals(state.isMuted));
         expect(updated.volume, equals(state.volume));
@@ -58,7 +58,7 @@ void main() {
       test('copyWith currentText updates text', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(currentText: 'Test speech');
-        
+
         expect(updated.currentText, equals('Test speech'));
       });
 
@@ -71,7 +71,7 @@ void main() {
           rate: 0.48,
           pitch: 1.0,
         );
-        
+
         final updated = state.copyWith(clearCurrentText: true);
         expect(updated.currentText, isNull);
       });
@@ -79,9 +79,9 @@ void main() {
       test('copyWith isMuted toggles mute', () {
         const state = AudioPlaybackState.initial();
         final muted = state.copyWith(isMuted: true);
-        
+
         expect(muted.isMuted, isTrue);
-        
+
         final unmuted = muted.copyWith(isMuted: false);
         expect(unmuted.isMuted, isFalse);
       });
@@ -89,21 +89,21 @@ void main() {
       test('copyWith volume changes volume', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(volume: 0.5);
-        
+
         expect(updated.volume, equals(0.5));
       });
 
       test('copyWith rate changes rate', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(rate: 0.6);
-        
+
         expect(updated.rate, equals(0.6));
       });
 
       test('copyWith pitch changes pitch', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(pitch: 1.1);
-        
+
         expect(updated.pitch, equals(1.1));
       });
     });
@@ -112,7 +112,7 @@ void main() {
       test('copyWith returns new instance', () {
         const state = AudioPlaybackState.initial();
         final updated = state.copyWith(volume: 0.5);
-        
+
         expect(identical(state, updated), isFalse);
         expect(state.volume, equals(1.0)); // Original unchanged
       });
@@ -138,7 +138,7 @@ void main() {
       // Valid range for setVolume
       const minVolume = 0.0;
       const maxVolume = 1.0;
-      
+
       expect(minVolume, equals(0.0));
       expect(maxVolume, equals(1.0));
     });
@@ -147,7 +147,7 @@ void main() {
       // Valid range for setSpeechRate
       const minRate = 0.2;
       const maxRate = 0.8;
-      
+
       expect(minRate, equals(0.2));
       expect(maxRate, equals(0.8));
     });
@@ -156,7 +156,7 @@ void main() {
       // Valid range for setPitch
       const minPitch = 0.8;
       const maxPitch = 1.2;
-      
+
       expect(minPitch, equals(0.8));
       expect(maxPitch, equals(1.2));
     });
@@ -187,28 +187,28 @@ void main() {
     test('empty string is not enqueued', () {
       const text = '';
       final shouldEnqueue = text.trim().isNotEmpty;
-      
+
       expect(shouldEnqueue, isFalse);
     });
 
     test('whitespace-only string is not enqueued', () {
       const text = '   ';
       final shouldEnqueue = text.trim().isNotEmpty;
-      
+
       expect(shouldEnqueue, isFalse);
     });
 
     test('valid string is enqueued', () {
       const text = 'Test speech';
       final shouldEnqueue = text.trim().isNotEmpty;
-      
+
       expect(shouldEnqueue, isTrue);
     });
 
     test('text is trimmed before enqueuing', () {
       const text = '  Test speech  ';
       final normalized = text.trim();
-      
+
       expect(normalized, equals('Test speech'));
     });
   });
@@ -217,7 +217,7 @@ void main() {
     test('muting when already muted does nothing', () {
       const currentMuted = true;
       const newMuted = true;
-      
+
       final shouldUpdate = newMuted != currentMuted;
       expect(shouldUpdate, isFalse);
     });
@@ -225,7 +225,7 @@ void main() {
     test('unmuting when not muted does nothing', () {
       const currentMuted = false;
       const newMuted = false;
-      
+
       final shouldUpdate = newMuted != currentMuted;
       expect(shouldUpdate, isFalse);
     });
@@ -248,16 +248,16 @@ void main() {
       test('adds text to queue', () {
         final queue = <String>[];
         const text = 'Test';
-        
+
         queue.add(text.trim());
-        
+
         expect(queue, contains('Test'));
       });
 
       test('plays immediately if idle and not muted', () {
         const isSpeaking = false;
         const isMuted = false;
-        
+
         final shouldPlayNow = !isSpeaking && !isMuted;
         expect(shouldPlayNow, isTrue);
       });
@@ -265,7 +265,7 @@ void main() {
       test('queues if already speaking', () {
         const isSpeaking = true;
         const isMuted = false;
-        
+
         final shouldPlayNow = !isSpeaking && !isMuted;
         expect(shouldPlayNow, isFalse);
       });
@@ -273,7 +273,7 @@ void main() {
       test('does not play if muted', () {
         const isSpeaking = false;
         const isMuted = true;
-        
+
         final shouldPlayNow = !isSpeaking && !isMuted;
         expect(shouldPlayNow, isFalse);
       });
@@ -282,10 +282,10 @@ void main() {
     group('speakNow', () {
       test('clears queue before speaking', () {
         final queue = ['previous', 'items'];
-        
+
         queue.clear();
         queue.add('new text');
-        
+
         expect(queue.length, equals(1));
         expect(queue.first, equals('new text'));
       });
@@ -295,18 +295,18 @@ void main() {
       test('can clear queue on stop', () {
         final queue = ['item1', 'item2'];
         const clearQueue = true;
-        
+
         if (clearQueue) queue.clear();
-        
+
         expect(queue, isEmpty);
       });
 
       test('preserves queue without clearQueue', () {
         final queue = ['item1', 'item2'];
         const clearQueue = false;
-        
+
         if (clearQueue) queue.clear();
-        
+
         expect(queue, hasLength(2));
       });
     });
@@ -319,7 +319,7 @@ void main() {
         status: AudioPlaybackStatus.playing,
         currentText: 'Speaking...',
       );
-      
+
       expect(playingState.status, equals(AudioPlaybackStatus.playing));
       expect(playingState.currentText, equals('Speaking...'));
     });
@@ -333,12 +333,12 @@ void main() {
         rate: 0.48,
         pitch: 1.0,
       );
-      
+
       final idleState = playingState.copyWith(
         status: AudioPlaybackStatus.idle,
         clearCurrentText: true,
       );
-      
+
       expect(idleState.status, equals(AudioPlaybackStatus.idle));
       expect(idleState.currentText, isNull);
     });

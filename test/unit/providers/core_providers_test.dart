@@ -24,7 +24,7 @@ void main() {
       void dispose() {
         disposed = true;
       }
-      
+
       dispose();
       expect(disposed, isTrue);
     });
@@ -36,10 +36,10 @@ void main() {
         instanceCount++;
         return Object();
       }
-      
+
       createService();
       createService(); // In reality, provider returns same instance
-      
+
       // For keepAlive providers, there's only one instance
       expect(instanceCount, greaterThan(0));
     });
@@ -131,7 +131,7 @@ void main() {
         cleanupCalled = true;
         callback();
       }
-      
+
       onDispose(() {});
       expect(cleanupCalled, isTrue);
     });

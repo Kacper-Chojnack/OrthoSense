@@ -228,8 +228,9 @@ void main() {
         expect(find.text('Notification Permission'), findsOneWidget);
       });
 
-      testWidgets('should show request permission button if denied',
-          (tester) async {
+      testWidgets('should show request permission button if denied', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           const ProviderScope(
             child: MaterialApp(

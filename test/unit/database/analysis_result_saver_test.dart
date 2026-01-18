@@ -478,7 +478,7 @@ ExerciseStats _calculateStats(List<ExerciseResultData> results) {
   final averageScore = scoresWithValue.isEmpty
       ? 0.0
       : scoresWithValue.map((r) => r.score!).reduce((a, b) => a + b) /
-          scoresWithValue.length;
+            scoresWithValue.length;
 
   final correctCount = results.where((r) => r.isCorrect).length;
   final correctPercentage = (correctCount / results.length) * 100;

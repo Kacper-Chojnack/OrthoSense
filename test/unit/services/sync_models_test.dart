@@ -196,7 +196,10 @@ void main() {
       final json = item.toJson();
       final restored = SyncItem.fromJson(json);
 
-      expect(restored.data['nested']['level1']['level2'], equals(['a', 'b', 'c']));
+      expect(
+        restored.data['nested']['level1']['level2'],
+        equals(['a', 'b', 'c']),
+      );
       expect(restored.data['list'], equals([1, 2, 3]));
       expect(restored.data['boolean'], isTrue);
     });

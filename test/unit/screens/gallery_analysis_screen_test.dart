@@ -83,7 +83,8 @@ void main() {
     group('cancellation', () {
       test('can cancel during loading', () {
         const state = AnalysisUIState.loading;
-        const canCancel = state == AnalysisUIState.loading ||
+        const canCancel =
+            state == AnalysisUIState.loading ||
             state == AnalysisUIState.analyzing;
 
         expect(canCancel, isTrue);
@@ -91,7 +92,8 @@ void main() {
 
       test('can cancel during analysis', () {
         const state = AnalysisUIState.analyzing;
-        const canCancel = state == AnalysisUIState.loading ||
+        const canCancel =
+            state == AnalysisUIState.loading ||
             state == AnalysisUIState.analyzing;
 
         expect(canCancel, isTrue);
@@ -99,7 +101,8 @@ void main() {
 
       test('cannot cancel when idle', () {
         const state = AnalysisUIState.idle;
-        const canCancel = state == AnalysisUIState.loading ||
+        const canCancel =
+            state == AnalysisUIState.loading ||
             state == AnalysisUIState.analyzing;
 
         expect(canCancel, isFalse);
@@ -107,7 +110,8 @@ void main() {
 
       test('cannot cancel when complete', () {
         const state = AnalysisUIState.complete;
-        const canCancel = state == AnalysisUIState.loading ||
+        const canCancel =
+            state == AnalysisUIState.loading ||
             state == AnalysisUIState.analyzing;
 
         expect(canCancel, isFalse);
@@ -324,8 +328,9 @@ void main() {
     test('limits maximum frames', () {
       const maxFrames = 300;
       const extractedFrames = 500;
-      final usedFrames =
-          extractedFrames > maxFrames ? maxFrames : extractedFrames;
+      final usedFrames = extractedFrames > maxFrames
+          ? maxFrames
+          : extractedFrames;
 
       expect(usedFrames, equals(maxFrames));
     });

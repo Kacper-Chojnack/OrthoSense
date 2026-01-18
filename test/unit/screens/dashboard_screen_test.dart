@@ -524,7 +524,8 @@ class StatsGridItem {
 // Helper functions
 
 Map<String, List<RecentSession>> _groupSessionsByDate(
-    List<RecentSession> sessions) {
+  List<RecentSession> sessions,
+) {
   final grouped = <String, List<RecentSession>>{};
 
   for (final session in sessions) {

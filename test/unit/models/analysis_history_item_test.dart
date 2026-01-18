@@ -75,7 +75,10 @@ void main() {
           feedbackText: 'Great form! Keep your back straight.',
         );
 
-        expect(item.feedbackText, equals('Great form! Keep your back straight.'));
+        expect(
+          item.feedbackText,
+          equals('Great form! Keep your back straight.'),
+        );
       });
 
       test('accepts custom feedback map', () {

@@ -181,7 +181,18 @@ void main() {
     });
 
     test('calculates visibility ratio correctly', () {
-      final buffer = [true, true, true, false, true, true, true, true, false, true];
+      final buffer = [
+        true,
+        true,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+      ];
 
       final visibleCount = buffer.where((v) => v).length;
       final ratio = visibleCount / buffer.length;
@@ -426,8 +437,7 @@ void main() {
       final currentTime = lastProcessTime.add(const Duration(milliseconds: 30));
       const interval = Duration(milliseconds: 66);
 
-      final shouldProcess =
-          currentTime.difference(lastProcessTime) >= interval;
+      final shouldProcess = currentTime.difference(lastProcessTime) >= interval;
 
       expect(shouldProcess, isFalse);
     });
@@ -437,8 +447,7 @@ void main() {
       final currentTime = lastProcessTime.add(const Duration(milliseconds: 70));
       const interval = Duration(milliseconds: 66);
 
-      final shouldProcess =
-          currentTime.difference(lastProcessTime) >= interval;
+      final shouldProcess = currentTime.difference(lastProcessTime) >= interval;
 
       expect(shouldProcess, isTrue);
     });
@@ -478,8 +487,7 @@ bool _isValidTransition(AnalysisPhase from, AnalysisPhase to) {
     AnalysisPhase.countdown => to == AnalysisPhase.setup,
     AnalysisPhase.setup => to == AnalysisPhase.calibrationClassification,
     AnalysisPhase.calibrationClassification =>
-      to == AnalysisPhase.calibrationVariant ||
-          to == AnalysisPhase.analyzing,
+      to == AnalysisPhase.calibrationVariant || to == AnalysisPhase.analyzing,
     AnalysisPhase.calibrationVariant => to == AnalysisPhase.analyzing,
     AnalysisPhase.analyzing => to == AnalysisPhase.completed,
     AnalysisPhase.completed => false,

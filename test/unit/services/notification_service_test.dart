@@ -244,7 +244,12 @@ DateTime _nextInstanceOfTime(int hour, int minute, DateTime now) {
   return scheduled;
 }
 
-DateTime _nextInstanceOfWeekday(int weekday, int hour, int minute, DateTime now) {
+DateTime _nextInstanceOfWeekday(
+  int weekday,
+  int hour,
+  int minute,
+  DateTime now,
+) {
   var scheduled = _nextInstanceOfTime(hour, minute, now);
   while (scheduled.weekday != weekday) {
     scheduled = scheduled.add(const Duration(days: 1));
@@ -285,11 +290,13 @@ List<DaySchedule> _createDailySchedules(
   final schedules = <DaySchedule>[];
   for (int i = 0; i < selectedDays.length; i++) {
     if (selectedDays[i]) {
-      schedules.add(DaySchedule(
-        weekday: i + 1, // 1 = Monday
-        hour: hour,
-        minute: minute,
-      ));
+      schedules.add(
+        DaySchedule(
+          weekday: i + 1, // 1 = Monday
+          hour: hour,
+          minute: minute,
+        ),
+      );
     }
   }
   return schedules;

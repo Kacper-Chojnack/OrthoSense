@@ -32,12 +32,13 @@ void main() {
       connectivityController = StreamController<bool>.broadcast();
 
       when(() => mockConnectivity.isOnline).thenReturn(true);
-      when(() => mockConnectivity.onConnectivityChanged)
-          .thenAnswer((_) => connectivityController.stream);
-      when(() => mockSyncService.state)
-          .thenReturn(const SyncState(pendingCount: 0));
-      when(() => mockSyncService.syncPendingItems())
-          .thenAnswer((_) async {});
+      when(
+        () => mockConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => connectivityController.stream);
+      when(
+        () => mockSyncService.state,
+      ).thenReturn(const SyncState(pendingCount: 0));
+      when(() => mockSyncService.syncPendingItems()).thenAnswer((_) async {});
 
       worker = BackgroundSyncWorker(
         syncService: mockSyncService,
@@ -125,19 +126,20 @@ void main() {
 
     group('connectivity sync trigger', () {
       test('syncs when going online with pending items', () async {
-        when(() => mockSyncService.state)
-            .thenReturn(const SyncState(pendingCount: 5));
+        when(
+          () => mockSyncService.state,
+        ).thenReturn(const SyncState(pendingCount: 5));
         when(() => mockConnectivity.isOnline).thenReturn(false);
 
         worker.start();
-        
+
         // Simulate going online
         when(() => mockConnectivity.isOnline).thenReturn(true);
         connectivityController.add(true);
-        
+
         // Wait for debounce
         await Future<void>.delayed(const Duration(milliseconds: 50));
-        
+
         verify(() => mockSyncService.syncPendingItems()).called(greaterThan(0));
       });
     });
@@ -145,26 +147,28 @@ void main() {
     group('initial sync', () {
       test('syncs on start if online with pending items', () async {
         when(() => mockConnectivity.isOnline).thenReturn(true);
-        when(() => mockSyncService.state)
-            .thenReturn(const SyncState(pendingCount: 3));
+        when(
+          () => mockSyncService.state,
+        ).thenReturn(const SyncState(pendingCount: 3));
 
         worker.start();
-        
+
         // Give time for initial sync
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        
+
         verify(() => mockSyncService.syncPendingItems()).called(greaterThan(0));
       });
 
       test('does not sync on start if no pending items', () async {
         when(() => mockConnectivity.isOnline).thenReturn(true);
-        when(() => mockSyncService.state)
-            .thenReturn(const SyncState(pendingCount: 0));
+        when(
+          () => mockSyncService.state,
+        ).thenReturn(const SyncState(pendingCount: 0));
 
         worker.start();
-        
+
         await Future<void>.delayed(const Duration(milliseconds: 10));
-        
+
         // Initial sync should not be called since no pending items
         verifyNever(() => mockSyncService.syncPendingItems());
       });

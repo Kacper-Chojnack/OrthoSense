@@ -309,7 +309,9 @@ void main() {
 
       expect(retried.lastRetryAt, isNotNull);
       expect(
-        retried.lastRetryAt!.isAfter(before.subtract(const Duration(seconds: 1))),
+        retried.lastRetryAt!.isAfter(
+          before.subtract(const Duration(seconds: 1)),
+        ),
         isTrue,
       );
       expect(

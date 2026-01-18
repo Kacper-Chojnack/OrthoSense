@@ -20,14 +20,14 @@ void main() {
 
     test('lazy database pattern defers initialization', () {
       var initialized = false;
-      
+
       Future<void> lazyInit() async {
         initialized = true;
       }
-      
+
       // Not called yet
       expect(initialized, isFalse);
-      
+
       // Call to simulate lazy initialization
       lazyInit();
       expect(initialized, isTrue);
@@ -37,7 +37,7 @@ void main() {
       // Verify the expected path pattern
       const documentsPath = '/data/user/0/app/documents';
       const dbPath = '$documentsPath/orthosense.sqlite';
-      
+
       expect(dbPath, contains('orthosense.sqlite'));
       expect(dbPath, contains('documents'));
     });
@@ -53,7 +53,7 @@ void main() {
       void openUnsupportedConnection() {
         throw UnsupportedError('Platform not supported');
       }
-      
+
       expect(
         () => openUnsupportedConnection(),
         throwsA(isA<UnsupportedError>()),
@@ -73,7 +73,7 @@ void main() {
       const folder = '/app/documents';
       const filename = 'orthosense.sqlite';
       final path = '$folder/$filename';
-      
+
       expect(path, equals('/app/documents/orthosense.sqlite'));
     });
 
@@ -81,7 +81,7 @@ void main() {
       const folder = '/app/My Documents';
       const filename = 'orthosense.sqlite';
       final path = '$folder/$filename';
-      
+
       expect(path, contains('My Documents'));
       expect(path, endsWith('orthosense.sqlite'));
     });

@@ -76,8 +76,9 @@ void main() {
 
       expect(result.isCorrect, isFalse);
       // Should detect at least 2 errors
-      final errorCount =
-          result.feedback.keys.where((k) => k != 'System').length;
+      final errorCount = result.feedback.keys
+          .where((k) => k != 'System')
+          .length;
       expect(errorCount, greaterThanOrEqualTo(2));
     });
   });
@@ -201,7 +202,10 @@ void main() {
       );
 
       expect(result.isCorrect, isFalse);
-      expect(result.feedback.containsKey('Arm raised too high (>100°)'), isTrue);
+      expect(
+        result.feedback.containsKey('Arm raised too high (>100°)'),
+        isTrue,
+      );
     });
 
     test('detects movement too shallow (<80°)', () {
@@ -290,7 +294,10 @@ void main() {
         feedback: {'System': 'Movement correct.'},
       );
 
-      final report = service.generateReport(result, 'Standing Shoulder Abduction');
+      final report = service.generateReport(
+        result,
+        'Standing Shoulder Abduction',
+      );
 
       expect(report, contains('Standing Shoulder Abduction'));
       expect(report, contains('Excellent form'));
@@ -358,8 +365,10 @@ void main() {
         },
       );
 
-      final report =
-          service.generateReport(result, 'Standing Shoulder Abduction');
+      final report = service.generateReport(
+        result,
+        'Standing Shoulder Abduction',
+      );
 
       expect(report, contains('Shrugging'));
       expect(report, contains('trunk lean'));
@@ -769,7 +778,11 @@ PoseLandmarks _createArmAsymmetryLandmarks() {
     frame[13] = [0.2, 0.35, 0.0]; // Left elbow
     frame[15] = [0.1, 0.10, 0.0]; // Left wrist high (above elbow)
     frame[14] = [0.8, 0.35, 0.0]; // Right elbow
-    frame[16] = [0.9, 0.28, 0.0]; // Right wrist above elbow but much lower than left
+    frame[16] = [
+      0.9,
+      0.28,
+      0.0,
+    ]; // Right wrist above elbow but much lower than left
     // Difference: |0.10 - 0.28| = 0.18 > 0.15 threshold
     return PoseFrame(
       landmarks: frame.map((coords) => PoseLandmark.fromList(coords)).toList(),

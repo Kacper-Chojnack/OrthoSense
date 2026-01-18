@@ -264,8 +264,9 @@ void main() {
         ),
       ];
 
-      final session1Results =
-          allResults.where((r) => r.sessionId == 'session-1').toList();
+      final session1Results = allResults
+          .where((r) => r.sessionId == 'session-1')
+          .toList();
 
       expect(session1Results.length, equals(2));
     });
@@ -328,9 +329,15 @@ void main() {
       final now = DateTime.now();
       final results = [
         _mockResult(performedAt: now), // This week
-        _mockResult(performedAt: now.subtract(const Duration(days: 2))), // This week
-        _mockResult(performedAt: now.subtract(const Duration(days: 10))), // Last week
-        _mockResult(performedAt: now.subtract(const Duration(days: 5))), // This week
+        _mockResult(
+          performedAt: now.subtract(const Duration(days: 2)),
+        ), // This week
+        _mockResult(
+          performedAt: now.subtract(const Duration(days: 10)),
+        ), // Last week
+        _mockResult(
+          performedAt: now.subtract(const Duration(days: 5)),
+        ), // This week
       ];
 
       final stats = _calculateStats(results);
@@ -606,16 +613,19 @@ ExerciseStats _calculateStats(List<MockExerciseResult> results) {
   final now = DateTime.now();
   final weekAgo = now.subtract(const Duration(days: 7));
 
-  final thisWeekResults =
-      results.where((r) => r.performedAt.isAfter(weekAgo)).toList();
+  final thisWeekResults = results
+      .where((r) => r.performedAt.isAfter(weekAgo))
+      .toList();
 
   final scores = results.where((r) => r.score != null).map((r) => r.score!);
-  final avgScore =
-      scores.isEmpty ? 0 : scores.reduce((a, b) => a + b) ~/ scores.length;
+  final avgScore = scores.isEmpty
+      ? 0
+      : scores.reduce((a, b) => a + b) ~/ scores.length;
 
   final correctCount = results.where((r) => r.isCorrect).length;
-  final correctPct =
-      results.isEmpty ? 0 : (correctCount / results.length * 100).round();
+  final correctPct = results.isEmpty
+      ? 0
+      : (correctCount / results.length * 100).round();
 
   return ExerciseStats(
     totalSessions: results.length,

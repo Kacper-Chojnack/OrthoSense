@@ -141,12 +141,12 @@ void main() {
 
       // Wait a bit for the listener to be registered
       await Future<void>.delayed(const Duration(milliseconds: 10));
-      
+
       service.setOnline(false);
 
       // Wait for notification
       await Future<void>.delayed(const Duration(milliseconds: 10));
-      
+
       await subscription.cancel();
       expect(notified, isTrue);
     });
@@ -292,7 +292,10 @@ class ExponentialBackoff {
     // Cap attempt to avoid overflow (2^20 is ~1 million which is more than enough)
     final safeattempt = attempt.clamp(0, 20);
     final exponentialDelay = baseDelay.inMilliseconds * pow(2, safeattempt);
-    final cappedDelay = min(exponentialDelay, maxDelay.inMilliseconds.toDouble());
+    final cappedDelay = min(
+      exponentialDelay,
+      maxDelay.inMilliseconds.toDouble(),
+    );
     return Duration(milliseconds: cappedDelay.toInt());
   }
 
@@ -327,14 +330,14 @@ class MockConnectivityService {
 
   bool get isOnline => _isOnline;
 
-  Stream<bool> get onConnectivityChanged =>
-      Stream.multi((controller) {
-        void listener(bool value) {
-          controller.add(value);
-        }
-        _listeners.add(listener);
-        controller.onCancel = () => _listeners.remove(listener);
-      });
+  Stream<bool> get onConnectivityChanged => Stream.multi((controller) {
+    void listener(bool value) {
+      controller.add(value);
+    }
+
+    _listeners.add(listener);
+    controller.onCancel = () => _listeners.remove(listener);
+  });
 
   void setOnline(bool value) {
     if (_isOnline != value) {

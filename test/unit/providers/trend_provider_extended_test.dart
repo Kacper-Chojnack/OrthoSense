@@ -15,7 +15,10 @@ import 'package:orthosense/features/dashboard/domain/models/trend_data_model.dar
 void main() {
   group('TrendMetricType enum', () {
     test('rangeOfMotion has correct properties', () {
-      expect(TrendMetricType.rangeOfMotion.displayName, equals('Range of Motion'));
+      expect(
+        TrendMetricType.rangeOfMotion.displayName,
+        equals('Range of Motion'),
+      );
       expect(TrendMetricType.rangeOfMotion.unit, equals('°'));
       expect(TrendMetricType.rangeOfMotion.maxValue, equals(180));
     });
@@ -27,13 +30,19 @@ void main() {
     });
 
     test('exerciseDuration has correct properties', () {
-      expect(TrendMetricType.exerciseDuration.displayName, equals('Exercise Duration'));
+      expect(
+        TrendMetricType.exerciseDuration.displayName,
+        equals('Exercise Duration'),
+      );
       expect(TrendMetricType.exerciseDuration.unit, equals('min'));
       expect(TrendMetricType.exerciseDuration.maxValue, equals(60));
     });
 
     test('completionRate has correct properties', () {
-      expect(TrendMetricType.completionRate.displayName, equals('Completion Rate'));
+      expect(
+        TrendMetricType.completionRate.displayName,
+        equals('Completion Rate'),
+      );
       expect(TrendMetricType.completionRate.unit, equals('%'));
       expect(TrendMetricType.completionRate.maxValue, equals(100));
     });
@@ -246,7 +255,10 @@ void main() {
       expect(stats.averageScore, equals(85.5));
       expect(stats.scoreChange, equals(3.2));
       expect(stats.activeStreakDays, equals(7));
-      expect(stats.totalTimeThisMonth, equals(const Duration(hours: 5, minutes: 30)));
+      expect(
+        stats.totalTimeThisMonth,
+        equals(const Duration(hours: 5, minutes: 30)),
+      );
       expect(stats.completionRate, equals(92.0));
     });
 
@@ -340,8 +352,12 @@ void main() {
       final today = DateTime.now();
       final results = [
         MockExerciseResult(performedAt: today),
-        MockExerciseResult(performedAt: today.subtract(const Duration(days: 1))),
-        MockExerciseResult(performedAt: today.subtract(const Duration(days: 2))),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(days: 1)),
+        ),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(days: 2)),
+        ),
       ];
       final streak = _calculateActiveStreak(results);
       expect(streak, equals(3));
@@ -352,8 +368,12 @@ void main() {
       final results = [
         MockExerciseResult(performedAt: today),
         // Day 1 missing
-        MockExerciseResult(performedAt: today.subtract(const Duration(days: 2))),
-        MockExerciseResult(performedAt: today.subtract(const Duration(days: 3))),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(days: 2)),
+        ),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(days: 3)),
+        ),
       ];
       final streak = _calculateActiveStreak(results);
       expect(streak, equals(1)); // Only today counts
@@ -363,8 +383,12 @@ void main() {
       final today = DateTime.now();
       final results = [
         MockExerciseResult(performedAt: today),
-        MockExerciseResult(performedAt: today.subtract(const Duration(hours: 2))),
-        MockExerciseResult(performedAt: today.subtract(const Duration(hours: 4))),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(hours: 2)),
+        ),
+        MockExerciseResult(
+          performedAt: today.subtract(const Duration(hours: 4)),
+        ),
       ];
       final streak = _calculateActiveStreak(results);
       expect(streak, equals(1)); // All same day
@@ -395,15 +419,18 @@ int _calculateActiveStreak(List<MockExerciseResult> results) {
   if (results.isEmpty) return 0;
 
   // Group by date
-  final sessionDates = results
-      .map((r) => DateTime(
-            r.performedAt.year,
-            r.performedAt.month,
-            r.performedAt.day,
-          ))
-      .toSet()
-      .toList()
-    ..sort((a, b) => b.compareTo(a)); // newest first
+  final sessionDates =
+      results
+          .map(
+            (r) => DateTime(
+              r.performedAt.year,
+              r.performedAt.month,
+              r.performedAt.day,
+            ),
+          )
+          .toSet()
+          .toList()
+        ..sort((a, b) => b.compareTo(a)); // newest first
 
   if (sessionDates.isEmpty) return 0;
 

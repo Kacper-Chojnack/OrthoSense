@@ -194,7 +194,10 @@ void main() {
         exerciseName: 'Test',
         score: 80,
         isCorrect: false,
-        feedback: {'error_count': 2, 'errors': ['A', 'B']},
+        feedback: {
+          'error_count': 2,
+          'errors': ['A', 'B'],
+        },
         textReport: '',
         durationSeconds: 30,
       );
@@ -335,10 +338,12 @@ String _generateUuid() {
   // Generate a proper UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
   final r = DateTime.now().microsecondsSinceEpoch + _uuidCounter;
   String hexPart(int length) {
-    return List.generate(length, (i) => ((r + i * 7) % 16).toRadixString(16))
-        .join();
+    return List.generate(
+      length,
+      (i) => ((r + i * 7) % 16).toRadixString(16),
+    ).join();
   }
-  
+
   // 8-4-4-4-12 format with proper version and variant bits
   return '${hexPart(8)}-${hexPart(4)}-4${hexPart(3)}-${((r % 4) + 8).toRadixString(16)}${hexPart(3)}-${hexPart(12)}';
 }

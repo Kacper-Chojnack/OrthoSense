@@ -26,7 +26,7 @@ void main() {
 
       testWidgets('should show export format options', (tester) async {
         final formats = ['PDF', 'CSV', 'JSON'];
-        
+
         expect(formats.length, equals(3));
       });
 
