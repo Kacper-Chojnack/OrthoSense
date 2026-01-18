@@ -62,13 +62,11 @@ jobs:
             orthosense-backend:test \
             /bin/bash -c '
               pip install --no-cache-dir --user .[dev]
-              timeout 840 python -m pytest tests/ -v --tb=short -x \
+              python -m pytest tests/ -v --tb=short -x \
                 --ignore=tests/e2e --ignore=tests/e2e_api \
                 -p no:cacheprovider \
                 -W ignore::DeprecationWarning \
-                --timeout=300 || exit_code=$?
-              pkill -9 -f "python" || true
-              exit ${exit_code:-0}
+                --timeout=60
             '
 
       - name: Scan Image for Vulnerabilities

@@ -90,15 +90,13 @@ jobs:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          timeout 540 pytest tests/unit tests/integration tests/models tests/services \
+          pytest tests/unit tests/integration tests/models tests/services \
             --cov=app \
             --cov-report=xml \
             --cov-report=term-missing \
             --timeout=30 \
             -v \
-            -x || exit_code=$?
-          pkill -9 -f "python" || true
-          exit ${exit_code:-0}
+            -x
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

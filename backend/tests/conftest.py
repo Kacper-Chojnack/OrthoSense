@@ -74,7 +74,7 @@ async def session(async_engine) -> AsyncGenerator[AsyncSession]:
             yield session
         finally:
             await session.close()
-            await session.get_bind().dispose()
+            # Note: Do NOT dispose engine here - async_engine fixture handles cleanup
 
 
 @pytest_asyncio.fixture
@@ -127,8 +127,10 @@ async def unverified_user(session: AsyncSession) -> User:
     return user
 
 
-@pytest.fixture
-def auth_headers(test_user: User) -> dict[str, str]:
+@pytest_asyncio.fixture
+async def auth_headers(test_user: User) -> dict[str, str]:
     """Generate authorization headers for test user."""
-    token = create_access_token(test_user.id)
+    # Access user.id in async context to avoid MissingGreenlet error
+    user_id = test_user.id
+    token = create_access_token(user_id)
     return {"Authorization": f"Bearer {token}"}
