@@ -51,7 +51,8 @@ void main() {
       await E2ETestHelpers.pumpAndSettleWithTimeout(tester);
 
       // Verify we start on login screen (may also be loading)
-      final hasLoginOrLoading = find.byType(LoginScreen).evaluate().isNotEmpty ||
+      final hasLoginOrLoading =
+          find.byType(LoginScreen).evaluate().isNotEmpty ||
           find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
       expect(hasLoginOrLoading, isTrue);
 
@@ -219,13 +220,17 @@ void main() {
 
       // VERIFY: Key UI elements are present (flexible matching)
       // May be on login screen or loading
-      final hasLoginOrLoading = find.byType(LoginScreen).evaluate().isNotEmpty ||
+      final hasLoginOrLoading =
+          find.byType(LoginScreen).evaluate().isNotEmpty ||
           find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
       expect(hasLoginOrLoading, isTrue);
 
       // If on login screen, check fields
       if (find.byType(LoginScreen).evaluate().isNotEmpty) {
-        expect(find.byType(AuthTextField), findsAtLeast(2)); // Email and Password
+        expect(
+          find.byType(AuthTextField),
+          findsAtLeast(2),
+        ); // Email and Password
       }
     });
   });

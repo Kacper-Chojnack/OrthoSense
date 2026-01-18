@@ -131,14 +131,17 @@ void main() {
 
       // VERIFY: Still on login screen (not redirected) or app is functional
       final stillOnLogin = find.byType(LoginScreen).evaluate().isNotEmpty;
-      final hasLoading =
-          find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+      final hasLoading = find
+          .byType(CircularProgressIndicator)
+          .evaluate()
+          .isNotEmpty;
       final hasMaterialApp = find.byType(MaterialApp).evaluate().isNotEmpty;
 
       expect(
         stillOnLogin || hasLoading || hasMaterialApp,
         isTrue,
-        reason: 'Should still be on login after wrong credentials or app loading',
+        reason:
+            'Should still be on login after wrong credentials or app loading',
       );
     });
 

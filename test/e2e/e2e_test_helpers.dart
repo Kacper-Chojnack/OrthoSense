@@ -28,7 +28,10 @@ class E2ETestHelpers {
 
   /// Pump app and wait for it to stabilize with timeout
   /// Use this instead of pumpAndSettle to avoid timeout issues with async init
-  static Future<void> pumpApp(WidgetTester tester, {int iterations = 20}) async {
+  static Future<void> pumpApp(
+    WidgetTester tester, {
+    int iterations = 20,
+  }) async {
     for (var i = 0; i < iterations; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }

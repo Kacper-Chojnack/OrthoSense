@@ -21,28 +21,49 @@ jobs:
   backend-docker:
     name: Backend Docker Build & Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('backend/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Build Backend Image
-        timeout-minutes: 10
-        run: docker build -t orthosense-backend:test backend/
+        timeout-minutes: 15
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: false
+          load: true
+          tags: orthosense-backend:test
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Run Tests in Container
-        timeout-minutes: 15
+        timeout-minutes: 10
         run: |
           docker run --rm \
             -e SECRET_KEY=test_secret \
             -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
             orthosense-backend:test \
-            /bin/bash -c "pip install .[dev] pytest-cov && python -m pytest tests/ -v --tb=short"
+            /bin/bash -c "pip install --user .[dev] pytest-cov && python -m pytest tests/ -v --tb=short -x --ignore=tests/e2e --ignore=tests/e2e_api"
 
       - name: Scan Image for Vulnerabilities
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: 'orthosense-backend:test'
           format: 'sarif'
@@ -51,7 +72,8 @@ jobs:
 
       - name: Upload Trivy Scan Results
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'
 

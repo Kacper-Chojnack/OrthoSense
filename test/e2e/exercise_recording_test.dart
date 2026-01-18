@@ -203,8 +203,10 @@ void main() {
       // Should be on login, dashboard, or loading depending on auth persistence
       final hasLoginScreen = find.byType(LoginScreen).evaluate().isNotEmpty;
       final hasDashboard = find.byType(DashboardScreen).evaluate().isNotEmpty;
-      final hasLoading =
-          find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+      final hasLoading = find
+          .byType(CircularProgressIndicator)
+          .evaluate()
+          .isNotEmpty;
       final hasMaterialApp = find.byType(MaterialApp).evaluate().isNotEmpty;
 
       final appRecovered =
