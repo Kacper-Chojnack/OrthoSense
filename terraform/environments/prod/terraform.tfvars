@@ -61,7 +61,7 @@ log_retention_days         = 90 # GDPR requirement
 alarm_email                = "alerts@orthosense.app"
 
 # GitHub
-github_org  = "kacper-chojnack"
+github_org  = "Kacper-Chojnack"
 github_repo = "OrthoSense"
 
 # Tags
