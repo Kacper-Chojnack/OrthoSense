@@ -14,7 +14,6 @@ on:
       - 'lib/**'
       - 'test/**'
       - 'pubspec.yaml'
-      - 'android/**'
       - 'ios/**'
       - '.github/workflows/frontend-ci.yml'
   pull_request:
@@ -91,23 +90,16 @@ jobs:
           fail_ci_if_error: false
 
   # ---------------------------------------------------------------------------
-  # Job: Build Android APK
+  # Job: Build iOS
   # ---------------------------------------------------------------------------
-  build-android:
-    name: Build Android APK
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    timeout-minutes: 30
     needs: test
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -119,15 +111,8 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release --no-tree-shake-icons
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 14
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
 
   # ---------------------------------------------------------------------------
   # Job: Summary

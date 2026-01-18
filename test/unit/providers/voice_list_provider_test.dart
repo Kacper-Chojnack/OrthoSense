@@ -4,8 +4,7 @@
 /// 1. Voice filtering by locale
 /// 2. Platform-specific voice selection
 /// 3. iOS best voices
-/// 4. Android best voices
-/// 5. Voice mapping
+/// 4. Voice mapping
 library;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -108,39 +107,6 @@ void main() {
       });
     });
 
-    group('Android best voices', () {
-      test('includes en-us-x-iom (male)', () {
-        const androidBestVoices = [
-          'en-us-x-iom',
-          'en-us-x-tpd',
-          'en-gb-x-rjs',
-          'en-us-x-iob',
-          'en-us-x-tpf',
-          'en-gb-x-fis',
-        ];
-
-        expect(androidBestVoices.contains('en-us-x-iom'), isTrue);
-      });
-
-      test('includes en-us-x-tpd (male)', () {
-        const androidBestVoices = ['en-us-x-iom', 'en-us-x-tpd', 'en-gb-x-rjs'];
-        expect(androidBestVoices.contains('en-us-x-tpd'), isTrue);
-      });
-
-      test('includes en-us-x-iob (female)', () {
-        const androidBestVoices = ['en-us-x-iob', 'en-us-x-tpf', 'en-gb-x-fis'];
-        expect(androidBestVoices.contains('en-us-x-iob'), isTrue);
-      });
-
-      test('matches voice by identifier substring', () {
-        const androidBestVoices = ['en-us-x-iom', 'en-us-x-tpd'];
-        const voiceName = 'en-us-x-iom-network';
-
-        final matches = androidBestVoices.any(voiceName.contains);
-        expect(matches, isTrue);
-      });
-    });
-
     group('voice mapping', () {
       test('converts dynamic map to Map<String, String>', () {
         final dynamic rawVoice = {
@@ -171,12 +137,11 @@ void main() {
 
     group('platform fallback', () {
       test('returns all English voices on unknown platform', () {
-        const platform = 'unknown';
         const isIOS = false;
-        const isAndroid = false;
+        const isMacOS = false;
 
         // On unknown platform, fallback returns true
-        final shouldInclude = (!isIOS && !isAndroid) || platform == 'unknown';
+        final shouldInclude = !isIOS && !isMacOS;
 
         expect(shouldInclude, isTrue);
       });

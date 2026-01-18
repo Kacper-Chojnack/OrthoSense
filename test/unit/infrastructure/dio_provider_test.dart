@@ -29,17 +29,17 @@ void main() {
         expect(usesProduction, isTrue);
       });
 
-      test('debug mode Android uses 10.0.2.2', () {
-        const platform = 'android';
+      test('debug mode iOS uses 127.0.0.1', () {
+        const platform = 'ios';
         const kReleaseMode = false;
 
         String getDebugUrl() {
-          if (platform == 'android') return 'http://10.0.2.2:8000';
+          if (platform == 'ios') return 'http://127.0.0.1:8000';
           return 'http://localhost:8000';
         }
 
         final url = !kReleaseMode ? getDebugUrl() : '';
-        expect(url, equals('http://10.0.2.2:8000'));
+        expect(url, equals('http://127.0.0.1:8000'));
       });
 
       test('debug mode macOS uses 127.0.0.1', () {
@@ -53,19 +53,6 @@ void main() {
 
         final url = !kReleaseMode ? getDebugUrl() : '';
         expect(url, equals('http://127.0.0.1:8000'));
-      });
-
-      test('debug mode iOS uses local IP', () {
-        const platform = 'ios';
-        const kReleaseMode = false;
-
-        String getDebugUrl() {
-          if (platform == 'ios') return 'http://192.168.0.27:8000';
-          return 'http://localhost:8000';
-        }
-
-        final url = !kReleaseMode ? getDebugUrl() : '';
-        expect(url, contains('192.168'));
       });
     });
 
@@ -194,7 +181,7 @@ void main() {
         if (kReleaseMode && productionApiUrl.isEmpty) {
           errorMessage =
               'API_URL not configured. Build with: '
-              'flutter build apk --dart-define=API_URL=https://your-api.awsapprunner.com';
+              'flutter build ios --dart-define=API_URL=https://your-api.awsapprunner.com';
         }
       }
 
@@ -205,11 +192,6 @@ void main() {
   });
 
   group('Platform detection', () {
-    test('detects Android platform', () {
-      const isAndroid = true;
-      expect(isAndroid, isTrue);
-    });
-
     test('detects macOS platform', () {
       const isMacOS = true;
       expect(isMacOS, isTrue);
@@ -222,21 +204,19 @@ void main() {
   });
 
   group('Local development URLs', () {
-    test('Android emulator uses special IP', () {
-      const androidUrl = 'http://10.0.2.2:8000';
-      expect(androidUrl, contains('10.0.2.2'));
-    });
-
     test('macOS uses loopback address', () {
       const macosUrl = 'http://127.0.0.1:8000';
       expect(macosUrl, contains('127.0.0.1'));
     });
 
+    test('iOS uses loopback address', () {
+      const iosUrl = 'http://127.0.0.1:8000';
+      expect(iosUrl, contains('127.0.0.1'));
+    });
+
     test('all use port 8000', () {
       const urls = [
-        'http://10.0.2.2:8000',
         'http://127.0.0.1:8000',
-        'http://192.168.0.27:8000',
       ];
 
       for (final url in urls) {

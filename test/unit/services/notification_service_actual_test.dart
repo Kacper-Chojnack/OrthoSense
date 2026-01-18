@@ -284,29 +284,6 @@ void main() {
     });
   });
 
-  group('NotificationService - Android Settings', () {
-    test('importance is high', () {
-      const importance = 'high';
-      expect(importance, equals('high'));
-    });
-
-    test('priority is high', () {
-      const priority = 'high';
-      expect(priority, equals('high'));
-    });
-
-    test('uses launcher icon', () {
-      const icon = '@mipmap/ic_launcher';
-      expect(icon, startsWith('@mipmap'));
-    });
-
-    test('schedule mode is exactAllowWhileIdle', () {
-      // For exact timing even in doze mode
-      const scheduleMode = 'exactAllowWhileIdle';
-      expect(scheduleMode, contains('exact'));
-    });
-  });
-
   group('NotificationService - iOS Settings', () {
     test('presents alert', () {
       const presentAlert = true;

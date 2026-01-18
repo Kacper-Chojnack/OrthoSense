@@ -25,23 +25,18 @@ String _getBaseUrl() {
     // Fallback for testing release builds locally
     throw StateError(
       'API_URL not configured. Build with: '
-      'flutter build apk --dart-define=API_URL=https://your-api.awsapprunner.com',
+      'flutter build ios --dart-define=API_URL=https://your-api.awsapprunner.com',
     );
   }
 
-  // Debug mode - local development
-  if (Platform.isAndroid) {
-    return 'http://10.0.2.2:8000';
-  }
-
-  if (Platform.isMacOS) {
+  // Debug mode - use local development server
+  // macOS simulator and iOS device both use this address
+  if (Platform.isMacOS || Platform.isIOS) {
     return 'http://127.0.0.1:8000';
   }
 
-  // iOS Simulator, Linux, Windows
-  // Using local IP for physical device debugging
-  return 'http://192.168.0.27:8000'; // Zosia
-  // return 'http://192.168.0.17:8000'; // Kacper
+  // Fallback for other platforms (shouldn't happen in iOS-only app)
+  return 'http://127.0.0.1:8000';
 }
 
 /// Provides configured [Dio] instance for API calls.

@@ -89,7 +89,7 @@ class _BiometricConsentScreenState
                     // Key Points with Icons
                     _buildKeyPoint(
                       context,
-                      icon: Icons.phone_android,
+                      icon: Icons.phone_iphone,
                       iconColor: Colors.green,
                       title: 'On-Device Processing',
                       description:
@@ -362,7 +362,7 @@ class _BiometricConsentScreenState
                 ),
                 _buildDiagramStep(
                   context,
-                  icon: Icons.phone_android,
+                  icon: Icons.phone_iphone,
                   label: 'On-Device\nAI',
                   color: Colors.green,
                 ),

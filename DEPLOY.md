@@ -31,7 +31,7 @@
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│                         Mobile App (iOS / Android)                           │
+│                              Mobile App (iOS)                                │
 │                                     │                                        │
 │                                     │ HTTPS /api/*                           │
 │                                     ▼                                        │

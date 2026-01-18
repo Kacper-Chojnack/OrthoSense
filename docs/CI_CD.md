@@ -19,7 +19,7 @@ OrthoSense uses GitHub Actions for Continuous Integration and Deployment. The pi
 - **Checks:**
   - **Analysis:** `flutter analyze` & `dart format`
   - **Testing:** Unit/Widget tests with coverage
-  - **Builds:** Generates Android APK
+  - **Builds:** iOS build (no codesign)
 
 ### 3. Integration Tests (`integration-tests.yml`)
 - **Triggers:** Nightly or PR to main
@@ -51,4 +51,3 @@ Ensure these secrets are set in GitHub Repository Settings:
 - `CODECOV_TOKEN`: For coverage reports
 - `SONAR_TOKEN`: For SonarCloud analysis
 - `DOCKER_USERNAME` / `DOCKER_PASSWORD`: For pushing images (Future)
-- `ANDROID_KEYSTORE_BASE64`: For signing release APKs (Future)

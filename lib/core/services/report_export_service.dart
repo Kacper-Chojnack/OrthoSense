@@ -34,7 +34,7 @@ class SessionReportData {
 }
 
 /// Service for generating and exporting exercise reports.
-/// Supports PDF generation and native sharing (iOS/Android).
+/// Supports PDF generation and native sharing (iOS).
 class ReportExportService {
   /// Generate PDF report for a single exercise session.
   Future<File> generateSessionPdf({
@@ -119,7 +119,7 @@ class ReportExportService {
     return file;
   }
 
-  /// Share PDF via native iOS/Android share sheet.
+  /// Share PDF via native iOS share sheet.
   Future<void> sharePdf(File pdfFile, {String? subject}) async {
     try {
       await SharePlus.instance.share(

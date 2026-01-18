@@ -12,13 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('DioProvider - Base URL Configuration', () {
-    test('Android emulator uses 10.0.2.2 for localhost', () {
-      const androidLocalhost = 'http://10.0.2.2:8000';
-
-      expect(androidLocalhost, contains('10.0.2.2'));
-      expect(androidLocalhost, contains('8000'));
-    });
-
     test('macOS uses 127.0.0.1 for localhost', () {
       const macosLocalhost = 'http://127.0.0.1:8000';
 
@@ -26,10 +19,10 @@ void main() {
       expect(macosLocalhost, contains('8000'));
     });
 
-    test('iOS uses local IP for physical device', () {
-      const iosLocalhost = 'http://192.168.0.27:8000';
+    test('iOS uses 127.0.0.1 for localhost', () {
+      const iosLocalhost = 'http://127.0.0.1:8000';
 
-      expect(iosLocalhost, contains('192.168'));
+      expect(iosLocalhost, contains('127.0.0.1'));
       expect(iosLocalhost, contains('8000'));
     });
 
@@ -141,11 +134,10 @@ void main() {
 
   group('Platform Detection', () {
     test('can detect platform', () {
-      // Platform detection would use Platform.isAndroid, Platform.isIOS, etc.
+      // Platform detection would use Platform.isIOS, Platform.isMacOS, etc.
       // In tests, we verify the logic
 
       final platformChecks = [
-        () => Platform.isAndroid,
         () => Platform.isIOS,
         () => Platform.isMacOS,
         () => Platform.isWindows,

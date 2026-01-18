@@ -4,7 +4,7 @@
 /// 1. Token save/retrieve operations
 /// 2. User info caching for offline-first
 /// 3. Token expiration checking (JWT decode)
-/// 4. Platform-specific storage (macOS vs iOS/Android)
+/// 4. Platform-specific storage (macOS vs iOS)
 /// 5. Clear all functionality
 ///
 /// Note: On macOS, SecureTokenStorage uses SharedPreferences instead of

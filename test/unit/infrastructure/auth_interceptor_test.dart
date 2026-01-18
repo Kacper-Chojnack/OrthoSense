@@ -202,13 +202,13 @@ void main() {
 
   group('DioProvider', () {
     group('base URL', () {
-      test('android emulator uses 10.0.2.2', () {
-        const platform = 'android';
-        const debugUrl = platform == 'android'
-            ? 'http://10.0.2.2:8000'
+      test('iOS uses 127.0.0.1', () {
+        const platform = 'ios';
+        const debugUrl = platform == 'ios'
+            ? 'http://127.0.0.1:8000'
             : 'http://localhost:8000';
 
-        expect(debugUrl, equals('http://10.0.2.2:8000'));
+        expect(debugUrl, equals('http://127.0.0.1:8000'));
       });
 
       test('macOS uses 127.0.0.1', () {

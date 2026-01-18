@@ -120,46 +120,6 @@ void main() {
       });
     });
 
-    group('Android best voices', () {
-      test('includes male voice identifiers', () {
-        const androidBestVoices = [
-          'en-us-x-iom',
-          'en-us-x-tpd',
-          'en-gb-x-rjs',
-        ];
-
-        expect(androidBestVoices, contains('en-us-x-iom'));
-        expect(androidBestVoices, contains('en-gb-x-rjs'));
-      });
-
-      test('includes female voice identifiers', () {
-        const androidBestVoices = [
-          'en-us-x-iob',
-          'en-us-x-tpf',
-          'en-gb-x-fis',
-        ];
-
-        expect(androidBestVoices, contains('en-us-x-iob'));
-        expect(androidBestVoices, contains('en-us-x-tpf'));
-      });
-
-      test('filters by Android voice name patterns', () {
-        const bestVoices = ['en-us-x-iom', 'en-us-x-tpf'];
-        final allVoices = [
-          {'name': 'en-us-x-iom-network', 'locale': 'en-US'},
-          {'name': 'de-de-x-something', 'locale': 'de-DE'},
-          {'name': 'en-us-x-tpf-local', 'locale': 'en-US'},
-        ];
-
-        final filtered = allVoices.where((voice) {
-          final name = voice['name'] ?? '';
-          return bestVoices.any((best) => name.contains(best));
-        }).toList();
-
-        expect(filtered.length, equals(2));
-      });
-    });
-
     group('voice map conversion', () {
       test('converts dynamic voice map to string map', () {
         final dynamicVoices = [
@@ -183,10 +143,10 @@ void main() {
         expect(checkIOS, isA<bool>());
       });
 
-      test('can check for Android platform', () {
-        // Platform.isAndroid would be checked
-        const checkAndroid = true;
-        expect(checkAndroid, isA<bool>());
+      test('can check for macOS platform', () {
+        // Platform.isMacOS would be checked
+        const checkMacOS = true;
+        expect(checkMacOS, isA<bool>());
       });
     });
   });

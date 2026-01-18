@@ -28,7 +28,7 @@ abstract class TokenStorage {
   DateTime? getTokenExpiration(String token);
 }
 
-/// Secure token storage using FlutterSecureStorage (iOS/Android) or SharedPreferences (macOS).
+/// Secure token storage using FlutterSecureStorage (iOS) or SharedPreferences (macOS).
 class SecureTokenStorage implements TokenStorage {
   SecureTokenStorage(this._storage, this._prefs);
 

@@ -47,9 +47,9 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 - **GDPR compliant** architecture
 - **Security scanning** with Bandit & SonarQube
 
-### 📱 Cross-Platform
-- **iOS** (iPhone 8+ / iOS 12+)
-- **Android** (API 21+)
+### 📱 iOS Platform
+- **iOS** (iPhone 8+ / iOS 13+)
+- **macOS** (for development)
 - **Responsive UI** with Material Design 3
 - **Offline-first** architecture with smart sync
 
@@ -90,7 +90,7 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 - Flutter SDK 3.24+
 - Docker & Docker Compose
 - Python 3.11+
-- Xcode 15+ (iOS) / Android Studio (Android)
+- Xcode 15+ (for iOS)
 
 # Optional
 - Terraform (infrastructure deployment)
@@ -212,6 +212,8 @@ OrthoSense/
 ├── assets/                      # Static resources
 │   ├── images/                 # App images
 │   └── models/                 # TFLite models
+├── ios/                         # iOS platform code
+├── macos/                       # macOS platform code (development)
 ├── config/                      # Docker configurations
 │   └── docker/                 # Docker Compose files
 ├── terraform/                   # Infrastructure as Code
@@ -341,7 +343,7 @@ Polsko-Japońska Akademia Technik Komputerowych (PJATK), Gdańsk
 - 🤖 **Analiza ruchu w czasie rzeczywistym** - MediaPipe + Bi-LSTM
 - 🔒 **Przetwarzanie lokalne** - nagrania nie opuszczają urządzenia
 - 📊 **Szczegółowa analityka** - śledzenie postępów i statystyki
-- 📱 **Wieloplatformowość** - iOS i Android
+- 📱 **Platforma iOS** - iPhone 8+ / iOS 13+
 - 🌐 **Tryb offline** - pełna funkcjonalność bez internetu
 - 🔐 **Bezpieczeństwo** - szyfrowanie end-to-end, zgodność z RODO
 

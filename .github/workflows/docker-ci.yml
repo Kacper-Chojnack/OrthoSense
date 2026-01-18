@@ -53,13 +53,23 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Run Tests in Container
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
+          # Run tests with explicit exit to prevent hanging
           docker run --rm \
             -e SECRET_KEY=test_secret \
             -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
             orthosense-backend:test \
-            /bin/bash -c "pip install --user .[dev] pytest-cov && python -m pytest tests/ -v --tb=short -x --ignore=tests/e2e --ignore=tests/e2e_api"
+            /bin/bash -c "
+              pip install --no-cache-dir --user .[dev] && \
+              timeout 600 python -m pytest tests/ -v --tb=short -x \
+                --ignore=tests/e2e --ignore=tests/e2e_api \
+                -p no:cacheprovider \
+                -W ignore::DeprecationWarning
+              TEST_EXIT=\$?
+              echo 'Tests completed with exit code:' \$TEST_EXIT
+              exit \$TEST_EXIT
+            "
 
       - name: Scan Image for Vulnerabilities
         uses: aquasecurity/trivy-action@master

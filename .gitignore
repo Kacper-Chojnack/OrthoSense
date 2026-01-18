@@ -44,15 +44,6 @@ Thumbs.db
 **/ios/.symlinks/
 **/ios/build/
 
-
-# === Android ===
-/android/app/debug
-/android/app/profile
-/android/app/release
-**/android/local.properties
-**/android/.gradle/
-**/android/app/build/
-
 # === Symbolication & Obfuscation ===
 app.*.symbols
 app.*.map.json

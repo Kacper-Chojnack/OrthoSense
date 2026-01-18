@@ -14,8 +14,7 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
       .map((dynamic e) => Map<String, String>.from(e as Map))
       .toList();
 
-  // Define high-quality voice identifiers
-  // Expanded list to ensure we get enough options on standard devices
+  // Define high-quality voice identifiers for iOS
   final iosBestVoices = [
     // Male
     'Alex',
@@ -32,15 +31,6 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
     'Tessa',
   ];
 
-  final androidBestVoices = [
-    'en-us-x-iom', // Male
-    'en-us-x-tpd', // Male
-    'en-gb-x-rjs', // Male
-    'en-us-x-iob', // Female
-    'en-us-x-tpf', // Female
-    'en-gb-x-fis', // Female
-  ];
-
   return allVoices.where((Map<String, String> voice) {
     final name = voice['name'] ?? '';
     final locale = voice['locale'] ?? '';
@@ -48,14 +38,13 @@ Future<List<Map<String, String>>> voiceList(Ref ref) async {
     // Basic English filter
     if (!locale.toLowerCase().startsWith('en')) return false;
 
-    if (Platform.isIOS) {
+    // On iOS and macOS, filter to high-quality voices
+    if (Platform.isIOS || Platform.isMacOS) {
       // Check if name contains any of the best identifiers
       return iosBestVoices.any(name.contains);
-    } else if (Platform.isAndroid) {
-      // Check if name contains any of the best identifiers
-      return androidBestVoices.any(name.contains);
     }
 
-    return true; // Fallback for other platforms
+    // Fallback for other platforms (shouldn't happen in iOS-only app)
+    return true;
   }).toList();
 }

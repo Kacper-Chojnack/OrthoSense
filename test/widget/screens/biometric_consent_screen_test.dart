@@ -66,7 +66,7 @@ void main() {
     test('local processing key point has correct icon', () {
       final keyPoint = KeyPoint.localProcessing;
 
-      expect(keyPoint.icon, equals(Icons.phone_android));
+      expect(keyPoint.icon, equals(Icons.phone_iphone));
       expect(keyPoint.iconColor, equals(Colors.green));
     });
 
@@ -188,7 +188,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: _KeyPointWidget(
-              icon: Icons.phone_android,
+              icon: Icons.phone_iphone,
               iconColor: Colors.green,
               title: 'On-Device Processing',
               description: 'All processing happens locally.',
@@ -197,7 +197,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.phone_android), findsOneWidget);
+      expect(find.byIcon(Icons.phone_iphone), findsOneWidget);
       expect(find.text('On-Device Processing'), findsOneWidget);
       expect(find.text('All processing happens locally.'), findsOneWidget);
     });
@@ -334,7 +334,7 @@ class BiometricConsentState {
 
 enum KeyPoint {
   localProcessing(
-    icon: Icons.phone_android,
+    icon: Icons.phone_iphone,
     iconColor: Colors.green,
     title: 'On-Device Processing',
     description: 'All pose estimation happens locally on your device.',
