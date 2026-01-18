@@ -121,14 +121,14 @@ def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Dictionary with all string values sanitized.
     """
-    result = {}
+    result: dict[str, Any] = {}
     for key, value in data.items():
         if isinstance(value, str):
             result[key] = sanitize_string(value)
         elif isinstance(value, dict):
             result[key] = sanitize_dict(value)
         elif isinstance(value, list):
-            result[key] = [
+            sanitized_list: list[Any] = [
                 sanitize_dict(item)
                 if isinstance(item, dict)
                 else sanitize_string(item)
@@ -136,6 +136,7 @@ def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
                 else item
                 for item in value
             ]
+            result[key] = sanitized_list
         else:
             result[key] = value
     return result
