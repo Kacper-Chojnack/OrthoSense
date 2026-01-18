@@ -7,6 +7,11 @@ variable "name_prefix" {
   type        = string
 }
 
+variable "app_name" {
+  description = "Application name (used for DynamoDB lock table reference)"
+  type        = string
+}
+
 variable "environment" {
   description = "Environment name"
   type        = string

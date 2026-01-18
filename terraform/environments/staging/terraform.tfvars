@@ -6,6 +6,7 @@
 aws_region  = "eu-central-1"
 app_name    = "orthosense"
 environment = "staging"
+app_domain  = "orthosense.app"
 
 # Networking - Production-like
 vpc_cidr                 = "10.1.0.0/16"

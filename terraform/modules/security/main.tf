@@ -346,7 +346,7 @@ resource "aws_iam_role_policy" "github_terraform" {
           "dynamodb:PutItem",
           "dynamodb:DeleteItem"
         ]
-        Resource = "arn:aws:dynamodb:*:${var.account_id}:table/orthosense-terraform-locks"
+        Resource = "arn:aws:dynamodb:*:${var.account_id}:table/${var.app_name}-terraform-locks"
       }
     ]
   })

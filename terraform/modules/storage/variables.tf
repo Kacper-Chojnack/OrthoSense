@@ -17,6 +17,12 @@ variable "kms_key_arn" {
   type        = string
 }
 
+variable "app_domain" {
+  description = "Application domain for CORS configuration"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Additional tags"
   type        = map(string)

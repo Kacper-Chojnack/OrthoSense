@@ -271,6 +271,16 @@ variable "alarm_email" {
 }
 
 # -----------------------------------------------------------------------------
+# Domain Configuration
+# -----------------------------------------------------------------------------
+
+variable "app_domain" {
+  description = "Application domain for CORS and external access (e.g., 'orthosense.app')"
+  type        = string
+  default     = ""
+}
+
+# -----------------------------------------------------------------------------
 # GitHub Actions OIDC Configuration
 # -----------------------------------------------------------------------------
 

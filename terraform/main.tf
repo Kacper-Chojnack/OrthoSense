@@ -122,6 +122,7 @@ module "security" {
   source = "./modules/security"
 
   name_prefix            = local.name_prefix
+  app_name               = var.app_name
   environment            = var.environment
   account_id             = local.account_id
   github_org             = var.github_org
@@ -196,6 +197,7 @@ module "storage" {
   name_prefix = local.name_prefix
   environment = var.environment
   kms_key_arn = module.security.kms_key_arn
+  app_domain  = var.app_domain
 
   tags = local.common_tags
 }

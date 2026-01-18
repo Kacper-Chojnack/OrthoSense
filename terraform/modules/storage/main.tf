@@ -130,7 +130,7 @@ resource "aws_s3_bucket_cors_configuration" "artifacts" {
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST"]
-    allowed_origins = var.environment == "dev" ? ["http://localhost:3000", "http://127.0.0.1:3000"] : ["https://*.orthosense.app"]
+    allowed_origins = var.environment == "dev" ? ["http://localhost:3000", "http://127.0.0.1:3000"] : (var.app_domain != "" ? ["https://*.${var.app_domain}"] : ["*"])
     expose_headers  = ["ETag"]
     max_age_seconds = 3600
   }

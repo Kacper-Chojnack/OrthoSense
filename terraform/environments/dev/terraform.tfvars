@@ -6,6 +6,7 @@
 aws_region  = "eu-central-1"
 app_name    = "orthosense"
 environment = "dev"
+app_domain  = "orthosense.app"
 
 # Networking - Cost optimized
 vpc_cidr                 = "10.0.0.0/16"

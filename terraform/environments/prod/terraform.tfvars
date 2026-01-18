@@ -8,6 +8,7 @@
 aws_region  = "eu-central-1"
 app_name    = "orthosense"
 environment = "prod"
+app_domain  = "orthosense.app"
 
 # Networking - Full HA
 vpc_cidr                 = "10.2.0.0/16"

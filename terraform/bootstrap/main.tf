@@ -21,7 +21,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project   = "OrthoSense"
+      Project   = var.app_name
       ManagedBy = "terraform-bootstrap"
       Purpose   = "terraform-state"
     }
@@ -32,6 +32,12 @@ variable "aws_region" {
   description = "AWS region"
   type        = string
   default     = "eu-central-1"
+}
+
+variable "app_name" {
+  description = "Application name used for resource naming"
+  type        = string
+  default     = "orthosense"
 }
 
 variable "environments" {
@@ -47,14 +53,14 @@ variable "environments" {
 resource "aws_s3_bucket" "terraform_state" {
   for_each = toset(var.environments)
 
-  bucket = "orthosense-terraform-state-${each.key}"
+  bucket = "${var.app_name}-terraform-state-${each.key}"
 
   lifecycle {
     prevent_destroy = true
   }
 
   tags = {
-    Name        = "orthosense-terraform-state-${each.key}"
+    Name        = "${var.app_name}-terraform-state-${each.key}"
     Environment = each.key
   }
 }
@@ -117,7 +123,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
 # -----------------------------------------------------------------------------
 
 resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "orthosense-terraform-locks"
+  name         = "${var.app_name}-terraform-locks"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -127,7 +133,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
   tags = {
-    Name = "orthosense-terraform-locks"
+    Name = "${var.app_name}-terraform-locks"
   }
 }
 
