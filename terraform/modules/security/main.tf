@@ -335,8 +335,8 @@ resource "aws_iam_role_policy" "github_terraform" {
           "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:s3:::${var.name_prefix}-terraform-state",
-          "arn:aws:s3:::${var.name_prefix}-terraform-state/*"
+          "arn:aws:s3:::${var.app_name}-terraform-state-${var.environment}",
+          "arn:aws:s3:::${var.app_name}-terraform-state-${var.environment}/*"
         ]
       },
       {
