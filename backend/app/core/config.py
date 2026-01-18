@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     # Security
     # Use "*" in production behind AWS App Runner (which handles host validation)
-    @computed_field
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def allowed_hosts(self) -> list[str]:
         hosts = [

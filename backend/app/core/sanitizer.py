@@ -6,7 +6,7 @@ by removing or escaping potentially dangerous HTML/JavaScript content.
 
 import html
 import re
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import AfterValidator
 
@@ -112,7 +112,7 @@ def validate_no_xss(value: str) -> str:
 SafeString = Annotated[str, AfterValidator(validate_no_xss)]
 
 
-def sanitize_dict(data: dict) -> dict:
+def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
     """Recursively sanitize all string values in a dictionary.
 
     Args:

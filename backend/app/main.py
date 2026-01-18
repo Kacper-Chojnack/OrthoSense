@@ -48,7 +48,7 @@ app = FastAPI(
 
 # Register exception handlers for production safety
 app.add_exception_handler(Exception, global_exception_handler)
-app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
 
 # GZip Compression (30% bandwidth savings)
 # Compress responses larger than 500 bytes

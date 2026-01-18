@@ -5,6 +5,13 @@ useDefault = true
 
 [allowlist]
 description = "Global allowlist"
+
+# Historical commits with expired/rotated secrets (safe to ignore)
+commits = [
+    "813cc314c139d1e7cbdf8f3485660b144ad60847",  # Old dev secrets.tfvars (rotated)
+    "d827e79d5a8dec596382d40cc45d9d6653033f22",  # Old .env with test tokens (rotated)
+]
+
 paths = [
     '''\.git''',
     '''node_modules''',

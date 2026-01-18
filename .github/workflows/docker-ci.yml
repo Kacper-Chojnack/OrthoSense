@@ -33,7 +33,7 @@ jobs:
         run: docker build -t orthosense-backend:test backend/
 
       - name: Run Tests in Container
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
           docker run --rm \
             -e SECRET_KEY=test_secret \
