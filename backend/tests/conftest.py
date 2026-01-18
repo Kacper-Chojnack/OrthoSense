@@ -26,15 +26,25 @@ from app.models.user import User
 # Ensure clean event loop shutdown after all tests
 @pytest.fixture(scope="session", autouse=True)
 def event_loop_policy():
+    """Provide event loop policy and ensure clean shutdown."""
     policy = asyncio.get_event_loop_policy()
     yield policy
+    # Clean shutdown is handled by pytest-asyncio
+
+
+@pytest.fixture(scope="function", autouse=True)
+def cleanup_pending_tasks():
+    """Cancel any pending async tasks after each test."""
+    yield
     try:
         loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.stop()
-        if not loop.is_closed():
-            loop.close()
-    except Exception:
+        if loop.is_closed():
+            return
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            if not task.done() and not task.cancelled():
+                task.cancel()
+    except RuntimeError:
         pass
 
 

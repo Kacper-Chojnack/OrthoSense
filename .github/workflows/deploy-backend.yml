@@ -173,7 +173,11 @@ jobs:
           SECRET_KEY: test-secret-key-minimum-32-characters-long
           ENVIRONMENT: test
         timeout-minutes: 10
-        run: pytest -v --tb=short --cov=app --cov-report=xml
+        run: |
+          set -e
+          python -m pytest -v --tb=short --cov=app --cov-report=xml --timeout=30
+          exit_code=$?
+          exit $exit_code
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
