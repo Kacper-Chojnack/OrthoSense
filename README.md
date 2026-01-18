@@ -4,12 +4,11 @@
 
 ### AI-Powered Mobile Telerehabilitation Platform
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
-[![Backend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml/badge.svg?branch=main)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml)
-[![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg?branch=main)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
-[![E2E Tests](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml/badge.svg?branch=main)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml)
-[![Security Scan](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml)
+[![Backend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
+[![E2E Tests](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml)
+[![Security Scan](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Real-time movement analysis • Privacy-first design • Edge AI processing**
