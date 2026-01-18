@@ -354,7 +354,7 @@ class TestExerciseSessionFlowE2E:
 
 class TestExerciseAnalysisE2E:
     """E2E tests: Exercise analysis endpoints.
-    
+
     Note: /analysis/landmarks endpoint was removed as part of the
     offline-first architecture. All movement analysis is performed
     client-side using Edge AI (ML Kit + TFLite).
