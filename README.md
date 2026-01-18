@@ -140,7 +140,7 @@ flutter pub run build_runner watch   # Watch mode
 ## 🏗 Architecture
 
 <div align="center">
-  <img src="docs/diagrams/diagram.png" alt="OrthoSense Architecture Diagram" width="800">
+  <img src="docs/diagrams/diagram.png" alt="OrthoSense Architecture Diagram" width="400">
 </div>
 
 ### Key Design Patterns
