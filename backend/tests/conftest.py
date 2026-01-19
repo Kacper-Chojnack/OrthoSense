@@ -1,13 +1,7 @@
-"""Pytest fixtures for async testing with authentication support."""
-
+import asyncio
 import os
 from collections.abc import AsyncGenerator
 from uuid import uuid4
-
-# Set environment variables BEFORE importing app modules
-os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
-os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
 
 import pytest
 import pytest_asyncio
@@ -16,10 +10,42 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 
+# Set environment variables BEFORE importing app modules
+os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
+
 from app.core.database import get_session
 from app.core.security import create_access_token, hash_password
 from app.main import app
 from app.models.user import User
+
+"""Pytest fixtures for async testing with authentication support."""
+
+
+# Ensure clean event loop shutdown after all tests
+@pytest.fixture(scope="session", autouse=True)
+def event_loop_policy():
+    """Provide event loop policy and ensure clean shutdown."""
+    policy = asyncio.get_event_loop_policy()
+    yield policy
+    # Clean shutdown is handled by pytest-asyncio
+
+
+@pytest.fixture(scope="function", autouse=True)
+def cleanup_pending_tasks():
+    """Cancel any pending async tasks after each test."""
+    yield
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            return
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            if not task.done() and not task.cancelled():
+                task.cancel()
+    except RuntimeError:
+        pass
 
 
 @pytest_asyncio.fixture
@@ -30,6 +56,15 @@ async def async_engine():
         echo=False,
         connect_args={"check_same_thread": False},
     )
+    import os
+
+    """Pytest fixtures for async testing with authentication support."""
+
+    # Set environment variables BEFORE importing app modules
+    os.environ["SECRET_KEY"] = "test_secret_key_for_pytest_only_12345"
+    os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+    os.environ["RATE_LIMIT_ENABLED"] = "false"  # Disable rate limiting in tests
+
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield engine
@@ -45,7 +80,11 @@ async def session(async_engine) -> AsyncGenerator[AsyncSession]:
         expire_on_commit=False,
     )
     async with async_session_factory() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
+            # Note: Do NOT dispose engine here - async_engine fixture handles cleanup
 
 
 @pytest_asyncio.fixture
@@ -98,8 +137,10 @@ async def unverified_user(session: AsyncSession) -> User:
     return user
 
 
-@pytest.fixture
-def auth_headers(test_user: User) -> dict[str, str]:
+@pytest_asyncio.fixture
+async def auth_headers(test_user: User) -> dict[str, str]:
     """Generate authorization headers for test user."""
-    token = create_access_token(test_user.id)
+    # Access user.id in async context to avoid MissingGreenlet error
+    user_id = test_user.id
+    token = create_access_token(user_id)
     return {"Authorization": f"Bearer {token}"}

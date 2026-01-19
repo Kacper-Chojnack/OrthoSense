@@ -61,12 +61,14 @@ jobs:
             -e DATABASE_URL=sqlite+aiosqlite:///:memory: \
             orthosense-backend:test \
             /bin/bash -c '
+              set -e
               pip install --no-cache-dir --user .[dev]
               python -m pytest tests/ -v --tb=short -x \
                 --ignore=tests/e2e --ignore=tests/e2e_api \
                 -p no:cacheprovider \
                 -W ignore::DeprecationWarning \
-                --timeout=300
+                --timeout=60 \
+                --timeout-method=thread
               exit $?
             '
 

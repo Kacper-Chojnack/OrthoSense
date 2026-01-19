@@ -66,17 +66,20 @@ jobs:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          pytest tests/unit tests/integration tests/models tests/services \
+          set -e
+          python -m pytest tests/unit tests/integration tests/models tests/services \
             --cov=app \
             --cov-report=xml:coverage.xml \
             --cov-report=term \
             --junitxml=test-results.xml \
+            --tb=short \
             -v \
             --timeout=30 \
-            --timeout-method=thread \
             -x \
             --ignore=tests/e2e \
             --ignore=tests/e2e_api
+          exit_code=$?
+          exit $exit_code
 
       - name: Fix Coverage Paths for SonarCloud
         working-directory: ./backend

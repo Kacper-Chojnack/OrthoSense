@@ -6,9 +6,8 @@
 
 [![Backend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/backend-ci.yml)
 [![Frontend CI](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/frontend-ci.yml)
-[![E2E Tests](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/e2e-tests.yml)
 [![Security Scan](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml/badge.svg)](https://github.com/Kacper-Chojnack/OrthoSense/actions/workflows/security-scan.yml)
-[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Kacper-Chojnack_OrthoSense&metric=alert_status&token=509be37e4fe2d462aeb6cf2510f27f13e95a2028)](https://sonarcloud.io/summary/new_code?id=Kacper-Chojnack_OrthoSense)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Real-time movement analysis • Privacy-first design • Edge AI processing**
@@ -70,6 +69,7 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 | **Frontend** | ![Flutter](https://img.shields.io/badge/Flutter-3.24-02569B?logo=flutter) | Cross-platform mobile development |
 | **State Management** | ![Riverpod](https://img.shields.io/badge/Riverpod-2.5-blue) | Reactive state management |
 | **Backend** | ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi) | High-performance REST API |
+| **Python** | ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python) | Backend runtime |
 | **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql) | Production data storage |
 | **Local DB** | ![SQLite](https://img.shields.io/badge/SQLite-Drift-003B57?logo=sqlite) | Offline-first persistence |
 | **AI Framework** | ![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose-orange) | Real-time pose estimation |
@@ -89,7 +89,7 @@ Polish-Japanese Academy of Information Technology (PJATK), Gdańsk
 # Required
 - Flutter SDK 3.24+
 - Docker & Docker Compose
-- Python 3.11+
+- Python 3.13+
 - Xcode 15+ (for iOS)
 
 # Optional
@@ -138,34 +138,9 @@ flutter pub run build_runner watch   # Watch mode
 
 ## 🏗 Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Mobile Application                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  Camera Input │  │ MediaPipe AI │  │  TFLite ML  │     │
-│  │   (Local)    │→ │ Pose Detector│→ │  Classifier  │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│           ↓                ↓                  ↓             │
-│  ┌─────────────────────────────────────────────────┐       │
-│  │         Riverpod State Management               │       │
-│  └─────────────────────────────────────────────────┘       │
-│           ↓                                                 │
-│  ┌──────────────┐         ┌──────────────┐                │
-│  │ SQLite (Drift)│         │  REST Client │                │
-│  │ Offline Data │         │   (Dio)      │                │
-│  └──────────────┘         └──────┬───────┘                │
-└────────────────────────────────────┼──────────────────────┘
-                                     │ HTTPS
-                  ┌──────────────────▼──────────────────┐
-                  │       FastAPI Backend               │
-                  │  ┌────────────┐  ┌──────────────┐  │
-                  │  │ Auth (JWT) │  │   Rate Limit │  │
-                  │  └────────────┘  └──────────────┘  │
-                  │  ┌──────────────────────────────┐  │
-                  │  │   SQLModel + PostgreSQL      │  │
-                  │  └──────────────────────────────┘  │
-                  └─────────────────────────────────────┘
-```
+<div align="center">
+  <img src="docs/diagrams/diagram.png" alt="OrthoSense Architecture Diagram" width="400">
+</div>
 
 ### Key Design Patterns
 
@@ -299,7 +274,7 @@ This is an academic project currently not accepting external contributions. Howe
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-**Copyright © 2025 Kacper Chojnacki**
+**Copyright © 2025 Kacper Chojnacki & Zofia Dekowska**
 
 ---
 
@@ -354,6 +329,7 @@ Polsko-Japońska Akademia Technik Komputerowych (PJATK), Gdańsk
 | **Frontend** | Flutter 3.24 | Rozwój aplikacji mobilnej |
 | **Zarządzanie stanem** | Riverpod 2.5 | Reaktywne zarządzanie stanem |
 | **Backend** | FastAPI 0.115 | REST API wysokiej wydajności |
+| **Python** | Python 3.13 | Środowisko backendu |
 | **Baza danych** | PostgreSQL 16 | Przechowywanie danych produkcyjnych |
 | **Baza lokalna** | SQLite (Drift) | Tryb offline |
 | **AI** | MediaPipe Pose | Estymacja pozy w czasie rzeczywistym |
