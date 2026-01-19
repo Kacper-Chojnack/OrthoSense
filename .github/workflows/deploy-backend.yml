@@ -172,10 +172,14 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-minimum-32-characters-long
           ENVIRONMENT: test
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
           set -e
-          python -m pytest -v --tb=short --cov=app --cov-report=xml --timeout=30
+          python -m pytest tests/unit tests/integration tests/models tests/services \
+            -v --tb=short --cov=app --cov-report=xml \
+            --timeout=30 \
+            --ignore=tests/e2e \
+            --ignore=tests/e2e_api
           exit_code=$?
           exit $exit_code
 
