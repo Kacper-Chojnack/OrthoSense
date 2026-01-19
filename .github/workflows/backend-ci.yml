@@ -86,12 +86,11 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Run Tests with Coverage
-        timeout-minutes: 12
+        timeout-minutes: 8
         env:
           SECRET_KEY: "test_secret_key_for_ci"
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          set -e
           python -m pytest tests/unit tests/integration tests/models tests/services \
             --cov=app \
             --cov-report=xml \
@@ -99,9 +98,9 @@ jobs:
             --timeout=30 \
             --tb=short \
             -v \
-            -x
-          exit_code=$?
-          exit $exit_code
+            -x \
+            -W ignore::DeprecationWarning \
+            -p no:cacheprovider
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
