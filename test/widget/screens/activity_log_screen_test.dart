@@ -102,14 +102,16 @@ void main() {
       final now = DateTime.now();
       final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
 
-      expect(startOfWeek.isBefore(now), isTrue);
+      // startOfWeek should be before or equal to now (equal on Mondays)
+      expect(startOfWeek.isAfter(now), isFalse);
     });
 
     test('thisMonth filter calculates correct date range', () {
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
 
-      expect(startOfMonth.isBefore(now), isTrue);
+      // startOfMonth should be before or equal to now (equal on 1st day)
+      expect(startOfMonth.isAfter(now), isFalse);
       expect(startOfMonth.month, equals(now.month));
     });
 
