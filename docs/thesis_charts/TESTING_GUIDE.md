@@ -1,118 +1,148 @@
-# OrthoSense - Instrukcja testowania i generowania wykresów dla pracy dyplomowej
+# OrthoSense - Testing and Chart Generation Guide for Thesis
 
-> **Autor:** OrthoSense Team  
-> **Data aktualizacji:** Styczeń 2026  
-> **Status:** Gotowe do użycia
+> **Author:** OrthoSense Team  
+> **Last Updated:** January 2026  
+> **Status:** Ready to use
 
-## Szybki start (TL;DR)
+## Quick Start (TL;DR)
 
 ```powershell
-# 1. Wygeneruj 3 kluczowe wykresy
+# 1. Generate 3 key charts
 cd docs\thesis_charts
 python generate_3_charts.py
 
-# Wykresy zostaną automatycznie skopiowane do grafiki/
+# Charts will be automatically copied to grafiki/
 
-# 2. (Opcjonalnie) Uruchom testy na prawdziwym AWS
+# 2. (Optional) Run tests on real AWS
 $env:ORTHOSENSE_API_URL = "https://xpcua8sib3.eu-central-1.awsapprunner.com"
 python real_api_load_test.py
-python generate_3_charts.py  # Wygeneruje wykres z prawdziwych danych
+python generate_3_charts.py  # Will generate charts from real data
 ```
 
-**Wynikowe 3 wykresy znajdziesz w:** `grafiki/`
-- `wykres_latencja_wydajnosc.pdf` - Latencja ML + API (Sekcja 10.3.1)
-- `wykres_testy_obciazeniowe.pdf` - Testy obciążeniowe (Sekcja 10.3.2)
-- `wykres_jakosc_testow.pdf` - Jakość kodu i testy (Sekcja 10.2)
+**Output charts can be found in:** `grafiki/`
+- `wykres_latencja_wydajnosc.pdf` - ML + API Latency (Section 10.3.1)
+- `wykres_testy_obciazeniowe.pdf` - Load Tests (Section 10.3.2)
+- `wykres_jakosc_testow.pdf` - Code Quality & Tests (Section 10.2)
 
 ---
 
-## Struktura plików
+## File Structure
 
 ```
 OrthoSense/
 ├── docs/thesis_charts/
-│   ├── generate_3_charts.py       # Generator 3 kluczowych wykresów
-│   ├── real_api_load_test.py      # Testy na prawdziwym AWS API
-│   ├── analyze_mobile_metrics.py  # Analiza JSONów z telefonu
-│   └── TESTING_GUIDE.md           # Ten plik
+│   ├── generate_3_charts.py       # Generator for 3 key charts
+│   ├── real_api_load_test.py      # Tests on real AWS API
+│   ├── analyze_mobile_metrics.py  # Analysis of phone JSON files
+│   └── TESTING_GUIDE.md           # This file
 ├── lib/features/exercise/presentation/screens/
-│   └── performance_test_screen.dart  # Ekran testu wydajności (telefon)
-├── backend/.benchmarks/           # Wyniki testów JSON
-└── grafiki/                       # Wynikowe wykresy PDF
+│   └── performance_test_screen.dart  # Performance test screen (phone)
+├── backend/.benchmarks/           # Test results JSON
+└── grafiki/                       # Output PDF charts
 ```
 
 ---
 
-## Testowanie na telefonie (WALIDACJA PROGU <100ms)
+## Mobile Device Testing (VALIDATING <100ms THRESHOLD)
 
-### 1. Wbudowany ekran Performance Test
+### 1. Built-in Performance Test Screen (FULL PIPELINE)
 
-Aplikacja ma ekran `PerformanceTestScreen` który:
-- ✅ Mierzy latencję każdej klatki i weryfikuje próg <100ms
-- ✅ Monitoruje zużycie baterii podczas testu
-- ✅ Śledzi zużycie pamięci RAM
-- ✅ Oblicza FPS i porównuje z targetem ≥15 FPS
-- ✅ Eksportuje szczegółowy JSON do analizy
+The app has a `PerformanceTestScreen` that tests the **FULL PIPELINE**:
 
-**Dostępne czasy testu:** 30s, 1 min, 2 min, 5 min (test baterii)
+```
+Camera → MediaPipe (Pose) → Bi-LSTM (Classifier) → Diagnostics → UI
+```
 
-### 2. Jak użyć
+**What the test measures:**
+- ✅ Full pipeline latency (from camera frame to UI update)
+- ✅ Breakdown: MediaPipe, Bi-LSTM, Diagnostics separately
+- ✅ Exercise classification (same as real analysis)
+- ✅ Feedback/tips (same as real analysis)
+- ✅ Battery consumption during test
+- ✅ RAM memory usage
+- ✅ FPS and comparison with ≥15 FPS target
+- ✅ Detailed JSON export for analysis
 
-1. **Dodaj routing do ekranu** (jeśli jeszcze nie dodany):
+**The test is identical to real analysis** - the only differences are:
+- "🧪 FULL PIPELINE TEST (MOCK)" banner on screen
+- Results are not saved to the database
+
+**Available test durations:** 30s, 1 min, 2 min, 5 min (battery test)
+
+### 2. How to Use
+
+1. **Add routing to the screen** (if not already added):
 ```dart
 import 'package:orthosense/features/exercise/presentation/screens/performance_test_screen.dart';
 
-// W navigation routes:
+// In navigation routes:
 GoRoute(
   path: '/performance-test',
   builder: (_, __) => const PerformanceTestScreen(),
 ),
 ```
 
-2. **Zbuduj aplikację w trybie Profile:**
+2. **Build the app in Profile mode:**
 ```bash
 flutter run --profile
 ```
 
-3. **Przeprowadź test:**
-   - Przejdź do ekranu Performance Test
-   - Wybierz czas testu (30s dla szybkiego testu, 5 min dla baterii)
-   - Kliknij "Start Test"
-   - Po zakończeniu - "Share JSON"
+3. **Run the test:**
+   - Navigate to Performance Test screen
+   - Select test duration (30s for quick test, 5 min for battery)
+   - Click "Start Test"
+   - After completion - "Share JSON"
 
-4. **Prześlij JSON na komputer** (AirDrop/email/cloud)
+4. **Transfer JSON to computer** (AirDrop/email/cloud)
 
-5. **Analizuj wyniki:**
+5. **Analyze results:**
 ```powershell
-# Skopiuj JSON do backend/.benchmarks/
-Copy-Item "ścieżka_do_json\perf_test_*.json" -Destination backend\.benchmarks\
+# Copy JSON to backend/.benchmarks/
+Copy-Item "path_to_json\perf_test_*.json" -Destination backend\.benchmarks\
 
-# Uruchom analizę
+# Run analysis
 cd docs\thesis_charts
 python analyze_mobile_metrics.py
 ```
 
-### 3. Co mierzy test
+### 3. What the Test Measures (FULL PIPELINE)
 
-| Metryka | Opis | Próg dla pracy |
-|---------|------|----------------|
-| **Latencja P95** | 95. percentyl czasu przetwarzania klatki | <100ms (NF01) |
-| **FPS** | Klatki na sekundę dla analizy ML | ≥15 FPS |
-| **Threshold Compliance** | % klatek poniżej 100ms | >95% |
-| **Zużycie baterii** | Spadek % baterii podczas testu | ~8-12% / 30 min |
-| **Peak RAM** | Szczytowe zużycie pamięci | <320 MB |
+| Metric | Description | Thesis Threshold |
+|--------|-------------|------------------|
+| **Total Pipeline P95** | 95th percentile of full pipeline | <100ms (NF01) |
+| **MediaPipe P95** | 95th percentile of pose detection | ~10-20ms |
+| **Bi-LSTM P95** | 95th percentile of classifier | ~5-15ms |
+| **Diagnostics P95** | 95th percentile of movement analysis | ~1-5ms |
+| **FPS** | Frames per second for ML analysis | ≥15 FPS |
+| **Threshold Compliance** | % of frames under 100ms | >95% |
+| **Battery Consumption** | Battery % drop during test | ~8-12% / 30 min |
+| **Peak RAM** | Peak memory usage | <320 MB |
 
-### 4. Przykładowy wynik JSON
+### 4. Sample JSON Output (FULL PIPELINE)
 
 ```json
 {
+  "test_name": "thesis_performance_test",
+  "test_type": "FULL_PIPELINE",
+  "pipeline_description": "Camera → MediaPipe → Bi-LSTM → Diagnostics → UI",
   "thesis_validation": {
     "NF01_latency_under_100ms": true,
     "NF01_p95_latency_ms": 52.3,
     "meets_15fps_target": true,
     "actual_fps": 18.2,
     "threshold_compliance_percent": 98.7,
-    "validation_passed": true
+    "validation_passed": true,
+    "pipeline_tested": "FULL (MediaPipe + Bi-LSTM + Diagnostics)"
+  },
+  "pipeline_breakdown": {
+    "mediapipe_latency": {"p50_ms": 12.1, "p95_ms": 14.8, "p99_ms": 16.2},
+    "classifier_latency": {"p50_ms": 8.5, "p95_ms": 12.3, "p99_ms": 15.1},
+    "diagnostics_latency": {"p50_ms": 2.1, "p95_ms": 3.5, "p99_ms": 4.2},
+    "total_pipeline_latency": {"p50_ms": 25.3, "p95_ms": 32.1, "p99_ms": 38.5},
+    "classification_count": 450,
+    "diagnostics_count": 420,
+    "detected_exercise": "Deep Squat",
+    "detected_variant": null
   },
   "battery": {
     "start_level_percent": 85,
@@ -125,95 +155,95 @@ python analyze_mobile_metrics.py
 
 ---
 
-## Testowanie na prawdziwym API AWS
+## Testing on Real AWS API
 
-### 1. Konfiguracja
+### 1. Configuration
 
 ```powershell
-# Użyj produkcyjnego URL (już zweryfikowany)
+# Use production URL (already verified)
 $env:ORTHOSENSE_API_URL = "https://xpcua8sib3.eu-central-1.awsapprunner.com"
 
-# Sprawdź połączenie
+# Check connection
 curl "$env:ORTHOSENSE_API_URL/health"
 ```
 
-### 2. Uruchomienie testów
+### 2. Running Tests
 
 ```powershell
 cd docs\thesis_charts
 python real_api_load_test.py
 ```
 
-### 3. Co testuje skrypt
+### 3. What the Script Tests
 
-1. **Health endpoint** (100 żądań) → p50, p95, p99
-2. **Concurrent load** (5-50 równoczesnych) → throughput, success rate
+1. **Health endpoint** (100 requests) → p50, p95, p99
+2. **Concurrent load** (5-50 concurrent) → throughput, success rate
 3. **Sustained load** (30s) → time series
 
 ---
 
-## Generowanie wykresów
+## Generating Charts
 
-### 1. Generator 3 kluczowych wykresów
+### 1. 3 Key Charts Generator
 
 ```powershell
 cd docs\thesis_charts
-pip install matplotlib numpy  # Jeśli nie zainstalowane
+pip install matplotlib numpy  # If not installed
 python generate_3_charts.py
 ```
 
-### 2. Wygenerowane wykresy
+### 2. Generated Charts
 
-| Plik | Sekcja | Opis |
-|------|--------|------|
-| `wykres_latencja_wydajnosc.pdf` | 10.3.1 | Latencja ML na urządzeniach + histogram API |
+| File | Section | Description |
+|------|---------|-------------|
+| `wykres_latencja_wydajnosc.pdf` | 10.3.1 | ML latency on devices + API histogram |
 | `wykres_testy_obciazeniowe.pdf` | 10.3.2 | Response time + throughput vs concurrent users |
-| `wykres_jakosc_testow.pdf` | 10.2 | Code coverage + piramida testów |
+| `wykres_jakosc_testow.pdf` | 10.2 | Code coverage + test pyramid |
 
-### 3. Użycie w LaTeX
+### 3. Using in LaTeX
 
 ```latex
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{grafiki/wykres_latencja_wydajnosc.pdf}
-    \caption{Latencja przetwarzania ML na urządzeniach mobilnych oraz histogram czasów odpowiedzi API}
-    \label{fig:latencja_wydajnosc}
+    \caption{ML processing latency on mobile devices and API response time histogram}
+    \label{fig:latency_performance}
 \end{figure}
 ```
 
 ---
 
-## Checklist przed oddaniem pracy
+## Pre-Submission Checklist
 
-### Minimum (wykresy z przykładowych danych):
+### Minimum (charts from sample data):
 - [ ] `python generate_3_charts.py`
-- [ ] Wykresy PDF w `grafiki/`
-- [ ] `\includegraphics` działają w LaTeX
+- [ ] PDF charts in `grafiki/`
+- [ ] `\includegraphics` works in LaTeX
 
-### Zalecane (prawdziwe dane):
-- [ ] Test API: `python real_api_load_test.py`
-- [ ] Test na telefonie: PerformanceTestScreen (30s-5min)
-- [ ] Skopiuj JSONy do `backend/.benchmarks/`
+### Recommended (real data):
+- [ ] API test: `python real_api_load_test.py`
+- [ ] Phone test: PerformanceTestScreen (30s-5min)
+- [ ] Copy JSONs to `backend/.benchmarks/`
 - [ ] `python analyze_mobile_metrics.py`
-- [ ] Ponownie `python generate_3_charts.py`
-- [ ] Zaktualizuj wartości w tekście (latencja, FPS, bateria)
+- [ ] Re-run `python generate_3_charts.py`
+- [ ] Update values in thesis text (latency, FPS, battery)
 
 ---
 
-## Rozwiązywanie problemów
+## Troubleshooting
 
-### API niedostępne
+### API Unavailable
 ```powershell
-# Sprawdź status w AWS Console lub użyj:
+# Check status in AWS Console or use:
 aws apprunner list-services --region eu-central-1
 ```
 
-### Brak bibliotek Python
+### Missing Python Libraries
 ```powershell
 pip install matplotlib numpy aiohttp
 ```
 
-### DevTools nie łączy
+### DevTools Not Connecting
 ```bash
 flutter clean && flutter run --profile
 ```

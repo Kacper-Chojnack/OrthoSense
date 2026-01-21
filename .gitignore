@@ -138,3 +138,6 @@ todo
 .tabnine/
 CLAUDE.md
 .github/copilot-instructions.md
+
+.gemini/
+gha-creds-*.json

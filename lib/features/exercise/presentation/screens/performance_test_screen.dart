@@ -9,7 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:orthosense/core/providers/pose_detection_provider.dart';
+import 'package:orthosense/core/providers/exercise_classifier_provider.dart';
+import 'package:orthosense/core/providers/movement_diagnostics_provider.dart';
 import 'package:orthosense/core/services/mobile_performance_metrics.dart';
+import 'package:orthosense/features/exercise/domain/models/pose_landmarks.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Screen for collecting real performance metrics from the device.
@@ -41,6 +44,28 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   final List<_MemorySnapshot> _memorySnapshots = [];
   final Stopwatch _testStopwatch = Stopwatch();
 
+  // === FULL PIPELINE: Raw frame buffer for Bi-LSTM ===
+  final List<PoseFrame> _rawBuffer = [];
+  static const _windowSize = 60; // 60 frames for classifier
+  static const _predictionInterval = 5; // Classify every 5 frames
+  int _frameCount = 0;
+
+  // === FULL PIPELINE: Classification & Diagnostics ===
+  String? _detectedExercise;
+  String? _detectedVariant;
+  String? _currentFeedback;
+  bool _feedbackIsError = false;
+  final List<String> _calibrationVotes = [];
+  int _classificationCount = 0;
+  int _diagnosticsCount = 0;
+
+  // === FULL PIPELINE: Latency breakdown ===
+  double _lastMediaPipeLatencyMs = 0;
+  double _lastClassifierLatencyMs = 0;
+  double _lastDiagnosticsLatencyMs = 0;
+  double _lastTotalPipelineLatencyMs = 0;
+  final List<_PipelineLatencyMetric> _pipelineMetrics = [];
+
   // Configurable test duration (30s default, up to 5 min for battery tests)
   Duration _testDuration = const Duration(seconds: 30);
   Duration _elapsed = Duration.zero;
@@ -57,7 +82,6 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   // Frame metrics
   int _processedFrames = 0;
   int _droppedFrames = 0;
-  double _lastLatencyMs = 0;
   int _framesUnder100ms = 0;
   int _framesOver100ms = 0;
 
@@ -175,6 +199,9 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       _frameMetrics.clear();
       _batterySnapshots.clear();
       _memorySnapshots.clear();
+      _pipelineMetrics.clear();
+      _rawBuffer.clear();
+      _calibrationVotes.clear();
       _processedFrames = 0;
       _droppedFrames = 0;
       _framesUnder100ms = 0;
@@ -184,6 +211,17 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       _elapsed = Duration.zero;
       _exportedPath = null;
       _peakMemoryMB = 0;
+      _frameCount = 0;
+      _detectedExercise = null;
+      _detectedVariant = null;
+      _currentFeedback = null;
+      _feedbackIsError = false;
+      _classificationCount = 0;
+      _diagnosticsCount = 0;
+      _lastMediaPipeLatencyMs = 0;
+      _lastClassifierLatencyMs = 0;
+      _lastDiagnosticsLatencyMs = 0;
+      _lastTotalPipelineLatencyMs = 0;
     });
 
     await _metrics.startSession('thesis_performance_test');
@@ -253,67 +291,198 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
     return (baseMemory + frameBufferMemory).round();
   }
 
+  /// FULL PIPELINE: Kamera → MediaPipe → Bi-LSTM → Diagnostyka → UI
+  /// Mierzy latencję każdego etapu osobno oraz całego pipeline
   Future<void> _processFrame(CameraImage image) async {
     if (!_isRunning) return;
 
-    final stopwatch = Stopwatch()..start();
+    final pipelineStopwatch = Stopwatch()..start();
+    final mediaPipeStopwatch = Stopwatch();
+    final classifierStopwatch = Stopwatch();
+    final diagnosticsStopwatch = Stopwatch();
+
+    double mediaPipeLatencyMs = 0;
+    double classifierLatencyMs = 0;
+    double diagnosticsLatencyMs = 0;
 
     try {
+      // === STAGE 1: MediaPipe Pose Detection ===
+      mediaPipeStopwatch.start();
       final poseService = ref.read(poseDetectionServiceProvider);
       final poseFrame = await poseService.detectPoseFromCameraImage(
         image,
         _controller!.description,
       );
-
-      stopwatch.stop();
-      final latencyMs = stopwatch.elapsedMicroseconds / 1000.0;
+      mediaPipeStopwatch.stop();
+      mediaPipeLatencyMs = mediaPipeStopwatch.elapsedMicroseconds / 1000.0;
+      _lastMediaPipeLatencyMs = mediaPipeLatencyMs;
 
       _processedFrames++;
-      _lastLatencyMs = latencyMs;
-      _metrics.recordFrameTime(latencyMs);
+      _frameCount++;
 
-      // Track threshold compliance for thesis
-      if (latencyMs < _latencyThresholdMs) {
+      if (poseFrame != null) {
+        _posesDetected++;
+
+        // Check visibility for buffer
+        final isVisible = poseService.checkPoseVisibility(poseFrame);
+
+        if (isVisible) {
+          // Add to buffer for Bi-LSTM
+          _rawBuffer.add(poseFrame);
+          if (_rawBuffer.length > _windowSize) {
+            _rawBuffer.removeAt(0);
+          }
+        }
+
+        // Extract pose points for visualization
+        final landmarks = poseFrame.landmarks;
+        if (landmarks.isNotEmpty) {
+          _lastPosePoints = [
+            if (landmarks.isNotEmpty) Offset(landmarks[0].x, landmarks[0].y),
+            if (landmarks.length > 11) Offset(landmarks[11].x, landmarks[11].y),
+            if (landmarks.length > 12) Offset(landmarks[12].x, landmarks[12].y),
+            if (landmarks.length > 13) Offset(landmarks[13].x, landmarks[13].y),
+            if (landmarks.length > 14) Offset(landmarks[14].x, landmarks[14].y),
+            if (landmarks.length > 15) Offset(landmarks[15].x, landmarks[15].y),
+            if (landmarks.length > 16) Offset(landmarks[16].x, landmarks[16].y),
+            if (landmarks.length > 23) Offset(landmarks[23].x, landmarks[23].y),
+            if (landmarks.length > 24) Offset(landmarks[24].x, landmarks[24].y),
+          ];
+        }
+
+        // === STAGE 2 & 3: Bi-LSTM Classification + Diagnostics ===
+        // Run full pipeline every _predictionInterval frames when buffer is full
+        if (_rawBuffer.length >= _windowSize &&
+            _frameCount % _predictionInterval == 0 &&
+            isVisible) {
+          // === STAGE 2: Bi-LSTM Classifier ===
+          classifierStopwatch.start();
+          final classifier = ref.read(exerciseClassifierServiceProvider);
+          final windowFrames = _rawBuffer.sublist(
+            _rawBuffer.length - _windowSize,
+          );
+          final poseLandmarks = PoseLandmarks(frames: windowFrames, fps: 30.0);
+
+          final classification = await classifier.classify(poseLandmarks);
+          classifierStopwatch.stop();
+          classifierLatencyMs =
+              classifierStopwatch.elapsedMicroseconds / 1000.0;
+          _lastClassifierLatencyMs = classifierLatencyMs;
+          _classificationCount++;
+
+          // Update detected exercise (calibration phase for first 3 seconds)
+          if (_elapsed.inSeconds < 3) {
+            // Calibration: collect votes
+            final exName = classification.exercise;
+            if (exName != 'Unknown Exercise' &&
+                exName != 'No Exercise Detected' &&
+                classification.confidence > 0.50) {
+              _calibrationVotes.add(exName);
+            }
+          } else if (_detectedExercise == null &&
+              _calibrationVotes.isNotEmpty) {
+            // Finalize calibration
+            final voteCounts = <String, int>{};
+            for (final vote in _calibrationVotes) {
+              voteCounts[vote] = (voteCounts[vote] ?? 0) + 1;
+            }
+            _detectedExercise = voteCounts.entries
+                .reduce((a, b) => a.value > b.value ? a : b)
+                .key;
+          }
+
+          // === STAGE 3: Movement Diagnostics (if exercise detected) ===
+          if (_detectedExercise != null) {
+            diagnosticsStopwatch.start();
+            final diagnostics = ref.read(movementDiagnosticsServiceProvider);
+
+            // Detect variant if needed
+            if (_detectedVariant == null &&
+                (_detectedExercise == 'Standing Shoulder Abduction' ||
+                    _detectedExercise == 'Hurdle Step')) {
+              final skeletonData = windowFrames
+                  .map(
+                    (f) => f.landmarks.map((lm) => [lm.x, lm.y, lm.z]).toList(),
+                  )
+                  .toList();
+              _detectedVariant = diagnostics.detectVariant(
+                _detectedExercise!,
+                skeletonData,
+              );
+            }
+
+            final result = diagnostics.diagnose(
+              _detectedExercise!,
+              poseLandmarks,
+              forcedVariant: _detectedVariant,
+            );
+            diagnosticsStopwatch.stop();
+            diagnosticsLatencyMs =
+                diagnosticsStopwatch.elapsedMicroseconds / 1000.0;
+            _lastDiagnosticsLatencyMs = diagnosticsLatencyMs;
+            _diagnosticsCount++;
+
+            // Update feedback (same as live analysis)
+            if (result.isCorrect) {
+              _currentFeedback = 'Good form! ✓';
+              _feedbackIsError = false;
+            } else {
+              // Get first error feedback
+              final feedbackKeys = result.feedback.keys.where(
+                (k) => result.feedback[k] == true,
+              );
+              if (feedbackKeys.isNotEmpty) {
+                _currentFeedback = feedbackKeys.first;
+                _feedbackIsError = true;
+              }
+            }
+          }
+        }
+      } else {
+        _lastPosePoints = null;
+        if (_detectedExercise != null) {
+          _currentFeedback = 'Move into frame';
+          _feedbackIsError = true;
+        }
+      }
+
+      pipelineStopwatch.stop();
+      final totalLatencyMs = pipelineStopwatch.elapsedMicroseconds / 1000.0;
+      _lastTotalPipelineLatencyMs = totalLatencyMs;
+      _lastLatencyMs = totalLatencyMs;
+      _metrics.recordFrameTime(totalLatencyMs);
+
+      // Track threshold compliance for thesis (TOTAL pipeline latency)
+      if (totalLatencyMs < _latencyThresholdMs) {
         _framesUnder100ms++;
       } else {
         _framesOver100ms++;
       }
 
       if (poseFrame != null) {
-        _metrics.recordInferenceTime(latencyMs);
-        _posesDetected++;
-
-        // Extract pose points for visualization (sample key points)
-        final landmarks = poseFrame.landmarks;
-        if (landmarks.isNotEmpty) {
-          _lastPosePoints = [
-            // Head (nose)
-            if (landmarks.isNotEmpty) Offset(landmarks[0].x, landmarks[0].y),
-            // Shoulders
-            if (landmarks.length > 11) Offset(landmarks[11].x, landmarks[11].y),
-            if (landmarks.length > 12) Offset(landmarks[12].x, landmarks[12].y),
-            // Elbows
-            if (landmarks.length > 13) Offset(landmarks[13].x, landmarks[13].y),
-            if (landmarks.length > 14) Offset(landmarks[14].x, landmarks[14].y),
-            // Wrists
-            if (landmarks.length > 15) Offset(landmarks[15].x, landmarks[15].y),
-            if (landmarks.length > 16) Offset(landmarks[16].x, landmarks[16].y),
-            // Hips
-            if (landmarks.length > 23) Offset(landmarks[23].x, landmarks[23].y),
-            if (landmarks.length > 24) Offset(landmarks[24].x, landmarks[24].y),
-          ];
-        }
-      } else {
-        _lastPosePoints = null;
+        _metrics.recordInferenceTime(mediaPipeLatencyMs);
       }
 
       _frameMetrics.add(
         _FrameMetric(
           timestampMs: _testStopwatch.elapsedMilliseconds,
-          latencyMs: latencyMs,
+          latencyMs: totalLatencyMs,
           hasPose: poseFrame != null,
           frameNumber: _processedFrames,
-          meetsThreshold: latencyMs < _latencyThresholdMs,
+          meetsThreshold: totalLatencyMs < _latencyThresholdMs,
+        ),
+      );
+
+      // Record pipeline breakdown
+      _pipelineMetrics.add(
+        _PipelineLatencyMetric(
+          timestampMs: _testStopwatch.elapsedMilliseconds,
+          mediaPipeMs: mediaPipeLatencyMs,
+          classifierMs: classifierLatencyMs,
+          diagnosticsMs: diagnosticsLatencyMs,
+          totalMs: totalLatencyMs,
+          hasClassification: classifierLatencyMs > 0,
+          hasDiagnostics: diagnosticsLatencyMs > 0,
         ),
       );
     } catch (e) {
@@ -363,9 +532,10 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       final durationSeconds = _testStopwatch.elapsedMilliseconds / 1000;
       final actualFps = _processedFrames / durationSeconds;
       final percentiles = _calculatePercentiles();
+      final pipelinePercentiles = _calculatePipelinePercentiles();
       final batteryDrain = _startBatteryLevel - _currentBatteryLevel;
 
-      // Thesis validation results
+      // Thesis validation results (FULL PIPELINE latency)
       final p95Latency = (percentiles['p95_ms'] as num?)?.toDouble() ?? 999.0;
       final meetsLatencyThreshold = p95Latency < _latencyThresholdMs;
       final meetsFpsTarget = actualFps >= _targetFps;
@@ -375,16 +545,21 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
 
       final results = {
         'test_name': 'thesis_performance_test',
+        'test_type': 'FULL_PIPELINE',
+        'pipeline_description':
+            'Camera → MediaPipe → Bi-LSTM → Diagnostics → UI',
         'timestamp': DateTime.now().toIso8601String(),
         'device': deviceInfo,
         'test_config': {
           'duration_seconds': _testDuration.inSeconds,
           'latency_threshold_ms': _latencyThresholdMs,
           'target_fps': _targetFps,
+          'window_size_frames': _windowSize,
+          'prediction_interval': _predictionInterval,
         },
         'actual_duration_seconds': durationSeconds,
 
-        // Thesis Chapter 10 validation
+        // Thesis Chapter 10 validation (FULL PIPELINE)
         'thesis_validation': {
           'NF01_latency_under_100ms': meetsLatencyThreshold,
           'NF01_p95_latency_ms': p95Latency,
@@ -396,6 +571,19 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
           'frames_under_100ms': _framesUnder100ms,
           'frames_over_100ms': _framesOver100ms,
           'validation_passed': meetsLatencyThreshold && meetsFpsTarget,
+          'pipeline_tested': 'FULL (MediaPipe + Bi-LSTM + Diagnostics)',
+        },
+
+        // FULL PIPELINE breakdown
+        'pipeline_breakdown': {
+          'mediapipe_latency': pipelinePercentiles['mediapipe'],
+          'classifier_latency': pipelinePercentiles['classifier'],
+          'diagnostics_latency': pipelinePercentiles['diagnostics'],
+          'total_pipeline_latency': pipelinePercentiles['total'],
+          'classification_count': _classificationCount,
+          'diagnostics_count': _diagnosticsCount,
+          'detected_exercise': _detectedExercise,
+          'detected_variant': _detectedVariant,
         },
 
         // Performance summary
@@ -441,6 +629,7 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
         // Raw data for charts
         'percentiles': percentiles,
         'frame_metrics': _frameMetrics.map((m) => m.toJson()).toList(),
+        'pipeline_metrics': _pipelineMetrics.map((m) => m.toJson()).toList(),
       };
 
       final file = File('${directory.path}/perf_test_$timestamp.json');
@@ -451,10 +640,16 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       setState(() => _exportedPath = file.path);
       debugPrint('📊 Results exported to: ${file.path}');
       debugPrint(
+        '🔬 FULL PIPELINE TEST: Camera → MediaPipe → Bi-LSTM → Diagnostics → UI',
+      );
+      debugPrint(
         '✅ Latency <100ms: $meetsLatencyThreshold (P95: ${percentiles['p95_ms']}ms)',
       );
       debugPrint(
         '✅ FPS ≥15: $meetsFpsTarget (Actual: ${actualFps.toStringAsFixed(1)})',
+      );
+      debugPrint(
+        '🧠 Classifications: $_classificationCount | Diagnostics: $_diagnosticsCount',
       );
       debugPrint(
         '🔋 Battery drain: $batteryDrain% over ${durationSeconds.toStringAsFixed(0)}s',
@@ -462,6 +657,77 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
     } catch (e) {
       debugPrint('❌ Failed to export: $e');
     }
+  }
+
+  Map<String, Map<String, dynamic>> _calculatePipelinePercentiles() {
+    final result = <String, Map<String, dynamic>>{};
+
+    // MediaPipe latencies
+    final mediaPipeLatencies =
+        _pipelineMetrics.map((m) => m.mediaPipeMs).where((l) => l > 0).toList()
+          ..sort();
+    if (mediaPipeLatencies.isNotEmpty) {
+      result['mediapipe'] = {
+        'p50_ms': _percentile(mediaPipeLatencies, 50),
+        'p95_ms': _percentile(mediaPipeLatencies, 95),
+        'p99_ms': _percentile(mediaPipeLatencies, 99),
+        'mean_ms':
+            mediaPipeLatencies.reduce((a, b) => a + b) /
+            mediaPipeLatencies.length,
+      };
+    }
+
+    // Classifier latencies (only when classification ran)
+    final classifierLatencies =
+        _pipelineMetrics
+            .where((m) => m.hasClassification)
+            .map((m) => m.classifierMs)
+            .toList()
+          ..sort();
+    if (classifierLatencies.isNotEmpty) {
+      result['classifier'] = {
+        'p50_ms': _percentile(classifierLatencies, 50),
+        'p95_ms': _percentile(classifierLatencies, 95),
+        'p99_ms': _percentile(classifierLatencies, 99),
+        'mean_ms':
+            classifierLatencies.reduce((a, b) => a + b) /
+            classifierLatencies.length,
+      };
+    }
+
+    // Diagnostics latencies (only when diagnostics ran)
+    final diagnosticsLatencies =
+        _pipelineMetrics
+            .where((m) => m.hasDiagnostics)
+            .map((m) => m.diagnosticsMs)
+            .toList()
+          ..sort();
+    if (diagnosticsLatencies.isNotEmpty) {
+      result['diagnostics'] = {
+        'p50_ms': _percentile(diagnosticsLatencies, 50),
+        'p95_ms': _percentile(diagnosticsLatencies, 95),
+        'p99_ms': _percentile(diagnosticsLatencies, 99),
+        'mean_ms':
+            diagnosticsLatencies.reduce((a, b) => a + b) /
+            diagnosticsLatencies.length,
+      };
+    }
+
+    // Total pipeline latencies
+    final totalLatencies =
+        _pipelineMetrics.map((m) => m.totalMs).where((l) => l > 0).toList()
+          ..sort();
+    if (totalLatencies.isNotEmpty) {
+      result['total'] = {
+        'p50_ms': _percentile(totalLatencies, 50),
+        'p95_ms': _percentile(totalLatencies, 95),
+        'p99_ms': _percentile(totalLatencies, 99),
+        'mean_ms':
+            totalLatencies.reduce((a, b) => a + b) / totalLatencies.length,
+      };
+    }
+
+    return result;
   }
 
   Map<String, dynamic> _calculatePercentiles() {
@@ -646,36 +912,168 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                                     size: Size(previewWidth, previewHeight),
                                   ),
                                 ),
-                              // Live latency indicator overlay
-                              if (_isRunning)
+                              // MOCK TEST banner
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  color: Colors.deepPurple.withOpacity(0.9),
+                                  child: const Text(
+                                    '🧪 FULL PIPELINE TEST (MOCK)',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Exercise detection & feedback (like real analysis)
+                              if (_isRunning && _detectedExercise != null)
                                 Positioned(
-                                  top: 8,
+                                  bottom: 60,
+                                  left: 8,
                                   right: 8,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
+                                    padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color:
-                                          _lastLatencyMs < _latencyThresholdMs
-                                          ? Colors.green.withOpacity(0.8)
-                                          : Colors.red.withOpacity(0.8),
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.black.withOpacity(0.7),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: Text(
-                                      '${_lastLatencyMs.toStringAsFixed(0)}ms',
-                                      style: const TextStyle(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _detectedExercise!,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        if (_detectedVariant != null)
+                                          Text(
+                                            'Variant: $_detectedVariant',
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(
+                                                0.8,
+                                              ),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              // Calibration phase indicator
+                              if (_isRunning &&
+                                  _elapsed.inSeconds < 3 &&
+                                  _detectedExercise == null)
+                                Positioned(
+                                  bottom: 60,
+                                  left: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      '🔄 Calibrating... Start exercising!',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                 ),
+                              // Feedback overlay (same as live analysis)
+                              if (_isRunning && _currentFeedback != null)
+                                Positioned(
+                                  bottom: 8,
+                                  left: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _feedbackIsError
+                                          ? Colors.red.withOpacity(0.9)
+                                          : Colors.green.withOpacity(0.9),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      _currentFeedback!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Live latency indicator overlay (pipeline breakdown)
+                              if (_isRunning)
+                                Positioned(
+                                  top: 28,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.8),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        _buildLatencyRow(
+                                          'Total',
+                                          _lastTotalPipelineLatencyMs,
+                                          _latencyThresholdMs,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        _buildLatencyRow(
+                                          'MediaPipe',
+                                          _lastMediaPipeLatencyMs,
+                                          null,
+                                          fontSize: 10,
+                                        ),
+                                        if (_lastClassifierLatencyMs > 0)
+                                          _buildLatencyRow(
+                                            'Bi-LSTM',
+                                            _lastClassifierLatencyMs,
+                                            null,
+                                            fontSize: 10,
+                                          ),
+                                        if (_lastDiagnosticsLatencyMs > 0)
+                                          _buildLatencyRow(
+                                            'Diag',
+                                            _lastDiagnosticsLatencyMs,
+                                            null,
+                                            fontSize: 10,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               // Pose detection indicator
                               if (_isRunning)
                                 Positioned(
-                                  top: 8,
+                                  top: 28,
                                   left: 8,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -755,13 +1153,26 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.science, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'FULL PIPELINE TEST',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
                             Text(
-                              'Thesis Validation (Chapter 10)',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+                              'Camera → MediaPipe → Bi-LSTM → Diagnostics → UI',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const Divider(height: 16),
                             _buildValidationRow(
                               'NF01: Latency <100ms',
                               '${thresholdCompliance.toStringAsFixed(1)}%',
@@ -778,15 +1189,100 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                     ),
                     const SizedBox(height: 12),
 
+                    // Pipeline breakdown card
+                    Card(
+                      color: theme.colorScheme.primaryContainer.withOpacity(
+                        0.3,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '⏱️ Pipeline Latency Breakdown',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildMetricRow(
+                              'MediaPipe (Pose)',
+                              '${_lastMediaPipeLatencyMs.toStringAsFixed(1)} ms',
+                            ),
+                            _buildMetricRow(
+                              'Bi-LSTM (Classifier)',
+                              _lastClassifierLatencyMs > 0
+                                  ? '${_lastClassifierLatencyMs.toStringAsFixed(1)} ms'
+                                  : 'Waiting...',
+                            ),
+                            _buildMetricRow(
+                              'Diagnostics',
+                              _lastDiagnosticsLatencyMs > 0
+                                  ? '${_lastDiagnosticsLatencyMs.toStringAsFixed(1)} ms'
+                                  : 'Waiting...',
+                            ),
+                            const Divider(height: 12),
+                            _buildMetricRow(
+                              'TOTAL Pipeline',
+                              '${_lastTotalPipelineLatencyMs.toStringAsFixed(1)} ms',
+                              color:
+                                  _lastTotalPipelineLatencyMs <
+                                      _latencyThresholdMs
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Exercise detection card
+                    if (_detectedExercise != null ||
+                        _calibrationVotes.isNotEmpty)
+                      Card(
+                        color: theme.colorScheme.secondaryContainer.withOpacity(
+                          0.3,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '🏋️ Exercise Detection',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildMetricRow(
+                                'Detected',
+                                _detectedExercise ?? 'Calibrating...',
+                              ),
+                              if (_detectedVariant != null)
+                                _buildMetricRow('Variant', _detectedVariant!),
+                              _buildMetricRow(
+                                'Classifications',
+                                '$_classificationCount',
+                              ),
+                              _buildMetricRow(
+                                'Diagnostics runs',
+                                '$_diagnosticsCount',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+
                     // Live metrics
                     _buildMetricRow('Processed Frames', '$_processedFrames'),
                     _buildMetricRow('Dropped Frames', '$_droppedFrames'),
                     _buildMetricRow(
-                      'Last Latency',
-                      '${_lastLatencyMs.toStringAsFixed(1)} ms',
-                      color: _lastLatencyMs < _latencyThresholdMs
-                          ? Colors.green
-                          : Colors.red,
+                      'Buffer Size',
+                      '${_rawBuffer.length}/$_windowSize',
                     ),
                     const Divider(height: 24),
 
@@ -836,7 +1332,9 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                       FilledButton.icon(
                         onPressed: _isInitialized ? _startTest : null,
                         icon: const Icon(Icons.play_arrow),
-                        label: Text('Start ${_testDuration.inSeconds}s Test'),
+                        label: Text(
+                          'Start ${_testDuration.inSeconds}s FULL PIPELINE Test',
+                        ),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(double.infinity, 56),
                         ),
@@ -960,6 +1458,37 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       ),
     );
   }
+
+  Widget _buildLatencyRow(
+    String label,
+    double latencyMs,
+    double? threshold, {
+    double fontSize = 12,
+  }) {
+    final isOverThreshold = threshold != null && latencyMs >= threshold;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$label: ',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: fontSize,
+          ),
+        ),
+        Text(
+          '${latencyMs.toStringAsFixed(1)}ms',
+          style: TextStyle(
+            color: threshold != null
+                ? (isOverThreshold ? Colors.red : Colors.green)
+                : Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: fontSize,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _FrameMetric {
@@ -986,6 +1515,37 @@ class _FrameMetric {
     'frame_number': frameNumber,
     'meets_100ms_threshold': meetsThreshold,
     if (error != null) 'error': error,
+  };
+}
+
+/// Pipeline latency breakdown for each frame
+class _PipelineLatencyMetric {
+  final int timestampMs;
+  final double mediaPipeMs;
+  final double classifierMs;
+  final double diagnosticsMs;
+  final double totalMs;
+  final bool hasClassification;
+  final bool hasDiagnostics;
+
+  _PipelineLatencyMetric({
+    required this.timestampMs,
+    required this.mediaPipeMs,
+    required this.classifierMs,
+    required this.diagnosticsMs,
+    required this.totalMs,
+    required this.hasClassification,
+    required this.hasDiagnostics,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'timestamp_ms': timestampMs,
+    'mediapipe_ms': double.parse(mediaPipeMs.toStringAsFixed(2)),
+    'classifier_ms': double.parse(classifierMs.toStringAsFixed(2)),
+    'diagnostics_ms': double.parse(diagnosticsMs.toStringAsFixed(2)),
+    'total_ms': double.parse(totalMs.toStringAsFixed(2)),
+    'has_classification': hasClassification,
+    'has_diagnostics': hasDiagnostics,
   };
 }
 
