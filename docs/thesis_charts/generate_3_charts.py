@@ -367,7 +367,7 @@ def create_wykres_3_jakosc():
     ax2.set_yticks(y)
     ax2.set_yticklabels(levels)
     ax2.set_xlim(0, 120)
-    ax2.legend(loc='lower right')
+    ax2.legend(loc='upper right')
     
     total = sum(backend_tests) + sum(frontend_tests)
     ax2.text(0.97, 0.03, f'Łącznie: {total} testów',
