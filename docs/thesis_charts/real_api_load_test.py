@@ -313,26 +313,21 @@ class RealAPITester:
         return result
 
     async def test_authenticated_endpoints(self, email: str, password: str) -> dict | None:
-        """Test authenticated API endpoints."""
+        """Test authenticated API endpoints with real business logic."""
         print(f"\n📊 Testing authenticated endpoints...")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Login
             print("  Logging in...")
-            login_result = await self._make_request(
-                client, "POST", "/api/v1/auth/token",
+            response = await client.post(
+                f"{self.base_url}/api/v1/auth/login",
                 data={"username": email, "password": password}
             )
             
-            if not login_result.success:
-                print(f"  ✗ Login failed: {login_result.error or login_result.status_code}")
+            if response.status_code != 200:
+                print(f"  ✗ Login failed: {response.status_code} - {response.text}")
                 return None
             
-            # Get token from response
-            response = await client.post(
-                f"{self.base_url}/api/v1/auth/token",
-                data={"username": email, "password": password}
-            )
             token_data = response.json()
             token = token_data.get("access_token")
             
@@ -340,22 +335,23 @@ class RealAPITester:
                 print("  ✗ No token in response")
                 return None
             
+            print("  ✓ Login successful")
             headers = {"Authorization": f"Bearer {token}"}
             
-            # Test authenticated endpoints
+            # Test authenticated endpoints - real business logic
             endpoints = [
-                ("GET", "/api/v1/exercises"),
-                ("GET", "/api/v1/sessions"),
-                ("GET", "/api/v1/users/me"),
+                ("GET", "/api/v1/exercises", "Lista ćwiczeń"),
+                ("GET", "/api/v1/sessions", "Historia sesji"),
+                ("GET", "/api/v1/auth/me", "Profil użytkownika"),
             ]
             
             auth_results: list[dict] = []
             
-            for method, path in endpoints:
-                print(f"  Testing {method} {path}...")
+            for method, path, name in endpoints:
+                print(f"  Testing {name} ({method} {path})...")
                 latencies: list[float] = []
                 
-                for _ in range(20):
+                for _ in range(50):  # 50 requests per endpoint
                     result = await self._make_request(
                         client, method, path, headers=headers
                     )
@@ -364,12 +360,17 @@ class RealAPITester:
                 
                 if latencies:
                     auth_results.append({
-                        "endpoint": f"{method} {path}",
+                        "endpoint": path,
+                        "name": name,
+                        "method": method,
                         "requests": len(latencies),
                         "mean_ms": round(statistics.mean(latencies), 2),
+                        "median_ms": round(statistics.median(latencies), 2),
                         "p95_ms": round(calculate_percentile(latencies, 95), 2),
+                        "p99_ms": round(calculate_percentile(latencies, 99), 2),
                         "min_ms": round(min(latencies), 2),
                         "max_ms": round(max(latencies), 2),
+                        "raw_latencies": latencies,
                     })
                     print(f"    ✓ Mean: {auth_results[-1]['mean_ms']}ms, P95: {auth_results[-1]['p95_ms']}ms")
             
@@ -429,12 +430,11 @@ async def main():
     await tester.test_concurrent_requests([5, 10, 20, 30, 50])
     await tester.test_sustained_load(duration_seconds=30)
     
-    # Optional: Test authenticated endpoints
-    # Uncomment and set credentials if you want to test authenticated endpoints
-    # await tester.test_authenticated_endpoints(
-    #     email="test@example.com",
-    #     password="yourpassword"
-    # )
+    # Test authenticated endpoints with real business logic
+    await tester.test_authenticated_endpoints(
+        email="loadtest.thesis2026@gmail.com",
+        password="LoadTest123!"
+    )
     
     # Save results
     output_file = tester.save_results()

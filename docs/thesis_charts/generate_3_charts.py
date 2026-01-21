@@ -54,7 +54,17 @@ def load_real_api_data():
     files = sorted(BENCHMARKS_DIR.glob("real_api_results_*.json"), reverse=True)
     if files:
         with open(files[0], 'r', encoding='utf-8') as f:
-            print(f"✓ Załadowano: {files[0].name}")
+            print(f"✓ Załadowano API: {files[0].name}")
+            return json.load(f)
+    return None
+
+
+def load_mobile_performance_data():
+    """Ładuje najnowsze wyniki testów wydajności z telefonu."""
+    files = sorted(BENCHMARKS_DIR.glob("perf_test_*.json"), reverse=True)
+    if files:
+        with open(files[0], 'r', encoding='utf-8') as f:
+            print(f"✓ Załadowano Mobile: {files[0].name}")
             return json.load(f)
     return None
 
@@ -67,10 +77,33 @@ def create_wykres_1_latencja():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
     
     # --- Lewa strona: Latencja ML na urządzeniach mobilnych ---
-    devices = ['iPhone 14 Pro', 'iPhone 16', 'iPhone 12\n(min. spec)']
-    min_latency = [35, 32, 55]
-    max_latency = [50, 45, 75]
-    avg_latency = [42, 38, 65]
+    # Próbuj załadować prawdziwe dane z telefonu
+    mobile_data = load_mobile_performance_data()
+    
+    if mobile_data:
+        # Użyj prawdziwych danych z testu
+        device_name = mobile_data.get('device_info', {}).get('model', 'iPhone')
+        stats = mobile_data.get('statistics', {})
+        
+        devices = [device_name]
+        min_latency = [stats.get('min_latency_ms', 0)]
+        max_latency = [stats.get('max_latency_ms', 0)]
+        avg_latency = [stats.get('mean_latency_ms', 0)]
+        
+        # Dodaj informację o źródle danych
+        ax1.text(0.02, 0.98, '✓ Prawdziwe dane z testu', transform=ax1.transAxes,
+                 fontsize=9, verticalalignment='top', color=COLORS['success'],
+                 fontweight='bold')
+    else:
+        # Fallback - przykładowe dane (oznaczone wyraźnie)
+        devices = ['iPhone 14 Pro\n(przykład)', 'iPhone 16\n(przykład)', 'iPhone 12\n(przykład)']
+        min_latency = [35, 32, 55]
+        max_latency = [50, 45, 75]
+        avg_latency = [42, 38, 65]
+        
+        ax1.text(0.02, 0.98, '⚠ Dane przykładowe\nUruchom test na telefonie', 
+                 transform=ax1.transAxes, fontsize=9, verticalalignment='top', 
+                 color=COLORS['accent'], fontweight='bold')
     
     x = np.arange(len(devices))
     width = 0.6
@@ -88,7 +121,7 @@ def create_wykres_1_latencja():
     
     for bar, avg in zip(bars, avg_latency):
         ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 8,
-                 f'{avg} ms', ha='center', va='bottom', fontweight='bold', fontsize=11)
+                 f'{avg:.1f} ms', ha='center', va='bottom', fontweight='bold', fontsize=11)
     
     ax1.set_ylabel('Czas przetwarzania klatki [ms]')
     ax1.set_title('(a) Latencja ML na urządzeniach mobilnych', fontweight='bold', pad=10)

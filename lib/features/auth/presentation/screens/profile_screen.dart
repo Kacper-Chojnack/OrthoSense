@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:orthosense/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:orthosense/features/settings/presentation/providers/profile_image_provider.dart';
+import 'package:orthosense/features/exercise/presentation/screens/performance_test_screen.dart';
 import 'package:orthosense/features/settings/presentation/screens/notification_settings_screen.dart';
 import 'package:orthosense/features/settings/presentation/screens/settings_screen.dart';
 
@@ -200,6 +201,20 @@ class ProfileScreen extends ConsumerWidget {
                 Card(
                   child: Column(
                     children: [
+                      ListTile(
+                        leading: const Icon(Icons.speed_outlined),
+                        title: const Text('Performance Test'),
+                        subtitle: const Text('ML latency & battery test'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const PerformanceTestScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.notifications_outlined),
                         title: const Text('Notifications'),

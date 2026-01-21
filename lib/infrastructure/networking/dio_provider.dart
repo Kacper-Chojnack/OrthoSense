@@ -14,28 +14,28 @@ const String _productionApiUrl = String.fromEnvironment(
 );
 
 /// Returns appropriate base URL based on build mode and platform.
-/// In release mode: uses API_URL from dart-define or throws if not set.
-/// In debug mode: uses localhost with platform-specific addresses.
+/// If API_URL is set via dart-define, always use it (works in all modes).
+/// In release mode without API_URL: throws error.
+/// In debug mode without API_URL: uses localhost.
 String _getBaseUrl() {
-  // Release mode - use production URL
+  // If API_URL is explicitly set, always use it (profile, debug, or release)
+  if (_productionApiUrl.isNotEmpty) {
+    return _productionApiUrl;
+  }
+
+  // Release mode without API_URL - error
   if (kReleaseMode) {
-    if (_productionApiUrl.isNotEmpty) {
-      return _productionApiUrl;
-    }
-    // Fallback for testing release builds locally
     throw StateError(
       'API_URL not configured. Build with: '
       'flutter build ios --dart-define=API_URL=https://your-api.awsapprunner.com',
     );
   }
 
-  // Debug mode - use local development server
-  // macOS simulator and iOS device both use this address
+  // Debug mode without API_URL - use local development server
   if (Platform.isMacOS || Platform.isIOS) {
     return 'http://127.0.0.1:8000';
   }
 
-  // Fallback for other platforms (shouldn't happen in iOS-only app)
   return 'http://127.0.0.1:8000';
 }
 

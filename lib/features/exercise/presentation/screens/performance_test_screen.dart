@@ -52,6 +52,7 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   int _startBatteryLevel = 0;
   int _currentBatteryLevel = 0;
   BatteryState _batteryState = BatteryState.unknown;
+  bool _batteryWarningShown = false;
 
   // Frame metrics
   int _processedFrames = 0;
@@ -60,13 +61,17 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   int _framesUnder100ms = 0;
   int _framesOver100ms = 0;
 
+  // Pose detection metrics
+  int _posesDetected = 0;
+  List<Offset>? _lastPosePoints;
+
   // Memory tracking (approximate via image processing)
   int _peakMemoryMB = 0;
   int _currentMemoryMB = 0;
 
   String? _exportedPath;
   String? _errorMessage;
-  
+
   // Thesis validation thresholds
   static const double _latencyThresholdMs = 100.0;
   static const double _targetFps = 15.0;
@@ -128,6 +133,38 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   Future<void> _startTest() async {
     if (_controller == null || !_controller!.value.isInitialized) return;
 
+    // Check if battery is charging - warn user
+    if (_batteryState == BatteryState.charging && !_batteryWarningShown) {
+      _batteryWarningShown = true;
+      final shouldContinue = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.battery_charging_full, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Battery Charging'),
+            ],
+          ),
+          content: const Text(
+            'Your device is charging. Battery drain measurements will be inaccurate.\n\n'
+            'For accurate thesis data, unplug the device before testing.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Continue Anyway'),
+            ),
+          ],
+        ),
+      );
+      if (shouldContinue != true) return;
+    }
+
     // Get initial battery level
     _startBatteryLevel = await _battery.batteryLevel;
     _currentBatteryLevel = _startBatteryLevel;
@@ -142,6 +179,8 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       _droppedFrames = 0;
       _framesUnder100ms = 0;
       _framesOver100ms = 0;
+      _posesDetected = 0;
+      _lastPosePoints = null;
       _elapsed = Duration.zero;
       _exportedPath = null;
       _peakMemoryMB = 0;
@@ -178,12 +217,14 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
     try {
       final batteryLevel = await _battery.batteryLevel;
       _currentBatteryLevel = batteryLevel;
-      
-      _batterySnapshots.add(_BatterySnapshot(
-        timestampMs: _testStopwatch.elapsedMilliseconds,
-        level: batteryLevel,
-        state: _batteryState.toString(),
-      ));
+
+      _batterySnapshots.add(
+        _BatterySnapshot(
+          timestampMs: _testStopwatch.elapsedMilliseconds,
+          level: batteryLevel,
+          state: _batteryState.toString(),
+        ),
+      );
 
       // Estimate memory from GC (not exact but indicative)
       final memoryMB = _estimateMemoryUsage();
@@ -192,10 +233,12 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
         _peakMemoryMB = memoryMB;
       }
 
-      _memorySnapshots.add(_MemorySnapshot(
-        timestampMs: _testStopwatch.elapsedMilliseconds,
-        estimatedMB: memoryMB,
-      ));
+      _memorySnapshots.add(
+        _MemorySnapshot(
+          timestampMs: _testStopwatch.elapsedMilliseconds,
+          estimatedMB: memoryMB,
+        ),
+      );
     } catch (e) {
       debugPrint('Resource snapshot failed: $e');
     }
@@ -205,7 +248,8 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
     // Estimate based on frames buffered and model size
     // TFLite model ~5MB + frame buffer ~15MB + overhead ~80MB
     final baseMemory = 100;
-    final frameBufferMemory = (_processedFrames % 30) * 0.5; // Rolling buffer estimate
+    final frameBufferMemory =
+        (_processedFrames % 30) * 0.5; // Rolling buffer estimate
     return (baseMemory + frameBufferMemory).round();
   }
 
@@ -237,25 +281,53 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
 
       if (poseFrame != null) {
         _metrics.recordInferenceTime(latencyMs);
+        _posesDetected++;
+
+        // Extract pose points for visualization (sample key points)
+        final landmarks = poseFrame.landmarks;
+        if (landmarks.isNotEmpty) {
+          _lastPosePoints = [
+            // Head (nose)
+            if (landmarks.isNotEmpty) Offset(landmarks[0].x, landmarks[0].y),
+            // Shoulders
+            if (landmarks.length > 11) Offset(landmarks[11].x, landmarks[11].y),
+            if (landmarks.length > 12) Offset(landmarks[12].x, landmarks[12].y),
+            // Elbows
+            if (landmarks.length > 13) Offset(landmarks[13].x, landmarks[13].y),
+            if (landmarks.length > 14) Offset(landmarks[14].x, landmarks[14].y),
+            // Wrists
+            if (landmarks.length > 15) Offset(landmarks[15].x, landmarks[15].y),
+            if (landmarks.length > 16) Offset(landmarks[16].x, landmarks[16].y),
+            // Hips
+            if (landmarks.length > 23) Offset(landmarks[23].x, landmarks[23].y),
+            if (landmarks.length > 24) Offset(landmarks[24].x, landmarks[24].y),
+          ];
+        }
+      } else {
+        _lastPosePoints = null;
       }
 
-      _frameMetrics.add(_FrameMetric(
-        timestampMs: _testStopwatch.elapsedMilliseconds,
-        latencyMs: latencyMs,
-        hasPose: poseFrame != null,
-        frameNumber: _processedFrames,
-        meetsThreshold: latencyMs < _latencyThresholdMs,
-      ));
+      _frameMetrics.add(
+        _FrameMetric(
+          timestampMs: _testStopwatch.elapsedMilliseconds,
+          latencyMs: latencyMs,
+          hasPose: poseFrame != null,
+          frameNumber: _processedFrames,
+          meetsThreshold: latencyMs < _latencyThresholdMs,
+        ),
+      );
     } catch (e) {
       _droppedFrames++;
-      _frameMetrics.add(_FrameMetric(
-        timestampMs: _testStopwatch.elapsedMilliseconds,
-        latencyMs: 0,
-        hasPose: false,
-        frameNumber: _processedFrames,
-        meetsThreshold: false,
-        error: e.toString(),
-      ));
+      _frameMetrics.add(
+        _FrameMetric(
+          timestampMs: _testStopwatch.elapsedMilliseconds,
+          latencyMs: 0,
+          hasPose: false,
+          frameNumber: _processedFrames,
+          meetsThreshold: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -297,8 +369,8 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       final p95Latency = (percentiles['p95_ms'] as num?)?.toDouble() ?? 999.0;
       final meetsLatencyThreshold = p95Latency < _latencyThresholdMs;
       final meetsFpsTarget = actualFps >= _targetFps;
-      final thresholdCompliancePercent = _processedFrames > 0 
-          ? (_framesUnder100ms / _processedFrames * 100) 
+      final thresholdCompliancePercent = _processedFrames > 0
+          ? (_framesUnder100ms / _processedFrames * 100)
           : 0.0;
 
       final results = {
@@ -311,14 +383,16 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
           'target_fps': _targetFps,
         },
         'actual_duration_seconds': durationSeconds,
-        
+
         // Thesis Chapter 10 validation
         'thesis_validation': {
           'NF01_latency_under_100ms': meetsLatencyThreshold,
           'NF01_p95_latency_ms': p95Latency,
           'meets_15fps_target': meetsFpsTarget,
           'actual_fps': double.parse(actualFps.toStringAsFixed(1)),
-          'threshold_compliance_percent': double.parse(thresholdCompliancePercent.toStringAsFixed(1)),
+          'threshold_compliance_percent': double.parse(
+            thresholdCompliancePercent.toStringAsFixed(1),
+          ),
           'frames_under_100ms': _framesUnder100ms,
           'frames_over_100ms': _framesOver100ms,
           'validation_passed': meetsLatencyThreshold && meetsFpsTarget,
@@ -338,11 +412,15 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
           'start_level_percent': _startBatteryLevel,
           'end_level_percent': _currentBatteryLevel,
           'drain_percent': batteryDrain,
-          'drain_per_minute': durationSeconds > 0 
-              ? double.parse((batteryDrain / (durationSeconds / 60)).toStringAsFixed(2))
+          'drain_per_minute': durationSeconds > 0
+              ? double.parse(
+                  (batteryDrain / (durationSeconds / 60)).toStringAsFixed(2),
+                )
               : 0,
           'projected_30min_drain': durationSeconds > 0
-              ? double.parse((batteryDrain / durationSeconds * 30 * 60).toStringAsFixed(1))
+              ? double.parse(
+                  (batteryDrain / durationSeconds * 30 * 60).toStringAsFixed(1),
+                )
               : 0,
           'snapshots': _batterySnapshots.map((s) => s.toJson()).toList(),
         },
@@ -351,7 +429,11 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
         'memory': {
           'peak_mb': _peakMemoryMB,
           'average_mb': _memorySnapshots.isNotEmpty
-              ? (_memorySnapshots.map((s) => s.estimatedMB).reduce((a, b) => a + b) / _memorySnapshots.length).round()
+              ? (_memorySnapshots
+                            .map((s) => s.estimatedMB)
+                            .reduce((a, b) => a + b) /
+                        _memorySnapshots.length)
+                    .round()
               : 0,
           'snapshots': _memorySnapshots.map((s) => s.toJson()).toList(),
         },
@@ -362,13 +444,21 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       };
 
       final file = File('${directory.path}/perf_test_$timestamp.json');
-      await file.writeAsString(const JsonEncoder.withIndent('  ').convert(results));
+      await file.writeAsString(
+        const JsonEncoder.withIndent('  ').convert(results),
+      );
 
       setState(() => _exportedPath = file.path);
       debugPrint('📊 Results exported to: ${file.path}');
-      debugPrint('✅ Latency <100ms: $meetsLatencyThreshold (P95: ${percentiles['p95_ms']}ms)');
-      debugPrint('✅ FPS ≥15: $meetsFpsTarget (Actual: ${actualFps.toStringAsFixed(1)})');
-      debugPrint('🔋 Battery drain: $batteryDrain% over ${durationSeconds.toStringAsFixed(0)}s');
+      debugPrint(
+        '✅ Latency <100ms: $meetsLatencyThreshold (P95: ${percentiles['p95_ms']}ms)',
+      );
+      debugPrint(
+        '✅ FPS ≥15: $meetsFpsTarget (Actual: ${actualFps.toStringAsFixed(1)})',
+      );
+      debugPrint(
+        '🔋 Battery drain: $batteryDrain% over ${durationSeconds.toStringAsFixed(0)}s',
+      );
     } catch (e) {
       debugPrint('❌ Failed to export: $e');
     }
@@ -377,11 +467,12 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
   Map<String, dynamic> _calculatePercentiles() {
     if (_frameMetrics.isEmpty) return {};
 
-    final latencies = _frameMetrics
-        .where((m) => m.latencyMs > 0)
-        .map((m) => m.latencyMs)
-        .toList()
-      ..sort();
+    final latencies =
+        _frameMetrics
+            .where((m) => m.latencyMs > 0)
+            .map((m) => m.latencyMs)
+            .toList()
+          ..sort();
 
     if (latencies.isEmpty) return {};
 
@@ -403,7 +494,7 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
 
   Future<Map<String, dynamic>> _getDeviceInfo() async {
     final deviceInfoPlugin = DeviceInfoPlugin();
-    
+
     if (Platform.isIOS) {
       final iosInfo = await deviceInfoPlugin.iosInfo;
       return {
@@ -423,7 +514,7 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
         'is_physical': androidInfo.isPhysicalDevice,
       };
     }
-    
+
     return {
       'platform': Platform.operatingSystem,
       'version': Platform.operatingSystemVersion,
@@ -470,10 +561,22 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
             enabled: !_isRunning,
             onSelected: (duration) => setState(() => _testDuration = duration),
             itemBuilder: (context) => [
-              const PopupMenuItem(value: Duration(seconds: 30), child: Text('30 seconds')),
-              const PopupMenuItem(value: Duration(minutes: 1), child: Text('1 minute')),
-              const PopupMenuItem(value: Duration(minutes: 2), child: Text('2 minutes')),
-              const PopupMenuItem(value: Duration(minutes: 5), child: Text('5 min (battery test)')),
+              const PopupMenuItem(
+                value: Duration(seconds: 30),
+                child: Text('30 seconds'),
+              ),
+              const PopupMenuItem(
+                value: Duration(minutes: 1),
+                child: Text('1 minute'),
+              ),
+              const PopupMenuItem(
+                value: Duration(minutes: 2),
+                child: Text('2 minutes'),
+              ),
+              const PopupMenuItem(
+                value: Duration(minutes: 5),
+                child: Text('5 min (battery test)'),
+              ),
             ],
           ),
           if (_exportedPath != null)
@@ -497,36 +600,126 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: _isInitialized && _controller != null
-                    ? Stack(
-                        children: [
-                          CameraPreview(_controller!),
-                          // Live latency indicator overlay
-                          if (_isRunning)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _lastLatencyMs < _latencyThresholdMs
-                                      ? Colors.green.withOpacity(0.8)
-                                      : Colors.red.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${_lastLatencyMs.toStringAsFixed(0)}ms',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                    ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Calculate actual camera preview size based on aspect ratio
+                          final cameraAspectRatio =
+                              _controller!.value.aspectRatio;
+                          final containerAspectRatio =
+                              constraints.maxWidth / constraints.maxHeight;
+
+                          double previewWidth;
+                          double previewHeight;
+                          double offsetX = 0;
+                          double offsetY = 0;
+
+                          if (containerAspectRatio > cameraAspectRatio) {
+                            // Container is wider - fit by height
+                            previewHeight = constraints.maxHeight;
+                            previewWidth = previewHeight * cameraAspectRatio;
+                            offsetX = (constraints.maxWidth - previewWidth) / 2;
+                          } else {
+                            // Container is taller - fit by width
+                            previewWidth = constraints.maxWidth;
+                            previewHeight = previewWidth / cameraAspectRatio;
+                            offsetY =
+                                (constraints.maxHeight - previewHeight) / 2;
+                          }
+
+                          return Stack(
+                            children: [
+                              CameraPreview(_controller!),
+                              // Skeleton overlay - positioned to match camera preview
+                              if (_isRunning && _lastPosePoints != null)
+                                Positioned(
+                                  left: offsetX,
+                                  top: offsetY,
+                                  width: previewWidth,
+                                  height: previewHeight,
+                                  child: CustomPaint(
+                                    painter: _PoseOverlayPainter(
+                                      points: _lastPosePoints!,
+                                      color: _posesDetected > 0
+                                          ? Colors.greenAccent
+                                          : Colors.orangeAccent,
+                                    ),
+                                    size: Size(previewWidth, previewHeight),
                                   ),
                                 ),
-                              ),
-                            ),
-                        ],
+                              // Live latency indicator overlay
+                              if (_isRunning)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _lastLatencyMs < _latencyThresholdMs
+                                          ? Colors.green.withOpacity(0.8)
+                                          : Colors.red.withOpacity(0.8),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${_lastLatencyMs.toStringAsFixed(0)}ms',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              // Pose detection indicator
+                              if (_isRunning)
+                                Positioned(
+                                  top: 8,
+                                  left: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _lastPosePoints != null
+                                          ? Colors.green.withOpacity(0.8)
+                                          : Colors.orange.withOpacity(0.8),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _lastPosePoints != null
+                                              ? Icons.person
+                                              : Icons.person_off,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '$_posesDetected',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       )
                     : Center(
                         child: _errorMessage != null
-                            ? Text(_errorMessage!, style: const TextStyle(color: Colors.white))
+                            ? Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.white),
+                              )
                             : const CircularProgressIndicator(),
                       ),
               ),
@@ -541,8 +734,11 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                   children: [
                     // Progress
                     LinearProgressIndicator(
-                      value: _elapsed.inMilliseconds / _testDuration.inMilliseconds,
-                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      value:
+                          _elapsed.inMilliseconds /
+                          _testDuration.inMilliseconds,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -559,8 +755,12 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Thesis Validation (Chapter 10)', 
-                                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(
+                              'Thesis Validation (Chapter 10)',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             _buildValidationRow(
                               'NF01: Latency <100ms',
@@ -584,10 +784,12 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                     _buildMetricRow(
                       'Last Latency',
                       '${_lastLatencyMs.toStringAsFixed(1)} ms',
-                      color: _lastLatencyMs < _latencyThresholdMs ? Colors.green : Colors.red,
+                      color: _lastLatencyMs < _latencyThresholdMs
+                          ? Colors.green
+                          : Colors.red,
                     ),
                     const Divider(height: 24),
-                    
+
                     // Battery metrics
                     _buildMetricRow(
                       '🔋 Battery',
@@ -596,9 +798,14 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
                     _buildMetricRow(
                       '📉 Drain',
                       '${_startBatteryLevel - _currentBatteryLevel}% since start',
-                      color: (_startBatteryLevel - _currentBatteryLevel) > 5 ? Colors.orange : null,
+                      color: (_startBatteryLevel - _currentBatteryLevel) > 5
+                          ? Colors.orange
+                          : null,
                     ),
-                    _buildMetricRow('💾 Memory (est.)', '$_currentMemoryMB MB (peak: $_peakMemoryMB MB)'),
+                    _buildMetricRow(
+                      '💾 Memory (est.)',
+                      '$_currentMemoryMB MB (peak: $_peakMemoryMB MB)',
+                    ),
 
                     const SizedBox(height: 16),
 
@@ -655,16 +862,24 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
     );
   }
 
-  Widget _buildResultsCard(ThemeData theme, double actualFps, double thresholdCompliance) {
+  Widget _buildResultsCard(
+    ThemeData theme,
+    double actualFps,
+    double thresholdCompliance,
+  ) {
     final passed = thresholdCompliance >= 95 && actualFps >= _targetFps;
     final batteryDrain = _startBatteryLevel - _currentBatteryLevel;
     final durationMin = _testDuration.inSeconds / 60;
-    final projected30minDrain = durationMin > 0 ? (batteryDrain / durationMin * 30).round() : 0;
+    final projected30minDrain = durationMin > 0
+        ? (batteryDrain / durationMin * 30).round()
+        : 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: passed ? theme.colorScheme.primaryContainer : theme.colorScheme.errorContainer,
+        color: passed
+            ? theme.colorScheme.primaryContainer
+            : theme.colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -678,7 +893,9 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
           Text(
             passed ? 'Validation Passed! ✓' : 'Validation Failed',
             style: theme.textTheme.titleLarge?.copyWith(
-              color: passed ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onErrorContainer,
+              color: passed
+                  ? theme.colorScheme.onPrimaryContainer
+                  : theme.colorScheme.onErrorContainer,
             ),
           ),
           const SizedBox(height: 8),
@@ -688,7 +905,11 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
             'Battery drain (30 min projected): ~$projected30minDrain%',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: (passed ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onErrorContainer).withOpacity(0.8),
+              color:
+                  (passed
+                          ? theme.colorScheme.onPrimaryContainer
+                          : theme.colorScheme.onErrorContainer)
+                      .withOpacity(0.8),
             ),
           ),
         ],
@@ -708,10 +929,13 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(child: Text(label)),
-          Text(value, style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: passed ? Colors.green : Colors.red,
-          )),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: passed ? Colors.green : Colors.red,
+            ),
+          ),
         ],
       ),
     );
@@ -756,13 +980,13 @@ class _FrameMetric {
   });
 
   Map<String, dynamic> toJson() => {
-        'timestamp_ms': timestampMs,
-        'latency_ms': double.parse(latencyMs.toStringAsFixed(2)),
-        'has_pose': hasPose,
-        'frame_number': frameNumber,
-        'meets_100ms_threshold': meetsThreshold,
-        if (error != null) 'error': error,
-      };
+    'timestamp_ms': timestampMs,
+    'latency_ms': double.parse(latencyMs.toStringAsFixed(2)),
+    'has_pose': hasPose,
+    'frame_number': frameNumber,
+    'meets_100ms_threshold': meetsThreshold,
+    if (error != null) 'error': error,
+  };
 }
 
 class _BatterySnapshot {
@@ -777,10 +1001,10 @@ class _BatterySnapshot {
   });
 
   Map<String, dynamic> toJson() => {
-        'timestamp_ms': timestampMs,
-        'level_percent': level,
-        'state': state,
-      };
+    'timestamp_ms': timestampMs,
+    'level_percent': level,
+    'state': state,
+  };
 }
 
 class _MemorySnapshot {
@@ -793,7 +1017,73 @@ class _MemorySnapshot {
   });
 
   Map<String, dynamic> toJson() => {
-        'timestamp_ms': timestampMs,
-        'estimated_mb': estimatedMB,
-      };
+    'timestamp_ms': timestampMs,
+    'estimated_mb': estimatedMB,
+  };
+}
+
+/// Paints pose landmarks as visual skeleton overlay
+class _PoseOverlayPainter extends CustomPainter {
+  final List<Offset> points;
+  final Color color;
+
+  _PoseOverlayPainter({
+    required this.points,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.fill;
+
+    final linePaint = Paint()
+      ..color = color.withOpacity(0.6)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    // Draw landmark points as circles
+    for (final point in points) {
+      // Landmarks are normalized 0-1, convert to canvas coords
+      final x = point.dx * size.width;
+      final y = point.dy * size.height;
+      canvas.drawCircle(Offset(x, y), 6, paint);
+    }
+
+    // Draw connections (simplified skeleton)
+    if (points.length >= 9) {
+      // Helper to get screen coordinates
+      Offset screenPoint(int index) {
+        final p = points[index];
+        return Offset(p.dx * size.width, p.dy * size.height);
+      }
+
+      // Shoulder line
+      canvas.drawLine(screenPoint(1), screenPoint(2), linePaint);
+      // Left arm: shoulder -> elbow -> wrist
+      canvas.drawLine(screenPoint(1), screenPoint(3), linePaint);
+      canvas.drawLine(screenPoint(3), screenPoint(5), linePaint);
+      // Right arm: shoulder -> elbow -> wrist
+      canvas.drawLine(screenPoint(2), screenPoint(4), linePaint);
+      canvas.drawLine(screenPoint(4), screenPoint(6), linePaint);
+      // Torso: shoulders to hips
+      canvas.drawLine(screenPoint(1), screenPoint(7), linePaint);
+      canvas.drawLine(screenPoint(2), screenPoint(8), linePaint);
+      // Hip line
+      canvas.drawLine(screenPoint(7), screenPoint(8), linePaint);
+      // Head to midpoint of shoulders
+      final midShoulders = Offset(
+        (screenPoint(1).dx + screenPoint(2).dx) / 2,
+        (screenPoint(1).dy + screenPoint(2).dy) / 2,
+      );
+      canvas.drawLine(screenPoint(0), midShoulders, linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PoseOverlayPainter oldDelegate) {
+    return oldDelegate.points != points || oldDelegate.color != color;
+  }
 }
