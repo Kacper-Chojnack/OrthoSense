@@ -184,14 +184,14 @@ class TestAPILatencyBenchmarks:
 
         for _ in range(num_requests):
             start = time.perf_counter()
-            response = await client.get("/api/v1/health")
+            response = await client.get("/health")
             end = time.perf_counter()
 
             latencies.append((end - start) * 1000)
             assert response.status_code == 200
 
         result = {
-            "endpoint": "GET /api/v1/health",
+            "endpoint": "GET /health",
             "requests": num_requests,
             "min_ms": round(min(latencies), 2),
             "max_ms": round(max(latencies), 2),
@@ -386,7 +386,7 @@ class TestConcurrentLoadBenchmarks:
             batch_latencies = []
             for _ in range(batch_size):
                 req_start = time.perf_counter()
-                response = await client.get("/api/v1/health")
+                response = await client.get("/health")
                 req_end = time.perf_counter()
                 if response.status_code == 200:
                     batch_latencies.append((req_end - req_start) * 1000)
@@ -428,7 +428,7 @@ class TestEndpointComparison:
 
         # Test endpoints configuration
         endpoints = [
-            {"name": "Health Check", "method": "GET", "path": "/api/v1/health", "auth": False},
+            {"name": "Health Check", "method": "GET", "path": "/health", "auth": False},
             {"name": "List Exercises", "method": "GET", "path": "/api/v1/exercises", "auth": True},
             {"name": "Create Session", "method": "POST", "path": "/api/v1/sessions",
              "auth": True, "json": {"scheduled_date": datetime.now(UTC).isoformat()}},

@@ -81,13 +81,15 @@ class MobilePerformanceMetrics {
     final memoryMB = await _getCurrentMemoryMB();
     final elapsedSeconds = _sessionStopwatch.elapsedMilliseconds / 1000;
 
-    _resourceSamples.add(_ResourceSample(
-      timestampSeconds: elapsedSeconds,
-      memoryMB: memoryMB,
-      // Note: Actual CPU/battery metrics require platform-specific code
-      cpuPercent: null,
-      batteryPercent: null,
-    ));
+    _resourceSamples.add(
+      _ResourceSample(
+        timestampSeconds: elapsedSeconds,
+        memoryMB: memoryMB,
+        // Note: Actual CPU/battery metrics require platform-specific code
+        cpuPercent: null,
+        batteryPercent: null,
+      ),
+    );
   }
 
   /// Get current memory usage in MB.
@@ -126,13 +128,19 @@ class MobilePerformanceMetrics {
       resourceSamples: List.from(_resourceSamples),
       totalFrames: _frameLatencies.length,
       averageFps: _frameLatencies.isNotEmpty
-          ? 1000 / (_frameLatencies.reduce((a, b) => a + b) / _frameLatencies.length)
+          ? 1000 /
+                (_frameLatencies.reduce((a, b) => a + b) /
+                    _frameLatencies.length)
           : 0,
     );
 
     debugPrint('📊 Performance session ended: ${report.sessionName}');
-    debugPrint('   Frames: ${report.totalFrames}, Avg FPS: ${report.averageFps.toStringAsFixed(1)}');
-    debugPrint('   Frame latency - Mean: ${report.frameStats.mean.toStringAsFixed(1)}ms, P95: ${report.frameStats.p95.toStringAsFixed(1)}ms');
+    debugPrint(
+      '   Frames: ${report.totalFrames}, Avg FPS: ${report.averageFps.toStringAsFixed(1)}',
+    );
+    debugPrint(
+      '   Frame latency - Mean: ${report.frameStats.mean.toStringAsFixed(1)}ms, P95: ${report.frameStats.p95.toStringAsFixed(1)}ms',
+    );
 
     return report;
   }
@@ -187,10 +195,14 @@ class MobilePerformanceMetrics {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final file = File('${directory.path}/perf_${report.sessionName}_$timestamp.json');
+      final file = File(
+        '${directory.path}/perf_${report.sessionName}_$timestamp.json',
+      );
 
       final jsonData = report.toJson();
-      await file.writeAsString(const JsonEncoder.withIndent('  ').convert(jsonData));
+      await file.writeAsString(
+        const JsonEncoder.withIndent('  ').convert(jsonData),
+      );
 
       debugPrint('📊 Performance report exported to: ${file.path}');
       return file.path;
@@ -230,26 +242,26 @@ class LatencyStats {
   });
 
   factory LatencyStats.empty() => const LatencyStats(
-        count: 0,
-        min: 0,
-        max: 0,
-        mean: 0,
-        median: 0,
-        p95: 0,
-        p99: 0,
-        stdDev: 0,
-      );
+    count: 0,
+    min: 0,
+    max: 0,
+    mean: 0,
+    median: 0,
+    p95: 0,
+    p99: 0,
+    stdDev: 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'count': count,
-        'min_ms': double.parse(min.toStringAsFixed(2)),
-        'max_ms': double.parse(max.toStringAsFixed(2)),
-        'mean_ms': double.parse(mean.toStringAsFixed(2)),
-        'median_ms': double.parse(median.toStringAsFixed(2)),
-        'p95_ms': double.parse(p95.toStringAsFixed(2)),
-        'p99_ms': double.parse(p99.toStringAsFixed(2)),
-        'std_dev_ms': double.parse(stdDev.toStringAsFixed(2)),
-      };
+    'count': count,
+    'min_ms': double.parse(min.toStringAsFixed(2)),
+    'max_ms': double.parse(max.toStringAsFixed(2)),
+    'mean_ms': double.parse(mean.toStringAsFixed(2)),
+    'median_ms': double.parse(median.toStringAsFixed(2)),
+    'p95_ms': double.parse(p95.toStringAsFixed(2)),
+    'p99_ms': double.parse(p99.toStringAsFixed(2)),
+    'std_dev_ms': double.parse(stdDev.toStringAsFixed(2)),
+  };
 }
 
 /// Resource usage sample at a point in time.
@@ -267,11 +279,11 @@ class _ResourceSample {
   });
 
   Map<String, dynamic> toJson() => {
-        'timestamp_seconds': double.parse(timestampSeconds.toStringAsFixed(2)),
-        'memory_mb': memoryMB,
-        if (cpuPercent != null) 'cpu_percent': cpuPercent,
-        if (batteryPercent != null) 'battery_percent': batteryPercent,
-      };
+    'timestamp_seconds': double.parse(timestampSeconds.toStringAsFixed(2)),
+    'memory_mb': memoryMB,
+    if (cpuPercent != null) 'cpu_percent': cpuPercent,
+    if (batteryPercent != null) 'battery_percent': batteryPercent,
+  };
 }
 
 /// Complete performance report for a session.
@@ -299,18 +311,18 @@ class PerformanceReport {
   });
 
   Map<String, dynamic> toJson() => {
-        'session_name': sessionName,
-        'start_time': startTime.toIso8601String(),
-        'end_time': endTime.toIso8601String(),
-        'duration_seconds': double.parse(durationSeconds.toStringAsFixed(2)),
-        'total_frames': totalFrames,
-        'average_fps': double.parse(averageFps.toStringAsFixed(2)),
-        'frame_latency': frameStats.toJson(),
-        'inference_latency': inferenceStats.toJson(),
-        'resource_samples': resourceSamples.map((s) => s.toJson()).toList(),
-        'summary': {
-          'meets_100ms_threshold': frameStats.p95 < 100,
-          'meets_15fps_target': averageFps >= 15,
-        },
-      };
+    'session_name': sessionName,
+    'start_time': startTime.toIso8601String(),
+    'end_time': endTime.toIso8601String(),
+    'duration_seconds': double.parse(durationSeconds.toStringAsFixed(2)),
+    'total_frames': totalFrames,
+    'average_fps': double.parse(averageFps.toStringAsFixed(2)),
+    'frame_latency': frameStats.toJson(),
+    'inference_latency': inferenceStats.toJson(),
+    'resource_samples': resourceSamples.map((s) => s.toJson()).toList(),
+    'summary': {
+      'meets_100ms_threshold': frameStats.p95 < 100,
+      'meets_15fps_target': averageFps >= 15,
+    },
+  };
 }

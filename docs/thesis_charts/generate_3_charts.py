@@ -60,13 +60,47 @@ def load_real_api_data():
 
 
 def load_mobile_performance_data():
-    """Ładuje najnowsze wyniki testów wydajności z telefonu."""
+    """
+    Ładuje wyniki testów wydajności z telefonów.
+    Zwraca dict z danymi dla iPhone 14 Pro i iPhone 16.
+    """
     files = sorted(BENCHMARKS_DIR.glob("perf_test_*.json"), reverse=True)
-    if files:
-        with open(files[0], 'r', encoding='utf-8') as f:
-            print(f"✓ Załadowano Mobile: {files[0].name}")
-            return json.load(f)
-    return None
+    
+    # Mapowanie modeli urządzeń na czytelne nazwy
+    device_names = {
+        'iPhone15,2': 'iPhone 14 Pro',
+        'iPhone17,3': 'iPhone 16',
+        'iPhone17,4': 'iPhone 16',
+        'iPhone17,1': 'iPhone 16 Pro',
+        'iPhone17,2': 'iPhone 16 Pro Max',
+    }
+    
+    devices_data = {}
+    
+    for f in files:
+        try:
+            with open(f, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+                
+                # Pobierz model urządzenia
+                device_info = data.get('device', {})
+                model = device_info.get('model', 'Unknown')
+                
+                # Mapuj na czytelną nazwę
+                device_name = device_names.get(model, model)
+                
+                # Zbieramy tylko iPhone 14 Pro i iPhone 16
+                if 'iPhone 14 Pro' in device_name or 'iPhone 16' in device_name:
+                    # Jeśli jeszcze nie mamy danych dla tego urządzenia, dodaj
+                    if device_name not in devices_data:
+                        devices_data[device_name] = data
+                        print(f"✓ Załadowano Mobile ({device_name}): {f.name}")
+                        
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"⚠ Błąd parsowania {f.name}: {e}")
+            continue
+    
+    return devices_data if devices_data else None
 
 
 def create_wykres_1_latencja():
@@ -77,51 +111,70 @@ def create_wykres_1_latencja():
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
     
     # --- Lewa strona: Latencja ML na urządzeniach mobilnych ---
-    # Próbuj załadować prawdziwe dane z telefonu
+    # Ładuj dane dla iPhone 14 Pro i iPhone 16
     mobile_data = load_mobile_performance_data()
     
-    if mobile_data:
-        # Użyj prawdziwych danych z testu
-        device_name = mobile_data.get('device_info', {}).get('model', 'iPhone')
-        stats = mobile_data.get('statistics', {})
+    if mobile_data and len(mobile_data) > 0:
+        devices = []
+        min_latency = []
+        max_latency = []
+        avg_latency = []
+        p95_latency = []
         
-        devices = [device_name]
-        min_latency = [stats.get('min_latency_ms', 0)]
-        max_latency = [stats.get('max_latency_ms', 0)]
-        avg_latency = [stats.get('mean_latency_ms', 0)]
+        # Sortuj urządzenia (iPhone 14 Pro przed iPhone 16)
+        sorted_devices = sorted(mobile_data.keys(), 
+                                key=lambda x: '0' if '14' in x else '1')
+        
+        for device_name in sorted_devices:
+            data = mobile_data[device_name]
+            
+            # Pobierz statystyki z odpowiednich kluczy
+            summary = data.get('summary', {})
+            frame_latency = summary.get('frame_latency', {})
+            thesis = data.get('thesis_validation', {})
+            
+            devices.append(device_name)
+            min_latency.append(frame_latency.get('min_ms', 0))
+            max_latency.append(frame_latency.get('max_ms', 0))
+            avg_latency.append(frame_latency.get('mean_ms', 0))
+            p95_latency.append(thesis.get('NF01_p95_latency_ms', frame_latency.get('p95_ms', 0)))
         
         # Dodaj informację o źródle danych
-        ax1.text(0.02, 0.98, '✓ Prawdziwe dane z testu', transform=ax1.transAxes,
+        ax1.text(0.02, 0.98, f'✓ Prawdziwe dane\n   ({len(devices)} urządzenia)', 
+                 transform=ax1.transAxes,
                  fontsize=9, verticalalignment='top', color=COLORS['success'],
                  fontweight='bold')
     else:
         # Fallback - przykładowe dane (oznaczone wyraźnie)
-        devices = ['iPhone 14 Pro\n(przykład)', 'iPhone 16\n(przykład)', 'iPhone 12\n(przykład)']
-        min_latency = [35, 32, 55]
-        max_latency = [50, 45, 75]
-        avg_latency = [42, 38, 65]
+        devices = ['iPhone 14 Pro\n(przykład)', 'iPhone 16\n(przykład)']
+        min_latency = [11, 10]
+        max_latency = [28, 25]
+        avg_latency = [13.5, 12.0]
+        p95_latency = [14.5, 13.0]
         
         ax1.text(0.02, 0.98, '⚠ Dane przykładowe\nUruchom test na telefonie', 
                  transform=ax1.transAxes, fontsize=9, verticalalignment='top', 
                  color=COLORS['accent'], fontweight='bold')
     
     x = np.arange(len(devices))
-    width = 0.6
+    width = 0.5
     
-    errors = [[avg - min_l for avg, min_l in zip(avg_latency, min_latency)],
-              [max_l - avg for max_l, avg in zip(max_latency, avg_latency)]]
+    # Użyj P95 jako głównej metryki (zgodnie z thesis validation)
+    errors = [[p95 - min_l for p95, min_l in zip(p95_latency, min_latency)],
+              [max_l - p95 for max_l, p95 in zip(max_latency, p95_latency)]]
     
-    bars = ax1.bar(x, avg_latency, width, yerr=errors, capsize=8,
+    bars = ax1.bar(x, p95_latency, width, yerr=errors, capsize=8,
                    color=COLORS['primary'], edgecolor='white', linewidth=1.5,
                    error_kw={'elinewidth': 2, 'ecolor': COLORS['dark'], 'capthick': 2})
     
     ax1.axhline(y=100, color=COLORS['danger'], linestyle='--', linewidth=2.5,
-                label='Próg krytyczny (100 ms)')
+                label='Próg NF01 (100 ms)')
     ax1.axhspan(0, 100, alpha=0.1, color=COLORS['success'])
     
-    for bar, avg in zip(bars, avg_latency):
-        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 8,
-                 f'{avg:.1f} ms', ha='center', va='bottom', fontweight='bold', fontsize=11)
+    for bar, p95, avg in zip(bars, p95_latency, avg_latency):
+        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 3,
+                 f'P95: {p95:.1f} ms\n(śr: {avg:.1f})', ha='center', va='bottom', 
+                 fontweight='bold', fontsize=10)
     
     ax1.set_ylabel('Czas przetwarzania klatki [ms]')
     ax1.set_title('(a) Latencja ML na urządzeniach mobilnych', fontweight='bold', pad=10)
