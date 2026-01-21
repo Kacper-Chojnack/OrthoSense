@@ -164,7 +164,9 @@ def calculate_percentile(data: list[float], percentile: float) -> float:
 def save_results(test_name: str, data: dict) -> None:
     """Save test results to JSON file."""
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    filename = RESULTS_DIR / f"{test_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+    filename = (
+        RESULTS_DIR / f"{test_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+    )
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     print(f"\n📊 Results saved to: {filename}")
@@ -203,10 +205,13 @@ class TestAPILatencyBenchmarks:
             "all_latencies": [round(latency, 2) for latency in latencies],
         }
 
-        save_results("health_latency", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "result": result,
-        })
+        save_results(
+            "health_latency",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "result": result,
+            },
+        )
 
         assert result["p95_ms"] < 50, f"P95 latency {result['p95_ms']}ms exceeds 50ms"
 
@@ -241,14 +246,19 @@ class TestAPILatencyBenchmarks:
             "median_ms": round(statistics.median(latencies), 2),
             "p95_ms": round(calculate_percentile(latencies, 95), 2),
             "p99_ms": round(calculate_percentile(latencies, 99), 2),
-            "std_dev_ms": round(statistics.stdev(latencies), 2) if len(latencies) > 1 else 0,
+            "std_dev_ms": round(statistics.stdev(latencies), 2)
+            if len(latencies) > 1
+            else 0,
             "all_latencies": [round(latency, 2) for latency in latencies],
         }
 
-        save_results("exercises_latency", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "result": result,
-        })
+        save_results(
+            "exercises_latency",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "result": result,
+            },
+        )
 
         assert result["p95_ms"] < 100
 
@@ -286,14 +296,19 @@ class TestAPILatencyBenchmarks:
             "median_ms": round(statistics.median(latencies), 2),
             "p95_ms": round(calculate_percentile(latencies, 95), 2),
             "p99_ms": round(calculate_percentile(latencies, 99), 2),
-            "std_dev_ms": round(statistics.stdev(latencies), 2) if len(latencies) > 1 else 0,
+            "std_dev_ms": round(statistics.stdev(latencies), 2)
+            if len(latencies) > 1
+            else 0,
             "all_latencies": [round(latency, 2) for latency in latencies],
         }
 
-        save_results("session_creation_latency", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "result": result,
-        })
+        save_results(
+            "session_creation_latency",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "result": result,
+            },
+        )
 
         assert result["p95_ms"] < 200
 
@@ -346,23 +361,34 @@ class TestConcurrentLoadBenchmarks:
             end_total = time.perf_counter()
             total_duration = end_total - start_total
 
-            results.append({
-                "concurrent_users": num_concurrent,
-                "successful": len(latencies),
-                "errors": errors,
-                "total_duration_ms": round(total_duration * 1000, 2),
-                "throughput_rps": round(len(latencies) / total_duration, 2) if total_duration > 0 else 0,
-                "mean_latency_ms": round(statistics.mean(latencies), 2) if latencies else 0,
-                "p95_latency_ms": round(calculate_percentile(latencies, 95), 2) if latencies else 0,
-                "success_rate": round(len(latencies) / num_concurrent * 100, 1),
-            })
+            results.append(
+                {
+                    "concurrent_users": num_concurrent,
+                    "successful": len(latencies),
+                    "errors": errors,
+                    "total_duration_ms": round(total_duration * 1000, 2),
+                    "throughput_rps": round(len(latencies) / total_duration, 2)
+                    if total_duration > 0
+                    else 0,
+                    "mean_latency_ms": round(statistics.mean(latencies), 2)
+                    if latencies
+                    else 0,
+                    "p95_latency_ms": round(calculate_percentile(latencies, 95), 2)
+                    if latencies
+                    else 0,
+                    "success_rate": round(len(latencies) / num_concurrent * 100, 1),
+                }
+            )
 
             await asyncio.sleep(0.5)  # Cool down between levels
 
-        save_results("concurrent_load", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "results": results,
-        })
+        save_results(
+            "concurrent_load",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "results": results,
+            },
+        )
 
         # At least 80% success rate at highest load
         assert results[-1]["success_rate"] >= 80
@@ -394,21 +420,30 @@ class TestConcurrentLoadBenchmarks:
             batch_end = time.perf_counter()
             batch_duration = batch_end - batch_start
 
-            time_series.append({
-                "time_seconds": round(elapsed, 2),
-                "requests": len(batch_latencies),
-                "mean_latency_ms": round(statistics.mean(batch_latencies), 2) if batch_latencies else 0,
-                "throughput_rps": round(len(batch_latencies) / batch_duration, 2) if batch_duration > 0 else 0,
-            })
+            time_series.append(
+                {
+                    "time_seconds": round(elapsed, 2),
+                    "requests": len(batch_latencies),
+                    "mean_latency_ms": round(statistics.mean(batch_latencies), 2)
+                    if batch_latencies
+                    else 0,
+                    "throughput_rps": round(len(batch_latencies) / batch_duration, 2)
+                    if batch_duration > 0
+                    else 0,
+                }
+            )
 
             await asyncio.sleep(0.2)
 
-        save_results("sustained_throughput", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "duration_seconds": duration_seconds,
-            "total_requests": sum(ts["requests"] for ts in time_series),
-            "time_series": time_series,
-        })
+        save_results(
+            "sustained_throughput",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "duration_seconds": duration_seconds,
+                "total_requests": sum(ts["requests"] for ts in time_series),
+                "time_series": time_series,
+            },
+        )
 
 
 class TestEndpointComparison:
@@ -429,9 +464,19 @@ class TestEndpointComparison:
         # Test endpoints configuration
         endpoints = [
             {"name": "Health Check", "method": "GET", "path": "/health", "auth": False},
-            {"name": "List Exercises", "method": "GET", "path": "/api/v1/exercises", "auth": True},
-            {"name": "Create Session", "method": "POST", "path": "/api/v1/sessions",
-             "auth": True, "json": {"scheduled_date": datetime.now(UTC).isoformat()}},
+            {
+                "name": "List Exercises",
+                "method": "GET",
+                "path": "/api/v1/exercises",
+                "auth": True,
+            },
+            {
+                "name": "Create Session",
+                "method": "POST",
+                "path": "/api/v1/sessions",
+                "auth": True,
+                "json": {"scheduled_date": datetime.now(UTC).isoformat()},
+            },
         ]
 
         for endpoint in endpoints:
@@ -456,19 +501,24 @@ class TestEndpointComparison:
                     latencies.append((end - start) * 1000)
 
             if latencies:
-                endpoints_results.append({
-                    "name": endpoint["name"],
-                    "method": endpoint["method"],
-                    "path": endpoint["path"],
-                    "requests": len(latencies),
-                    "mean_ms": round(statistics.mean(latencies), 2),
-                    "median_ms": round(statistics.median(latencies), 2),
-                    "p95_ms": round(calculate_percentile(latencies, 95), 2),
-                    "min_ms": round(min(latencies), 2),
-                    "max_ms": round(max(latencies), 2),
-                })
+                endpoints_results.append(
+                    {
+                        "name": endpoint["name"],
+                        "method": endpoint["method"],
+                        "path": endpoint["path"],
+                        "requests": len(latencies),
+                        "mean_ms": round(statistics.mean(latencies), 2),
+                        "median_ms": round(statistics.median(latencies), 2),
+                        "p95_ms": round(calculate_percentile(latencies, 95), 2),
+                        "min_ms": round(min(latencies), 2),
+                        "max_ms": round(max(latencies), 2),
+                    }
+                )
 
-        save_results("endpoints_comparison", {
-            "timestamp": datetime.now(UTC).isoformat(),
-            "results": endpoints_results,
-        })
+        save_results(
+            "endpoints_comparison",
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "results": endpoints_results,
+            },
+        )
