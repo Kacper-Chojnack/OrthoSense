@@ -12,6 +12,7 @@ import 'package:orthosense/core/providers/pose_detection_provider.dart';
 import 'package:orthosense/core/services/pose_detection_service.dart'
     show PoseAnalysisCancelledException, PoseAnalysisCancellationToken;
 import 'package:orthosense/core/theme/app_colors.dart';
+import 'package:orthosense/features/exercise/data/analysis_result_saver.dart';
 import 'package:video_player/video_player.dart';
 
 class GalleryAnalysisScreen extends ConsumerStatefulWidget {
@@ -185,6 +186,15 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
             'text_report': textReport,
           };
         });
+
+        // Save to history
+        final durationSeconds = _videoController?.value.duration.inSeconds ?? 0;
+        unawaited(_saveAnalysisResultToDb(
+          exerciseName: classification.exercise,
+          isCorrect: diagnosticsResult.isCorrect,
+          feedback: diagnosticsResult.feedback,
+          durationSeconds: durationSeconds,
+        ));
       }
     } catch (e) {
       if (e is PoseAnalysisCancelledException) {
@@ -222,6 +232,34 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
       _error = null;
       _extractionProgress = 0;
     });
+  }
+
+  /// Save analysis result to local database for history tracking.
+  Future<void> _saveAnalysisResultToDb({
+    required String exerciseName,
+    required bool isCorrect,
+    required Map<String, dynamic> feedback,
+    required int durationSeconds,
+  }) async {
+    // Convert feedback map to error counts (1 if error present, 0 otherwise)
+    final errorCounts = <String, int>{};
+    for (final entry in feedback.entries) {
+      if (entry.key != 'System') {
+        errorCounts[entry.key] = entry.value == true || entry.value != false ? 1 : 0;
+      }
+    }
+
+    // Calculate score based on correctness
+    final score = isCorrect ? 100 : (100 - (errorCounts.length * 15)).clamp(0, 100);
+
+    final saver = AnalysisResultSaver(ref);
+    await saver.saveResult(
+      exerciseName: exerciseName,
+      score: score,
+      isCorrect: isCorrect,
+      errorCounts: errorCounts,
+      durationSeconds: durationSeconds,
+    );
   }
 
   @override
@@ -612,7 +650,7 @@ class _ResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Feedback',
+              'Detected issues:',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurfaceVariant,
@@ -693,10 +731,12 @@ class _ConfidenceRow extends StatelessWidget {
                   color: theme.colorScheme.primary,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  "What does 'Confidence' mean?",
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    "What does 'Confidence' mean?",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],

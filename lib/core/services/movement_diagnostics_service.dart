@@ -698,15 +698,6 @@ class MovementDiagnosticsService {
     } else {
       buffer.writeln('Status: Technique needs improvement.');
 
-      buffer.writeln('\nDetected Issues:');
-      for (final entry in filteredFeedback.entries) {
-        if (entry.value == true) {
-          buffer.writeln('• ${entry.key}');
-        } else {
-          buffer.writeln('• ${entry.key}: ${entry.value}');
-        }
-      }
-
       final adviceList = <String>[];
 
       for (final key in filteredFeedback.keys) {
