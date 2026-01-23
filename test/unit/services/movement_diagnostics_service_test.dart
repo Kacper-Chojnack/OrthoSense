@@ -312,9 +312,8 @@ void main() {
 
       expect(report, contains('Exercise Analysis: Deep Squat'));
       expect(report, contains('Status: Technique needs improvement.'));
-      expect(report, contains('Detected Issues:'));
-      expect(report, contains('Squat too shallow'));
       expect(report, contains('Recommendations:'));
+      expect(report, contains('lower your hips further'));
     });
 
     test('generates report with value feedback', () {
@@ -327,7 +326,8 @@ void main() {
 
       final report = service.generateReport(result, 'Hurdle Step');
 
-      expect(report, contains('Excessive trunk lean: 25°'));
+      expect(report, contains('Recommendations:'));
+      expect(report, contains('Stand tall with a neutral spine'));
     });
 
     test('ignores No active exercise detected in report', () {

@@ -254,10 +254,9 @@ void main() {
 
       expect(report, contains('Exercise Analysis: Deep Squat'));
       expect(report, contains('Status: Technique needs improvement'));
-      expect(report, contains('Squat too shallow'));
-      expect(report, contains('Knee Valgus'));
-      expect(report, contains('Heels rising'));
       expect(report, contains('Recommendations'));
+      expect(report, contains('lower your hips further'));
+      expect(report, contains('pushing your knees outward'));
     });
 
     test('generates report with specific error values', () {
@@ -271,8 +270,8 @@ void main() {
 
       final report = service.generateReport(result, 'Hurdle Step');
 
-      expect(report, contains('Torso Instability: 15°'));
-      expect(report, contains('Asymmetrical Shift: Right'));
+      expect(report, contains('Recommendations'));
+      expect(report, contains('torso upright'));
     });
 
     test('generates report for correct hurdle step', () {
@@ -344,12 +343,11 @@ void main() {
 
       final report = service.generateReport(result, 'Hurdle Step');
 
-      expect(report, contains('Pelvic Hike'));
-      expect(report, contains('Knee Valgus'));
-      expect(report, contains('Torso Instability'));
-      expect(report, contains('Step too low'));
-      expect(report, contains('Foot External Rotation'));
-      expect(report, contains('Dorsiflexion'));
+      expect(report, contains('Recommendations'));
+      expect(report, contains('hips level'));
+      expect(report, contains('stable and aligned'));
+      expect(report, contains('torso upright'));
+      expect(report, contains('raise your knee higher'));
     });
 
     test('generates report with all shoulder abduction errors', () {
@@ -370,12 +368,11 @@ void main() {
         'Standing Shoulder Abduction',
       );
 
-      expect(report, contains('Shrugging'));
-      expect(report, contains('trunk lean'));
-      expect(report, contains('non-working arm'));
-      expect(report, contains('asymmetry'));
-      expect(report, contains('too high'));
-      expect(report, contains('too shallow'));
+      expect(report, contains('Recommendations'));
+      expect(report, contains('shoulders down'));
+      expect(report, contains('Stand tall'));
+      expect(report, contains('resting arm'));
+      expect(report, contains('same speed'));
     });
   });
 
