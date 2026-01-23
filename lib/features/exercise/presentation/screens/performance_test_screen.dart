@@ -449,7 +449,6 @@ class _PerformanceTestScreenState extends ConsumerState<PerformanceTestScreen> {
       pipelineStopwatch.stop();
       final totalLatencyMs = pipelineStopwatch.elapsedMicroseconds / 1000.0;
       _lastTotalPipelineLatencyMs = totalLatencyMs;
-      _lastLatencyMs = totalLatencyMs;
       _metrics.recordFrameTime(totalLatencyMs);
 
       // Track threshold compliance for thesis (TOTAL pipeline latency)

@@ -189,12 +189,14 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
 
         // Save to history
         final durationSeconds = _videoController?.value.duration.inSeconds ?? 0;
-        unawaited(_saveAnalysisResultToDb(
-          exerciseName: classification.exercise,
-          isCorrect: diagnosticsResult.isCorrect,
-          feedback: diagnosticsResult.feedback,
-          durationSeconds: durationSeconds,
-        ));
+        unawaited(
+          _saveAnalysisResultToDb(
+            exerciseName: classification.exercise,
+            isCorrect: diagnosticsResult.isCorrect,
+            feedback: diagnosticsResult.feedback,
+            durationSeconds: durationSeconds,
+          ),
+        );
       }
     } catch (e) {
       if (e is PoseAnalysisCancelledException) {
@@ -245,12 +247,16 @@ class _GalleryAnalysisScreenState extends ConsumerState<GalleryAnalysisScreen> {
     final errorCounts = <String, int>{};
     for (final entry in feedback.entries) {
       if (entry.key != 'System') {
-        errorCounts[entry.key] = entry.value == true || entry.value != false ? 1 : 0;
+        errorCounts[entry.key] = entry.value == true || entry.value != false
+            ? 1
+            : 0;
       }
     }
 
     // Calculate score based on correctness
-    final score = isCorrect ? 100 : (100 - (errorCounts.length * 15)).clamp(0, 100);
+    final score = isCorrect
+        ? 100
+        : (100 - (errorCounts.length * 15)).clamp(0, 100);
 
     final saver = AnalysisResultSaver(ref);
     await saver.saveResult(
