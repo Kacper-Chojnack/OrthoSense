@@ -154,7 +154,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-dev-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -230,7 +230,7 @@ jobs:
           path: terraform
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-dev-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -264,7 +264,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-staging-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -318,7 +318,7 @@ jobs:
           path: terraform
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-staging-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -353,7 +353,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-prod-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
@@ -407,7 +407,7 @@ jobs:
           path: terraform
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/orthosense-prod-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
